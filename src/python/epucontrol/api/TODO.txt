@@ -1,0 +1,3 @@
+The API here will work like workspace-control.  We don't know the most useful
+abstractions yet so for now the module loader skips API awareness and loads
+classes directly.  See the epucontrol.defaults package.

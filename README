@@ -1,0 +1,70 @@
+======================================
+Dependencies
+======================================
+
+Fabfile ("fab" on the commandline) and boto are required.
+
+
+======================================
+Preparations
+======================================
+
+In the file "etc/epucontrol/services/sleeper.chefroles.json", replace
+"COOKIE" with the erlang cookie required to monitor the RabbitMQ node.
+
+Copy "share/epucontrol/environment.sample" somewhere outside the repository.
+
+Edit that, adding your credentials, and then always source it before using
+the program.
+
+For example, by adding something like this to your shell rc file:
+
+    alias epucontrol='. ~/code/environment-epucontrol && cd ~/code/epucontrol'
+
+
+======================================
+Usage
+======================================
+
+
+./bin/epu-control.sh --action create --haservice provisioner --name run1
+
+(or: ./bin/epu-control.sh -a create -s provisioner -n run1)
+
+
+./bin/epu-control.sh --action create --haservice sleeper --name run1
+
+(or: ./bin/epu-control.sh -a create -s provisioner -n run1)
+
+
+Note how each invocation gets the same run name.  This will let you do
+coordinated things with the whole run.  Right now, this is only the
+"killrun" action (terminates all the involved instances via IaaS).
+(Currently killrun doesn't kill the workers yet, getting to it).
+
+
+======================================
+Sleeper service
+======================================
+
+The work messages for sleeper can be invoked by HTTP messages, this will be
+built into a python module eventually.
+
+SLEEPERHOST="address sleeper gets..."
+BATCHNAME="name of this batch of jobs"
+NUMJOBS="number of jobs to kick off"
+SLEEPSECS="length in seconds worker should sleep"
+
+  wget http://$SLEEPERHOST:8000/$BATCHNAME/$NUMJOBS/$SLEEPSECS
+  
+So for example:
+
+  wget http://$SLEEPERHOST:8000/run34/200/30
+  
+
+======================================
+Under active development
+======================================
+
+More functionality to come...
+

@@ -1,0 +1,12 @@
+
+###############
+# CREDENTIALS #
+###############
+
+# For Nimbus IaaS but also for Context Broker
+export NIMBUS_KEY=`cat ~/.nimbus/NIMBUS_KEY`
+export NIMBUS_SECRET=`cat ~/.nimbus/NIMBUS_SECRET`
+
+# For EC2
+export AWS_ACCESS_KEY_ID=`cat ~/.ec2/AWS_ACCESS_KEY_ID`
+export AWS_SECRET_ACCESS_KEY=`cat ~/.ec2/AWS_SECRET_ACCESS_KEY`

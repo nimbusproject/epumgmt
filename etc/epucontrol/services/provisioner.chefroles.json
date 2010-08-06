@@ -1,0 +1,17 @@
+{
+  "capabilitycontainer":{
+    "broker":"184.73.158.98",
+    "bootscript":"res/scripts/newcc.py",
+    "sysname":"cei",
+    "broker_heartbeat":"5",
+    "lcaarch_branch":"cei",
+    "lcaarch_commit_hash":"HEAD",
+    "log_level":"DEBUG"
+  },
+  "username":"cc",
+  "services":{
+    "dtrs":"{'name':'dtrs','module':'ion.services.cei.dtrs','class':'DeployableTypeRegistryService'}",
+    "provisioner":"{'name':'provisioner','module':'ion.services.cei.provisioner','class':'ProvisionerService'}"
+  },
+  "recipes":["setuptools", "twisted", "txamqp", "user", "provisioner", "capabilitycontainer"]
+}

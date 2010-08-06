@@ -1,0 +1,20 @@
+Testing/development
+===================
+
+# Sample, only works from topdir:
+
+$ source src/env.sh
+$ nosetests --nologcapture -x -v -w src/python/epucontrol/main
+
+During (test driven) development this can be conveniently combined with:
+
+$ ./sbin/cat-latest-logfile.sh
+
+... in order to view the log output from the last-run test.
+
+
+IPShell
+=======
+
+See the notes @ src/python/epucontrol/__init__.py
+
