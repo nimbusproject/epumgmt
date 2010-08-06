@@ -34,7 +34,7 @@ Usage
 
 ./bin/epu-control.sh --action create --haservice sleeper --name run1
 
-(or: ./bin/epu-control.sh -a create -s provisioner -n run1)
+(or: ./bin/epu-control.sh -a create -s sleeper -n run1)
 
 
 Note how each invocation gets the same run name.  This will let you do
