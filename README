@@ -4,13 +4,16 @@ Dependencies
 
 Fabfile ("fab" on the commandline) and boto are required.
 
+Sample env:
+$ virtualenv --no-site-packages somedir
+$ source somedir/bin/activate
+$ easy_install fabric
+$ easy_install boto
+
 
 ======================================
 Preparations
 ======================================
-
-In the file "etc/epucontrol/services/sleeper.chefroles.json", replace
-"COOKIE" with the erlang cookie required to monitor the RabbitMQ node.
 
 Copy "share/epucontrol/environment.sample" somewhere outside the repository.
 
@@ -27,20 +30,20 @@ Usage
 ======================================
 
 
-./bin/epu-control.sh --action create --haservice provisioner --name run1
+$ ./bin/epu-control.sh --action create --haservice provisioner --name run1
+$ ./bin/epu-control.sh --action create --haservice sleeper --name run1
 
-(or: ./bin/epu-control.sh -a create -s provisioner -n run1)
 
+(or: ./bin/epu-control.sh -a create -s provisioner -n run1
+     ./bin/epu-control.sh -a create -s sleeper -n run1
 
-./bin/epu-control.sh --action create --haservice sleeper --name run1
-
-(or: ./bin/epu-control.sh -a create -s sleeper -n run1)
+     See -h or --help for shortcuts.)
 
 
 Note how each invocation gets the same run name.  This will let you do
-coordinated things with the whole run.  Right now, this is only the
-"killrun" action (terminates all the involved instances via IaaS).
-(Currently killrun doesn't kill the workers yet, getting to it).
+coordinated things with the whole run.  Right now, the only coordinated
+task is the "killrun" action (terminates all the involved instances via
+IaaS).  (Currently killrun doesn't kill the workers yet, getting to it).
 
 
 ======================================
