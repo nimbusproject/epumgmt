@@ -1,2 +1,4 @@
 *.pyc
-
+var/epucontrol/logs/ec*
+var/epucontrol/persistence/*lock
+var/epucontrol/persistence/*list
