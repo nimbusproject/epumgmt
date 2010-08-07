@@ -176,6 +176,9 @@ class DefaultIaaS:
         we can log in and do anything yet.  Fab does not seem to hang out
         correctly otherwise."""
         
+        # give it at least a little time to boot, logs are filling with errors
+        time.sleep(3.0)
+        
         while True:
             args = self.ssh_cmd(hostname)
             args.append("/bin/true")
