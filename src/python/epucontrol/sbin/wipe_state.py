@@ -45,9 +45,9 @@ if not runlogdir:
     sys.exit(1)
     
 runlogdirs = []
-for root, dirs, files in os.walk(runlogdir):
+for root, dirs, files in os.walk(runlogdir, topdown=False):
     for adir in dirs:
-        path = os.path.join(runlogdir, adir)
+        path = os.path.join(root, adir)
         runlogdirs.append(path)
 
 # find the newest file in the directory:
@@ -59,7 +59,7 @@ for adir in runlogdirs:
     sys.stderr.write("    subdir:      %s\n" % adir)
     
 try:
-    yn = sbin_common.get_user_input("\nDelete all these files? Are you sure?? y/n")
+    yn = sbin_common.get_user_input("\nDelete all these files? Are you sure? y/n")
     yn = yn.lower()
 except KeyboardInterrupt:
     sys.stderr.flush()
@@ -75,7 +75,7 @@ print ""
 
 for root, dirs, files in os.walk(logfiledir):
     for name in files:
-        path = os.path.join(logfiledir, name)
+        path = os.path.join(root, name)
         if name.startswith("."):
             sys.stderr.write("Skip: %s\n" % path)
         elif os.path.isfile(path):
@@ -85,7 +85,7 @@ for root, dirs, files in os.walk(logfiledir):
 
 for root, dirs, files in os.walk(persistencedir):
     for name in files:
-        path = os.path.join(persistencedir, name)
+        path = os.path.join(root, name)
         if name.startswith("."):
             sys.stderr.write("Skip: %s\n" % path)
         elif name.endswith("lock"):
@@ -102,6 +102,5 @@ for adir in runlogdirs:
             if os.path.isfile(path):
                 sys.stderr.write("Deleting: %s\n" % path)
                 os.remove(path)
-        break # only look in the top directory
     sys.stderr.write("Deleting directory: %s\n" % adir)
     os.rmdir(adir)
