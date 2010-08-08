@@ -1,6 +1,6 @@
 from epucontrol.defaults import RunVM 
 
-def create(p, c, persistence, iaas, services, run_name):
+def create(p, c, iaas, persistence, services, run_name):
     """Create a VM instance that is part of the EPU infrastructure."""
     
     (instanceid, hostname) = iaas.launch()

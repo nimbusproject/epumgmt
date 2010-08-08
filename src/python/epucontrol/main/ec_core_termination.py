@@ -1,5 +1,5 @@
 
-def terminate(p, c, persistence, iaas, run_name):
+def terminate(p, c, iaas, persistence, run_name):
     if c.trace:
         c.log.debug("create()")
     

@@ -88,6 +88,8 @@ def _core(run_name, action, p, c):
     iaas_cls = c.get_class_by_keyword("IaaS")
     iaas = iaas_cls(p, c)
     
+    persistence = ec_core_persistence.Persistence(p, c)
+    
     services_cls = c.get_class_by_keyword("Services")
     services = services_cls(p, c)
     
@@ -103,10 +105,8 @@ def _core(run_name, action, p, c):
     c.log.info("Validating '%s' action for '%s'" % (action, run_name))
     
     iaas.validate()
-    services.validate()
-    
-    persistence = ec_core_persistence.Persistence(p, c)
     persistence.validate()
+    services.validate()
     
     
     # -------------------------------------------------------------------------
@@ -123,9 +123,9 @@ def _core(run_name, action, p, c):
             raise InvalidInput("This action requires run_name, see -h")
     
     if action == ACTIONS.CREATE:
-        ec_core_creation.create(p, c, persistence, iaas, services, run_name)
+        ec_core_creation.create(p, c, iaas, persistence, runlogs, services, run_name)
     elif action == ACTIONS.KILLRUN:
-        ec_core_termination.terminate(p, c, persistence, iaas, run_name)
+        ec_core_termination.terminate(p, c, iaas, persistence, run_name)
     else:
         raise ProgrammingError("unhandled action %s" % action)
 
