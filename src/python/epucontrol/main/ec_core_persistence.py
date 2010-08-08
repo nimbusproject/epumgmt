@@ -92,12 +92,10 @@ class Persistence:
         try:
             lockfile = open(self.lockfilepath, "r")
             fcntl.flock(lockfile.fileno(), fcntl.LOCK_EX)
-            print "lock on"
             return f(*args, **kw)
         finally:
             if lockfile:
                 lockfile.close()
-                print "lock off"
 
     def store_run_vms(self, run_name, run_vms):
         if not self.pdir:

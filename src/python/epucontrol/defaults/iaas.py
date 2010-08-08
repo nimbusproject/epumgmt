@@ -259,9 +259,7 @@ class DefaultIaaS:
             self.c.log.debug("wait returned, but child has not exited yet?")
             ret = proc.wait()
             
-        if ret == 0:
-            self.c.log.info("Contextualized.")
-        else:
+        if ret != 0:
             errmsg = "problem running command, "
             if ret < 0:
                 errmsg += "killed by signal:"

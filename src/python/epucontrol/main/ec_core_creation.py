@@ -1,11 +1,11 @@
-from epucontrol.defaults import EPUVM 
+from epucontrol.defaults import RunVM 
 
 def create(p, c, persistence, iaas, services, run_name):
-    if c.trace:
-        c.log.debug("create()")
+    """Create a VM instance that is part of the EPU infrastructure."""
+    
     (instanceid, hostname) = iaas.launch()
     
-    vm = EPUVM()
+    vm = RunVM()
     vm.instanceid = instanceid
     vm.hostname = hostname
     
@@ -13,6 +13,7 @@ def create(p, c, persistence, iaas, services, run_name):
     c.log.debug("persisted info about '%s', host '%s'" % (vm.instanceid, vm.hostname))
     
     iaas.contextualize_base_image(services, hostname)
+    c.log.info("Contextualized '%s' for run '%s'" % (services.servicename, run_name))
     
     # Confirm sanity-check event happened
     
@@ -22,7 +23,4 @@ def create(p, c, persistence, iaas, services, run_name):
     sshcmd = iaas.ssh_cmd(hostname)
     c.log.info("\nSSH suggestion:\n%s" % ' '.join(sshcmd))
     
-    
-
-
 
