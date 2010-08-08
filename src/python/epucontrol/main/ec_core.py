@@ -90,6 +90,9 @@ def _core(run_name, action, p, c):
     
     persistence = ec_core_persistence.Persistence(p, c)
     
+    runlogs_cls = c.get_class_by_keyword("Runlogs")
+    runlogs = runlogs_cls(p, c)
+    
     services_cls = c.get_class_by_keyword("Services")
     services = services_cls(p, c)
     
@@ -106,6 +109,7 @@ def _core(run_name, action, p, c):
     
     iaas.validate()
     persistence.validate()
+    runlogs.validate()
     services.validate()
     
     

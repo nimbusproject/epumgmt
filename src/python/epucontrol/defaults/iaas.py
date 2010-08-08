@@ -37,7 +37,7 @@ class DefaultIaaS:
         action = self.p.get_arg_or_none(ec_args.ACTION)
         if action not in [ACTIONS.CREATE]:
             if self.c.trace:
-                self.c.log.debug("validation for IaaS module complete, not a relevant action")
+                self.c.log.debug("validation for IaaS module complete, '%s' is not a relevant action" % action)
             return
         
         

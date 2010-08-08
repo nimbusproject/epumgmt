@@ -29,7 +29,8 @@ from epucontrol.api.exceptions import InvalidConfig, ProgrammingError
 class ACTIONS:
     CREATE = "create"
     KILLRUN = "killrun"
-    ALL = [CREATE, KILLRUN]
+    LOGFETCH = "logfetch"
+    ALL = [CREATE, KILLRUN, LOGFETCH]
 
 
 # -----------------------------------------------------------------------------

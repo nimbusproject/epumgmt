@@ -63,7 +63,7 @@ CONF.help = "Absolute path to main.conf.  Required (shell script adds the defaul
 
 DRYRUN = ControlArg("dryrun", None, createarg=False, noval=True)
 a.append(DRYRUN)
-DRYRUN.help = "Do as little real things as possible, will still affect filesystem, for example logs and information persistence"
+DRYRUN.help = "Do as little real things as possible, will still affect filesystem, for example logs and information persistence. (not implemented yet)"
 
 NAME = ControlArg("name", "-n", metavar="RUN_NAME", createarg=False)
 a.append(NAME)
@@ -76,7 +76,7 @@ NAME.help = "Unique run name for logs and management.  Can use across multiple i
 
 GRACEPERIOD = ControlArg("graceperiod", "-g", metavar="SEC")
 a.append(GRACEPERIOD)
-GRACEPERIOD.help = "Seconds to wait without success until the bootstrap is considered unsuccessful. Default is infinity."
+GRACEPERIOD.help = "Seconds to wait without success until the launch is considered unsuccessful. Default is infinity."
 
 HASERVICE = ControlArg("haservice", "-s", metavar="NAME")
 a.append(HASERVICE)
