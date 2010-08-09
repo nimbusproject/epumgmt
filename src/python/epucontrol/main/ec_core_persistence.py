@@ -67,9 +67,15 @@ class Persistence:
         self.pdir = pdir
         
     def new_vm(self, run_name, vm):
-        """Adds VM to a run_vms list if it exists for "run_name".  If it does
-        not exist, it will be created."""
+        """Adds VM to a run_vms list if it exists for "run_name".  If list
+        does not exist, it will be created."""
         return self.run_with_flock(self._new_vm, run_name, vm)
+    
+    def new_vm_maybe(self, run_name, vm):
+        """Adds VM to a run_vms list if it exists for "run_name".  If list
+        does not exist, it will be created.  If VM instance ID is present,
+        it won't be added."""
+        return self.run_with_flock(self._new_vm_maybe, run_name, vm)
         
     def _new_vm(self, run_name, vm):
         """Run this under a lock so that the list is not messed up"""
@@ -78,6 +84,22 @@ class Persistence:
             run_vms = []
         run_vms.append(vm)
         self.store_run_vms(run_name, run_vms)
+    
+    def _new_vm_maybe(self, run_name, vm):
+        """Run this under a lock so that the list is not messed up"""
+        run_vms = self.get_run_vms_or_none(run_name)
+        if not run_vms:
+            run_vms = []
+        found = False
+        for avm in run_vms:
+            if avm.instanceid == vm.instanceid:
+                found = True
+        if found:
+            return False # not new
+        else:
+            run_vms.append(vm)
+            self.store_run_vms(run_name, run_vms)
+            return True
         
     def run_with_flock(self, f, *args, **kw):
         """Run function with persistence's filesystem-based lock.

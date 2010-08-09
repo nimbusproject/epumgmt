@@ -8,6 +8,7 @@ from epucontrol.main import Modules, ACTIONS
 import epucontrol.main.ec_args as ec_args
 import ec_core_creation
 import ec_core_eventgather
+import ec_core_findworkers
 import ec_core_logfetch
 import ec_core_persistence
 import ec_core_termination
@@ -138,6 +139,8 @@ def _core(action, p, c):
         ec_core_termination.terminate(p, c, modules, run_name)
     elif action == ACTIONS.LOGFETCH:
         ec_core_logfetch.fetch_all(p, c, modules, run_name)
+    elif action == ACTIONS.FIND_WORKERS:
+        ec_core_findworkers.find(p, c, modules, action, run_name)
     else:
         raise ProgrammingError("unhandled action %s" % action)
 

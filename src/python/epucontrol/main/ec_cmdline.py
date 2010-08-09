@@ -49,6 +49,10 @@ def main(argv=None):
         print >>sys.stderr, msg
         return 4
         
+    except KeyboardInterrupt, e:
+        print >>sys.stderr, "\nCancelled by ctrl-c/signal"
+        return 5
+        
     except ProgrammingError,e:
         msg = "*** Developer error ***\n"
         msg += "   If this is a non-modified release, please report all\n"

@@ -41,7 +41,7 @@ def fetch_by_service_name(p, c, m, run_name, servicename):
     can fetch from nodes that were launched for this only.  If you want to
     retrieve the logs from any worker VM of an HA service that epucontrol
     has found out about, you must use the suffix of the HA service name.
-    See: epucontrol.defaults.WORKER_SUFFIX
+    See: epucontrol.defaults.RunVM.WORKER_SUFFIX
     
     p,c,m are seen everywhere: parameters, common, modules 
     """

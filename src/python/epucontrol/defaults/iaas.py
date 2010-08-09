@@ -35,7 +35,7 @@ class DefaultIaaS:
     def validate(self):
         
         action = self.p.get_arg_or_none(ec_args.ACTION)
-        if action not in [ACTIONS.CREATE, ACTIONS.LOGFETCH]:
+        if action not in [ACTIONS.CREATE, ACTIONS.LOGFETCH, ACTIONS.FIND_WORKERS]:
             if self.c.trace:
                 self.c.log.debug("validation for IaaS module complete, '%s' is not a relevant action" % action)
             return
@@ -128,13 +128,12 @@ class DefaultIaaS:
 
         instance = reservation.instances[0]
         self.c.log.info("Instance launched: %s" % instance.id)
-        time.sleep(10)
         
         while True:
             self.c.log.debug("Checking instance state: %s" % instance.id)
             if instance.update() == 'running':
                 break
-            time.sleep(4)
+            time.sleep(7)
             if self.grace > 0:
                 self.graceleft -= 4
                 if self.c.trace:
@@ -153,9 +152,6 @@ class DefaultIaaS:
                     raise UnexpectedError(msg + ".  Destroyed.")
         
         self.c.log.info("Instance running: %s | Hostname: %s" % (instance.id, instance.public_dns_name))
-        
-        sshcmd = self.ssh_cmd(instance.public_dns_name)
-        self.c.log.info("SSH suggestion: %s" % ' '.join(sshcmd))
         
         return (instance.id, instance.public_dns_name)
        

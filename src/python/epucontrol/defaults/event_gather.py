@@ -48,6 +48,7 @@ class DefaultEventGather:
         
         if not vm.runlogdir:
             self.c.log.warn("VM has no runlogdir, so cannot parse events: %s" % vm.runlogdir)
+            return
         all_events = self._all_events_in_dir(vm.runlogdir)
         for event in all_events:
             new = True

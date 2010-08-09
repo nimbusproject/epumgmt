@@ -53,6 +53,15 @@ Fetching + gathering:
 $ ./bin/epu-control.sh -a logfetch -n run1
 $ ./bin/epu-control.sh -a update-events -n run1
 
+The find-workers action puts together the logfetch and update-events cmds,
+seeking out provisioner events recording worker launches.  It adds new
+VMs to the run, all future run-based commands (like "killrun", "logfetch",
+and "update-events") will include the worker VMs as well (unless they
+are scoped by --haservice or at least this scoping is the plan, not fully
+implemented).
+
+$ ./bin/epu-control.sh -a find-workers -n run1
+
 
 ======================================
 Sleeper service

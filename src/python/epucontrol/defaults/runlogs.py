@@ -18,7 +18,7 @@ class DefaultRunlogs:
     def validate(self):
         
         action = self.p.get_arg_or_none(ec_args.ACTION)
-        if action not in [ACTIONS.CREATE, ACTIONS.LOGFETCH]:
+        if action not in [ACTIONS.CREATE, ACTIONS.LOGFETCH, ACTIONS.FIND_WORKERS]:
             if self.c.trace:
                 self.c.log.debug("validation for runlogs module complete, '%s' is not a relevant action" % action)
             return
@@ -66,10 +66,12 @@ class DefaultRunlogs:
         if newvm.runlogdir:
             if newvm.runlogdir != thisvm_runlog_dir:
                 self.c.log.warn("The runlog directory for the VM was recorded but it is not what we would expect (%s != %s)" % (newvm.runlogdir, thisvm_runlog_dir))
-        else:
+        elif not os.path.exists(thisvm_runlog_dir):
             os.mkdir(thisvm_runlog_dir)
             newvm.runlogdir = thisvm_runlog_dir
             self.c.log.debug("created runlog directory for this instance: %s" % thisvm_runlog_dir)
+        else:
+            newvm.runlogdir = thisvm_runlog_dir
             
         if not os.path.exists(newvm.runlogdir):
             raise IncompatibleEnvironment("Could not find the runlog directory: %s" % newvm.runlogdir)
