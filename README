@@ -2,13 +2,14 @@
 Dependencies
 ======================================
 
-Fabfile ("fab" on the commandline) and boto are required.
+Fabfile ("fab" on the commandline), simplejson and boto are required.
 
 Sample env:
 $ virtualenv --no-site-packages somedir
 $ source somedir/bin/activate
 $ easy_install fabric
 $ easy_install boto
+$ easy_install simplejson
 
 
 ======================================
@@ -41,9 +42,12 @@ $ ./bin/epu-control.sh --action create --haservice sleeper --name run1
 
 
 Note how each invocation gets the same run name.  This will let you do
-coordinated things with the whole run.  Right now, the only coordinated
-task is the "killrun" action (terminates all the involved instances via
-IaaS).  (Currently killrun doesn't kill the workers yet, getting to it).
+coordinated things with the whole run.
+
+For example, the "killrun" action (terminates all the involved instances
+via IaaS) and the "logfetch" action (grabs all the logs from the involved
+instances).
+(* Currently these don't operate on the workers yet, getting to it).
 
 
 ======================================
