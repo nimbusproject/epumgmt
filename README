@@ -40,7 +40,6 @@ $ ./bin/epu-control.sh --action create --haservice sleeper --name run1
 
      See -h or --help for shortcuts.)
 
-
 Note how each invocation gets the same run name.  This will let you do
 coordinated things with the whole run.
 
@@ -48,6 +47,11 @@ For example, the "killrun" action (terminates all the involved instances
 via IaaS) and the "logfetch" action (grabs all the logs from the involved
 instances).
 (* Currently these don't operate on the workers yet, getting to it).
+
+Fetching + gathering:
+
+$ ./bin/epu-control.sh -a logfetch -n run1
+$ ./bin/epu-control.sh -a update-events -n run1
 
 
 ======================================

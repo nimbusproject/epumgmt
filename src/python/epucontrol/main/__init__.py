@@ -26,7 +26,8 @@ from epucontrol.api.exceptions import InvalidConfig, ProgrammingError
 #from workspacecontrol.api import interfacesdict
 
 class Modules:
-    def __init__(self, iaas, persistence, runlogs, services):
+    def __init__(self, event_gather, iaas, persistence, runlogs, services):
+        self.event_gather = event_gather
         self.iaas = iaas
         self.persistence = persistence
         self.runlogs = runlogs
@@ -37,6 +38,7 @@ class ACTIONS:
     CREATE = "create"
     KILLRUN = "killrun"
     LOGFETCH = "logfetch"
+    UPDATE_EVENTS = "update-events"
     
     def all_actions(self):
         """Return the values of all Python members of this class whose

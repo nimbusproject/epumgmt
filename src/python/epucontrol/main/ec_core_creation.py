@@ -21,14 +21,14 @@ def create(p, c, m, run_name):
     c.log.debug("persisted info about '%s', host '%s'" % (vm.instanceid, vm.hostname))
     
     m.iaas.contextualize_base_image(m.services, hostname)
-    c.log.info("Contextualized '%s' for run '%s'" % (m.services.servicename, run_name))
-    
     # Confirm sanity-check event happened
     
     
     
     # Convenience print at end
-    sshcmd = m.iaas.ssh_cmd(hostname)
-    c.log.info("\nSSH suggestion:\n%s" % ' '.join(sshcmd))
     
+    msg = "\n\nContextualized '%s' : run '%s': id '%s' : %s" % (m.services.servicename, run_name, vm.instanceid, vm.hostname)
+    sshcmd = m.iaas.ssh_cmd(hostname)
+    msg += "\nSSH suggestion:\n%s" % ' '.join(sshcmd)
+    c.log.info(msg)
 

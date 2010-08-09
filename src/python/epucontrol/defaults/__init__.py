@@ -3,6 +3,7 @@ from parameters import DefaultParameters
 from iaas import DefaultIaaS
 from services import DefaultServices
 from runlogs import DefaultRunlogs
+from event_gather import DefaultEventGather
 
 # See the comment around the "service_type" variable below
 WORKER_SUFFIX = "-workervm"

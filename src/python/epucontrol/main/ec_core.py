@@ -7,6 +7,7 @@ from epucontrol.main import get_class_by_keyword, get_all_configs
 from epucontrol.main import Modules, ACTIONS
 import epucontrol.main.ec_args as ec_args
 import ec_core_creation
+import ec_core_eventgather
 import ec_core_logfetch
 import ec_core_persistence
 import ec_core_termination
@@ -82,6 +83,9 @@ def _core(action, p, c):
     # INSTANTIATE the rest of the needed instances
     # -------------------------------------------------------------------------
     
+    event_gather_cls = c.get_class_by_keyword("EventGather")
+    event_gather = event_gather_cls(p, c)
+    
     iaas_cls = c.get_class_by_keyword("IaaS")
     iaas = iaas_cls(p, c)
     
@@ -102,19 +106,20 @@ def _core(action, p, c):
     # VALIDATE
     # -------------------------------------------------------------------------
     
+    # At least currently, this is required for all actions.
     run_name = p.get_arg_or_none(ec_args.NAME)
-    if action in [ACTIONS.CREATE, ACTIONS.KILLRUN, ACTIONS.LOGFETCH]:
-        if not run_name:
-            raise InvalidInput("This action requires run_name, see -h")
+    if not run_name:
+        raise InvalidInput("The %s action requires run_name, see -h" % action)
     
     c.log.info("Validating '%s' action for '%s'" % (action, run_name))
     
+    event_gather.validate()
     iaas.validate()
     persistence.validate()
     runlogs.validate()
     services.validate()
     
-    modules = Modules(iaas, persistence, runlogs, services)
+    modules = Modules(event_gather, iaas, persistence, runlogs, services)
     
     # -------------------------------------------------------------------------
     # BRANCH on action
@@ -127,6 +132,8 @@ def _core(action, p, c):
     
     if action == ACTIONS.CREATE:
         ec_core_creation.create(p, c, modules, run_name)
+    elif action == ACTIONS.UPDATE_EVENTS:
+        ec_core_eventgather.update_events(p, c, modules, run_name)
     elif action == ACTIONS.KILLRUN:
         ec_core_termination.terminate(p, c, modules, run_name)
     elif action == ACTIONS.LOGFETCH:
