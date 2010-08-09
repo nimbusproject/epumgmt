@@ -1,18 +1,20 @@
+from epucontrol.api.exceptions import *
 
-def terminate(p, c, iaas, persistence, run_name):
-    if c.trace:
-        c.log.debug("create()")
+def terminate(p, c, m, run_name):
+    """Destroy all VM instances that are part of the run.
     
-    # Should eventually be some lock, etc. (or a sqlite DB), so multiple
-    # epucontrols can work on the same run simultaneously, but this works
-    # for now.
-    run_vms = persistence.get_run_vms_or_none(run_name)
-    if not run_vms:
-        c.log.warn("Nothing to terminate for run '%s'" % run_name)
-        return
+    p,c,m are seen everywhere: parameters, common, modules 
+    """
+
+    if c.trace:
+        c.log.debug("terminate()")
+    
+    run_vms = m.persistence.get_run_vms_or_none(run_name)
+    if not run_vms or len(run_vms) == 0:
+        raise IncompatibleEnvironment("Cannot find any VMs associated with run '%s'" % run_name)
         
     for vm in run_vms:
         c.log.info("Terminating '%s', Host '%s'" % (vm.instanceid, vm.hostname))
     
     instanceids = [vm.instanceid for vm in run_vms]
-    iaas.terminate_ids(instanceids)
+    m.iaas.terminate_ids(instanceids)

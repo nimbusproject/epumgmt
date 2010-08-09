@@ -25,6 +25,12 @@ from epucontrol.api.exceptions import InvalidConfig, ProgrammingError
 # See api/TODO.xt
 #from workspacecontrol.api import interfacesdict
 
+class Modules:
+    def __init__(self, iaas, persistence, runlogs, services):
+        self.iaas = iaas
+        self.persistence = persistence
+        self.runlogs = runlogs
+        self.services = services
 
 class ACTIONS:
     

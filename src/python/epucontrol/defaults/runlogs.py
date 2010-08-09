@@ -21,8 +21,6 @@ class DefaultRunlogs:
             return
         
         run_name = self.p.get_arg_or_none(ec_args.NAME)
-        if not run_name:
-            raise InvalidConfig("The %s action requires %s" % (action, ec_args.NAME.long_syntax))
         
         runlogdir = self.p.get_conf_or_none("events", "runlogdir")
         if not runlogdir:

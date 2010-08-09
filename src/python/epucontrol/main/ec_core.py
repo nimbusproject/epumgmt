@@ -3,9 +3,11 @@ import sys
 import time
 
 from epucontrol.api.exceptions import *
-from epucontrol.main import get_class_by_keyword, get_all_configs, ACTIONS
+from epucontrol.main import get_class_by_keyword, get_all_configs
+from epucontrol.main import Modules, ACTIONS
 import epucontrol.main.ec_args as ec_args
 import ec_core_creation
+import ec_core_logfetch
 import ec_core_persistence
 import ec_core_termination
 
@@ -57,11 +59,6 @@ def core(opts, dbgmsgs=None):
         
     action = validate_action(given_action)
 
-    run_name = p.get_arg_or_none(ec_args.NAME)
-    #if not run_name:
-    #    msg = "The %s argument is required, see -h" % ec_args.NAME.long_syntax
-    #    raise InvalidInput(msg)
-    
     # -------------------------------------------------------------------------
     # Common
     # -------------------------------------------------------------------------
@@ -74,12 +71,12 @@ def core(opts, dbgmsgs=None):
         c.log.debug(dbgmsgs)
         
     try:
-        _core(run_name, action, p, c)
+        _core(action, p, c)
     except Exception,e:
         c.log.exception(e)
         raise
         
-def _core(run_name, action, p, c):
+def _core(action, p, c):
         
     # -------------------------------------------------------------------------
     # INSTANTIATE the rest of the needed instances
@@ -105,6 +102,11 @@ def _core(run_name, action, p, c):
     # VALIDATE
     # -------------------------------------------------------------------------
     
+    run_name = p.get_arg_or_none(ec_args.NAME)
+    if action in [ACTIONS.CREATE, ACTIONS.KILLRUN, ACTIONS.LOGFETCH]:
+        if not run_name:
+            raise InvalidInput("This action requires run_name, see -h")
+    
     c.log.info("Validating '%s' action for '%s'" % (action, run_name))
     
     iaas.validate()
@@ -112,6 +114,7 @@ def _core(run_name, action, p, c):
     runlogs.validate()
     services.validate()
     
+    modules = Modules(iaas, persistence, runlogs, services)
     
     # -------------------------------------------------------------------------
     # BRANCH on action
@@ -122,14 +125,12 @@ def _core(run_name, action, p, c):
     else:
         c.log.info("Performing '%s' for '%s'" % (action, run_name))
     
-    if action in [ACTIONS.CREATE, ACTIONS.KILLRUN]:
-        if not run_name:
-            raise InvalidInput("This action requires run_name, see -h")
-    
     if action == ACTIONS.CREATE:
-        ec_core_creation.create(p, c, iaas, persistence, runlogs, services, run_name)
+        ec_core_creation.create(p, c, modules, run_name)
     elif action == ACTIONS.KILLRUN:
-        ec_core_termination.terminate(p, c, iaas, persistence, run_name)
+        ec_core_termination.terminate(p, c, modules, run_name)
+    elif action == ACTIONS.LOGFETCH:
+        ec_core_logfetch.fetch_all(p, c, modules, run_name)
     else:
         raise ProgrammingError("unhandled action %s" % action)
 
