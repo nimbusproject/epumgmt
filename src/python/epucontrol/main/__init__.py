@@ -27,10 +27,20 @@ from epucontrol.api.exceptions import InvalidConfig, ProgrammingError
 
 
 class ACTIONS:
+    
     CREATE = "create"
     KILLRUN = "killrun"
     LOGFETCH = "logfetch"
-    ALL = [CREATE, KILLRUN, LOGFETCH]
+    
+    def all_actions(self):
+        """Return the values of all Python members of this class whose
+        identifiers are capitalized.
+        """
+        action_list = []
+        for item in dir(self):
+            if item == item.upper():
+                action_list.append(getattr(self, item))
+        return action_list
 
 
 # -----------------------------------------------------------------------------

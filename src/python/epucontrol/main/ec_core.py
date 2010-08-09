@@ -144,7 +144,7 @@ def validate_action(action):
     if not action:
         raise InvalidInput("action is missing/empty")
                           
-    if action not in ACTIONS.ALL:
+    if action not in ACTIONS().all_actions():
         raise InvalidInput("Unknown action: '%s'" % action)
         
     return action

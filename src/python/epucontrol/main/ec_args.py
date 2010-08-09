@@ -1,4 +1,5 @@
 import string
+from epucontrol.main import ACTIONS
 
 a = []
 ALL_EC_ARGS_LIST = a
@@ -53,9 +54,12 @@ class ControlArg:
 # 
 ################################################################################
 
+actionlist = str(ACTIONS().all_actions())
+actionlist = actionlist[1:] # remove '['
+actionlist = actionlist[:-1] # remove ']'
 ACTION = ControlArg("action", "-a", createarg=False)
 a.append(ACTION)
-ACTION.help = "Action for the program to take: create, killrun"
+ACTION.help = "Action for the program to take: %s" % actionlist
 
 CONF = ControlArg("conf", "-c", createarg=False, metavar="PATH")
 a.append(CONF)
