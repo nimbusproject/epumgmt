@@ -16,7 +16,7 @@
     
     "sleeper_epu_controller":"{'name':'epu_controller','module':'ion.services.cei.epu_controller','class':'EPUControllerService', 'spawnargs':{'queue_name_work':'cei_work_queue'}}",
     
-    "sleeper_work_producer":"{'name':'sleeper_work_producer','module':'ion.services.cei.sleeper.epu_work_producer','class':'EPUWorkProducer', 'spawnargs':{'queue_name_work':'cei_work_queue', 'queue_name_events':'rabbitmq_sensor_events'}}"
+    "sleeper_work_producer":"{'name':'sleeper_work_producer','module':'ion.services.cei.sleeper.epu_work_producer','class':'EPUWorkProducer', 'spawnargs':{'queue_name_work':'cei_work_queue'}}"
   },
   "recipes":["setuptools", "twisted", "txamqp", "user", "sensor_aggregator", "capabilitycontainer"]
 }
