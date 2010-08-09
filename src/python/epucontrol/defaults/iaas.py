@@ -35,7 +35,7 @@ class DefaultIaaS:
     def validate(self):
         
         action = self.p.get_arg_or_none(ec_args.ACTION)
-        if action not in [ACTIONS.CREATE]:
+        if action not in [ACTIONS.CREATE, ACTIONS.LOGFETCH]:
             if self.c.trace:
                 self.c.log.debug("validation for IaaS module complete, '%s' is not a relevant action" % action)
             return
@@ -187,7 +187,17 @@ class DefaultIaaS:
             time.sleep(0.5)
         
     def ssh_cmd(self, hostname):
+        """Return list of args for an SSH login"""
         return ["ssh", "-oStrictHostKeyChecking=no", "-i", self.localsshkeypath, "-l", self.username, hostname]
+        
+    def scp_cmd(self, hostname):
+        """Return beginning of a list of args for a recursive (-r) SCP transfer.
+        The 'user@host:' source bit is last.
+        See "events.conf" for limiting, temporary assumptions.
+        """
+        
+        source = "%s@%s:" % (self.username, hostname)
+        return ["scp", "-oStrictHostKeyChecking=no", "-i", self.localsshkeypath, "-r", source]
         
     def _one_cmd(self, args):
         """See _wait_for_access() and _wait_for_ping()"""

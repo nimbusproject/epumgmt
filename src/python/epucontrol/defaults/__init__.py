@@ -30,5 +30,9 @@ class RunVM:
         # for events that happened on this vm
         self.runlogdir = None
         
+        # Absolute path to the log file directory on the VM to look for
+        # events.
+        self.vmlogdir = None
+        
         # List of events that have parsed and recorded so far.
         self.events = []

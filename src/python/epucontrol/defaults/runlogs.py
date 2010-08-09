@@ -11,6 +11,9 @@ class DefaultRunlogs:
         self.c = common
         self.validated = False
         self.thisrundir = None
+
+        # temporary assumption that this is same on every VM, see events.conf
+        self.allvmslogdir = None
         
     def validate(self):
         
@@ -32,14 +35,17 @@ class DefaultRunlogs:
         if not os.path.exists(runlogdir):
             raise InvalidConfig("The runlogdir does not exist: %s" % runlogdir)
         
-        thisrundir = os.path.join(runlogdir, run_name)
-        if not os.path.exists(thisrundir):
-            os.mkdir(thisrundir)
-            self.c.log.debug("Created a new directory for the logfiles generated on nodes in this run: %s" % thisrundir)
+        self.thisrundir = os.path.join(runlogdir, run_name)
+        if not os.path.exists(self.thisrundir):
+            os.mkdir(self.thisrundir)
+            self.c.log.debug("Created a new directory for the logfiles generated on nodes in this run: %s" % self.thisrundir)
         else:
-            self.c.log.debug("Directory of logfiles generated on nodes in this run: %s" % thisrundir)
+            self.c.log.debug("Directory of logfiles generated on nodes in this run: %s" % self.thisrundir)
+        
+        self.allvmslogdir = self.p.get_conf_or_none("events", "vmlogdir")
+        if not self.allvmslogdir:
+            raise InvalidConfig("There is no events:vmlogdir configuration")
 
-        self.thisrundir = thisrundir
         self.validated = True
 
 
@@ -68,11 +74,26 @@ class DefaultRunlogs:
         if not os.path.exists(newvm.runlogdir):
             raise IncompatibleEnvironment("Could not find the runlog directory: %s" % newvm.runlogdir)
         
+        newvm.vmlogdir = self.allvmslogdir
         
-    def fetch_logs(self, vm, iaas, timeout=5):
+        
+    def fetch_logs(self, vm, m):
         
         if not self.validated:
             raise ProgrammingError("operation called without necessary validation")
             
+        scpcmd = m.iaas.scp_cmd(vm.hostname)
+    
+        # last arg is "user@host:", we need to enhance this with the path
+        scpcmd[-1] = scpcmd[-1] + vm.vmlogdir
         
+        # and then the glob
+        scpcmd[-1] = scpcmd[-1] + "/*log"
+        
+        # transfer destination
+        scpcmd.append(vm.runlogdir)
+        
+        # bad: hijacking known impl of a module
+        # TODO: modules should each be entirely pluggable, that is the point
+        m.iaas._one_cmd(scpcmd)
 
