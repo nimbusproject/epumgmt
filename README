@@ -72,15 +72,19 @@ built into a python module eventually.
 
 SLEEPERHOST="address sleeper gets..."
 BATCHNAME="name of this batch of jobs"
+START_IDX="integer of first job id, rest are incremented"
 NUMJOBS="number of jobs to kick off"
 SLEEPSECS="length in seconds worker should sleep"
 
-  wget http://$SLEEPERHOST:8000/$BATCHNAME/$NUMJOBS/$SLEEPSECS
+  wget http://$SLEEPERHOST:8000/$BATCHNAME/$START_IDX/$NUMJOBS/$SLEEPSECS
   
 So for example:
 
-  wget http://$SLEEPERHOST:8000/run34/200/30
+  wget http://$SLEEPERHOST:8000/run34/0/200/30
   
+That launches 200 jobs that sleep for 30 seconds with batchid "run34" and
+job IDs 0,1,2,...,199
+
 
 ======================================
 Under active development
