@@ -130,10 +130,10 @@ class DefaultIaaS:
         self.c.log.info("Instance launched: %s" % instance.id)
         
         while True:
+            time.sleep(7)
             self.c.log.debug("Checking instance state: %s" % instance.id)
             if instance.update() == 'running':
                 break
-            time.sleep(7)
             if self.grace > 0:
                 self.graceleft -= 4
                 if self.c.trace:
