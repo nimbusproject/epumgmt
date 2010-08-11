@@ -30,7 +30,8 @@ class DefaultIaaS:
         self.ec2_secret = None
         self.instancetype = None
         self.sshkeyname = None
-        self.username = None
+        self.ssh_username = None
+        self.scp_username = None
         self.localsshkeypath = None
         
     def validate(self):
@@ -79,9 +80,13 @@ class DefaultIaaS:
         if not self.instancetype:
             raise InvalidConfig("Missing the instancetype configuration")
             
-        self.username = self.p.get_conf_or_none(section, "username")
-        if not self.username:
-            raise InvalidConfig("Missing the username configuration")
+        self.ssh_username = self.p.get_conf_or_none(section, "ssh_username")
+        if not self.ssh_username:
+            raise InvalidConfig("Missing the ssh_username configuration")
+        
+        self.scp_username = self.p.get_conf_or_none(section, "scp_username")
+        if not self.scp_username:
+            raise InvalidConfig("Missing the scp_username configuration")
             
         self.localsshkeypath = self.p.get_conf_or_none(section, "localsshkeypath")
         if not self.localsshkeypath:
@@ -98,7 +103,8 @@ class DefaultIaaS:
         self.c.log.debug("ec2_secret: [REDACTED]")
         self.c.log.debug("instancetype: " + self.instancetype)
         self.c.log.debug("sshkeyname: " + self.sshkeyname)
-        self.c.log.debug("username: " + self.username)
+        self.c.log.debug("ssh_username: " + self.ssh_username)
+        self.c.log.debug("scp_username: " + self.scp_username)
         self.c.log.debug("localsshkeypath: " + self.localsshkeypath)
         self.c.log.debug("validated IaaS module")
 
@@ -187,14 +193,14 @@ class DefaultIaaS:
         
     def ssh_cmd(self, hostname):
         """Return list of args for an SSH login"""
-        return ["ssh", "-oStrictHostKeyChecking=no", "-i", self.localsshkeypath, "-l", self.username, hostname]
+        return ["ssh", "-oStrictHostKeyChecking=no", "-i", self.localsshkeypath, "-l", self.ssh_username, hostname]
         
     def scp_cmd(self, hostname):
         """Return beginning of a list of args for a recursive (-r) SCP transfer.
         The 'user@host:' source bit is last.
         See "events.conf" for limiting, temporary assumptions.
         """
-        source = "%s@%s:" % (self.username, hostname)
+        source = "%s@%s:" % (self.scp_username, hostname)
         return ["scp", "-oStrictHostKeyChecking=no", "-i", self.localsshkeypath, "-r", source]
 
     def _run_one_cmd(self, args):
@@ -245,7 +251,7 @@ class DefaultIaaS:
         
         self.c.log.debug("fabtask: '%s'" % fabtask)
         
-        args = [services.fablaunch, fabtask, self.username, self.localsshkeypath, hostname, rolesfile]
+        args = [services.fablaunch, fabtask, self.ssh_username, self.localsshkeypath, hostname, rolesfile]
         
         cmd = ' '.join(args)
         self.c.log.debug("command = '%s'" % cmd)
