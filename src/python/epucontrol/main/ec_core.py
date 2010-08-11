@@ -136,6 +136,13 @@ def _core(action, p, c):
     elif action == ACTIONS.UPDATE_EVENTS:
         ec_core_eventgather.update_events(p, c, modules, run_name)
     elif action == ACTIONS.KILLRUN:
+        try:
+            ec_core_logfetch.fetch_all(p, c, modules, run_name)
+            ec_core_findworkers.find(p, c, modules, action, run_name, once=True)
+        except KeyboardInterrupt:
+            raise
+        except:
+            c.log.exception("Fetch failed, moving on to terminate anyhow")
         ec_core_termination.terminate(p, c, modules, run_name)
     elif action == ACTIONS.LOGFETCH:
         ec_core_logfetch.fetch_all(p, c, modules, run_name)

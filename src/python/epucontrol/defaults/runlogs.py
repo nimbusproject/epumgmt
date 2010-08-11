@@ -4,6 +4,8 @@ from epucontrol.api.exceptions import *
 import epucontrol.main.ec_args as ec_args
 from epucontrol.main import ACTIONS
 
+import child
+
 class DefaultRunlogs:
     
     def __init__(self, params, common):
@@ -14,11 +16,12 @@ class DefaultRunlogs:
 
         # temporary assumption that this is same on every VM, see events.conf
         self.allvmslogdir = None
-        
+    
+    
     def validate(self):
         
         action = self.p.get_arg_or_none(ec_args.ACTION)
-        if action not in [ACTIONS.CREATE, ACTIONS.LOGFETCH, ACTIONS.FIND_WORKERS]:
+        if action not in [ACTIONS.CREATE, ACTIONS.LOGFETCH, ACTIONS.FIND_WORKERS, ACTIONS.KILLRUN]:
             if self.c.trace:
                 self.c.log.debug("validation for runlogs module complete, '%s' is not a relevant action" % action)
             return
@@ -95,7 +98,35 @@ class DefaultRunlogs:
         # transfer destination
         scpcmd.append(vm.runlogdir)
         
-        # bad: hijacking known impl of a module
-        # TODO: modules should each be entirely pluggable, that is the point
-        m.iaas._one_cmd(scpcmd)
+        self._run_one_cmd(scpcmd)
 
+
+    # TODO: this is a copied snippet from iaas.py
+    def _run_one_cmd(self, args):
+        cmd = ' '.join(args)
+        self.c.log.debug("command = '%s'" % cmd)
+        
+        timeout = 5.0 # seconds
+        (killed, retcode, stdout, stderr) = \
+            child.child(cmd, timeout=timeout)
+        
+        if killed:
+            self.c.log.error("TIMED OUT: '%s'" % cmd)
+            return False
+        
+        if retcode == 0:
+            self.c.log.debug("command succeeded: '%s'" % cmd)
+            return True
+        else:
+            errmsg = "problem running command, "
+            if retcode < 0:
+                errmsg += "killed by signal:"
+            if retcode > 0:
+                errmsg += "exited non-zero:"
+            errmsg += "'%s' ::: return code" % cmd
+            errmsg += ": %d ::: error:\n%s\noutput:\n%s" % (retcode, stdout, stderr)
+            
+            # these commands will commonly fail 
+            if self.c.trace:
+                self.c.log.debug(errmsg)
+            return False

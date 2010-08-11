@@ -1,11 +1,12 @@
 import os
-import subprocess
 import time
 
 from boto.ec2.connection import EC2Connection
 from epucontrol.api.exceptions import *
 import epucontrol.main.ec_args as ec_args
 from epucontrol.main import ACTIONS
+
+import child
 
 class DefaultIaaS:
     
@@ -35,7 +36,7 @@ class DefaultIaaS:
     def validate(self):
         
         action = self.p.get_arg_or_none(ec_args.ACTION)
-        if action not in [ACTIONS.CREATE, ACTIONS.LOGFETCH, ACTIONS.FIND_WORKERS]:
+        if action not in [ACTIONS.CREATE, ACTIONS.LOGFETCH, ACTIONS.FIND_WORKERS, ACTIONS.KILLRUN]:
             if self.c.trace:
                 self.c.log.debug("validation for IaaS module complete, '%s' is not a relevant action" % action)
             return
@@ -163,7 +164,7 @@ class DefaultIaaS:
         while True:
             # Wait for one ping to succeed; bail after 5 seconds
             args = ["ping", "-c", "1", "-w", "5", hostname]
-            if self._one_cmd(args):
+            if self._run_one_cmd(args):
                 break
             time.sleep(0.5)
 
@@ -178,7 +179,9 @@ class DefaultIaaS:
         while True:
             args = self.ssh_cmd(hostname)
             args.append("/bin/true")
-            if self._one_cmd(args):
+            cmd = ' '.join(args)
+            self.c.log.debug("command = '%s'" % cmd)
+            if self._run_one_cmd(args):
                 break
             time.sleep(0.5)
         
@@ -191,46 +194,37 @@ class DefaultIaaS:
         The 'user@host:' source bit is last.
         See "events.conf" for limiting, temporary assumptions.
         """
-        
         source = "%s@%s:" % (self.username, hostname)
         return ["scp", "-oStrictHostKeyChecking=no", "-i", self.localsshkeypath, "-r", source]
-        
-    def _one_cmd(self, args):
-        """See _wait_for_access() and _wait_for_ping()"""
-        
+
+    def _run_one_cmd(self, args):
         cmd = ' '.join(args)
         self.c.log.debug("command = '%s'" % cmd)
-        try:
-            proc = subprocess.Popen(args, 
-                                    stdout=subprocess.PIPE, 
-                                    stderr=subprocess.PIPE)
-            (output,error) = proc.communicate()
-            ret = proc.wait()
-            while ret == None:
-                self.c.log.debug("wait returned, but child has not exited yet?")
-                time.sleep(0.2)
-                ret = proc.wait()
+        
+        timeout = 10.0 # seconds
+        (killed, retcode, stdout, stderr) = \
+            child.child(cmd, timeout=timeout)
+        
+        if killed:
+            self.c.log.error("TIMED OUT: '%s'" % cmd)
+            return False
+        
+        if retcode == 0:
+            self.c.log.debug("command succeeded: '%s'" % cmd)
+            return True
+        else:
+            errmsg = "problem running command, "
+            if retcode < 0:
+                errmsg += "killed by signal:"
+            if retcode > 0:
+                errmsg += "exited non-zero:"
+            errmsg += "'%s' ::: return code" % cmd
+            errmsg += ": %d ::: error:\n%s\noutput:\n%s" % (retcode, stdout, stderr)
             
-            if ret == 0:
-                self.c.log.debug("command succeeded: '%s'" % cmd)
-                return True
-            else:
-                errmsg = "problem running command, "
-                if ret < 0:
-                    errmsg += "killed by signal:"
-                if ret > 0:
-                    errmsg += "exited non-zero:"
-                errmsg += "'%s' ::: return code" % cmd
-                errmsg += ": %d ::: error:\n%s\noutput:\n%s" % (ret, error, output)
-                
-                # these commands will commonly fail 
-                if self.c.trace:
-                    self.c.log.debug(errmsg)
-                return False
-        except:
-            self.c.log.exception("Severe problem running '%s'" % cmd)
-            # This is not normal, bail out.
-            raise
+            # these commands will commonly fail 
+            if self.c.trace:
+                self.c.log.debug(errmsg)
+            return False
 
     def contextualize_base_image(self, services, hostname):
         
@@ -256,26 +250,24 @@ class DefaultIaaS:
         cmd = ' '.join(args)
         self.c.log.debug("command = '%s'" % cmd)
         
-        proc = subprocess.Popen(args, 
-                                stdout=subprocess.PIPE, 
-                                stderr=subprocess.PIPE)
-        (output,error) = proc.communicate()
-        ret = proc.wait()
-        while ret == None:
-            self.c.log.debug("wait returned, but child has not exited yet?")
-            ret = proc.wait()
+        timeout = 300
+        (killed, retcode, stdout, stderr) = \
+            child.child(cmd, timeout=timeout)
             
-        if ret != 0:
+        if killed:
+            errmsg = "problem running command, timed out: %s" % cmd
+            raise UnexpectedError(errmsg)
+            
+        if retcode != 0:
             errmsg = "problem running command, "
-            if ret < 0:
+            if retcode < 0:
                 errmsg += "killed by signal:"
-            if ret > 0:
+            if retcode > 0:
                 errmsg += "exited non-zero:"
             errmsg += "'%s' ::: return code" % cmd
-            errmsg += ": %d ::: error:\n%s\noutput:\n%s" % (ret, error, output)
+            errmsg += ": %d ::: error:\n%s\noutput:\n%s" % (retcode, stderr, stdout)
             raise UnexpectedError(errmsg)
         
     def terminate_ids(self, instanceids):
         con = EC2Connection(self.ec2_key, self.ec2_secret)
         con.terminate_instances(instanceids)
-        

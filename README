@@ -2,6 +2,8 @@
 Dependencies
 ======================================
 
+A Linux/OSX environment is currently required, it is not portable to Windows.
+
 Fabfile ("fab" on the commandline), simplejson and boto are required.
 
 Sample env:

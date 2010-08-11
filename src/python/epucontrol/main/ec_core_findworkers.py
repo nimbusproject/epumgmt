@@ -7,7 +7,7 @@ import time
 
 PROVISIONER="provisioner"
 
-def find(p, c, m, action, run_name):
+def find(p, c, m, action, run_name, once=False):
     
     while True:
         ec_core_logfetch.fetch_by_service_name(p, c, m, run_name, PROVISIONER)
@@ -21,6 +21,8 @@ def find(p, c, m, action, run_name):
         
         allvms = m.persistence.get_run_vms_or_none(run_name)
         c.log.debug("Know of %d VMs in run '%s'" % (len(allvms), run_name))
+        if once:
+            break
         time.sleep(15)
 
 def vms_launched_by_provisioner(p, c, m, run_name):
