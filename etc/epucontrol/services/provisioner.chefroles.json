@@ -2,7 +2,7 @@
   "capabilitycontainer":{
     "broker":"184.73.158.98",
     "bootscript":"res/scripts/newcc.py",
-    "sysname":"cei",
+    "sysname":"cei_hello1",
     "broker_heartbeat":"5",
     "lcaarch_branch":"cei",
     "lcaarch_commit_hash":"HEAD",

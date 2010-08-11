@@ -27,6 +27,8 @@ For example, by adding something like this to your shell rc file:
 
     alias epucontrol='. ~/code/environment-epucontrol && cd ~/code/epucontrol'
 
+Temporary: unique scope for your launches.  Change *all* occurrences of
+"cei_hello1" to something unique in the json files in "etc/epucontrol/services"
 
 ======================================
 Usage
