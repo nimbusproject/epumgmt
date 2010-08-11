@@ -29,6 +29,7 @@ For example, by adding something like this to your shell rc file:
 
 Temporary: unique scope for your launches.  Change *all* occurrences of
 "cei_hello1" to something unique in the json files in "etc/epucontrol/services"
+Use grep to be sure.
 
 ======================================
 Usage
