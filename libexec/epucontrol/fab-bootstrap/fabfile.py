@@ -8,7 +8,6 @@ def bootstrap(rolesfile=None):
     update()
     put_chef_data(rolesfile=rolesfile)
     run_chef_solo()
-    copy_authz()
 
 def bootstrap_cei(rolesfile=None):
     put_provisioner_secrets()
@@ -67,8 +66,4 @@ def put_chef_data(rolesfile=None):
 def run_chef_solo():
     run("sudo chef-solo -l debug -c /opt/chef/chefconf.rb -j /opt/chef/chefroles.json")
 
-def copy_authz():
-    run("if [ ! -d /home/cc/.ssh ]; then sudo mkdir /home/cc/.ssh; fi")
-    run("sudo cp /home/ubuntu/.ssh/authorized_keys /home/cc/.ssh/")
-    run("sudo chown -R cc /home/cc/.ssh")
     
