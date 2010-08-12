@@ -6,6 +6,7 @@ from ConfigParser import NoOptionError, NoSectionError
 #import epucontrol.api.objects
 
 import epucontrol.main.ec_args as ec_args
+from epucontrol.main import ControlArg 
 
 # -----------------------------------------------------------------------------
 # DefaultParameters 
@@ -25,7 +26,7 @@ class DefaultParameters:
         if not key:
             return None
             
-        if isinstance(key, ec_args.ControlArg):
+        if isinstance(key, ControlArg):
             key = key.name
             
         val = None

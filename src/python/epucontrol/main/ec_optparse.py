@@ -1,5 +1,5 @@
 # This is set up in such a way that you should not need to alter this file to
-# add an argument, in most cases.
+# add an argument, in most cases.  See ec_args.py
 
 import optparse
 import ec_args

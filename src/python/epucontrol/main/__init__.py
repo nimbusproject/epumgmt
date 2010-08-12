@@ -15,10 +15,11 @@ ecmodules. See epucontrol/mocks/__init__.py.
 Nose testing is used (easy_install nose).
 """
 
-__all__ = ["get_class_by_keyword", "get_all_configs", "ACTIONS"]
+__all__ = ["get_class_by_keyword", "get_all_configs", "ACTIONS", "ControlArg"]
 
 import ConfigParser
 import os
+import string
 
 from epucontrol.api.exceptions import InvalidConfig, ProgrammingError
 
@@ -43,7 +44,8 @@ class ACTIONS:
     
     def all_actions(self):
         """Return the values of all Python members of this class whose
-        identifiers are capitalized.
+        identifiers are capitalized. So if you add an action, make sure
+        to follow suit.
         """
         action_list = []
         for item in dir(self):
@@ -129,3 +131,47 @@ def _get_one_config(filepath, config=None):
         config = ConfigParser.RawConfigParser()
     config.read(filepath)
     return config
+
+
+# -----------------------------------------------------------------------------
+# Arg classes 
+# -----------------------------------------------------------------------------
+
+class ControlArg:
+    
+    def __init__(self, name, short_syntax, noval=False, since=None, deprecated=False, createarg=True, metavar=None):
+        """Long syntax is always "--" + name
+        
+        short_syntax may be None
+        
+        If 'noval' is True, this is an arg that, if present, will trigger the
+        value to be 'True', otherwise 'False'.  i.e., "was the flag present."
+        Otherwise, it is presumed a string intake arg
+        
+        createarg -- Most of the arguments are for the create action. Use a
+        False createarg so they are grouped differently from the create args
+        
+        if no metavar (see ec_optparse), metavar is capitalization of name
+        """
+        if not name:
+            raise Exception("no arg name")
+            
+        self.name = name
+        self.dest = name
+        if not since:
+            self.since = "v1"
+        else:
+            self.since = "v%s" % since
+        self.short_syntax = short_syntax
+        self.long_syntax = "--" + name
+        self.help = None
+        self.boolean = noval
+        self.string = not noval
+        self.deprecated = deprecated
+        self.createarg = createarg
+        self.metavar = metavar
+        if not metavar:
+            self.metavar = string.upper(name)
+    
+    def __repr__(self):
+        return "ControlArg: %s" % self.name
