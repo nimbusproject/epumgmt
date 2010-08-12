@@ -49,3 +49,6 @@ IAAS_CONF = ControlArg("iaasconf", None, metavar="NAME")
 #a.append(IAAS_CONF)
 IAAS_CONF.help = "Override the iaas:confsection setting for this run.  See iaas.conf in the etc directory. (not implemented)"
 
+JSON_VARS = ControlArg("jsonvars", "-j", metavar="PATH")
+a.append(JSON_VARS)
+JSON_VARS.help = "path to JSON containing variable names + values for template replacement, see services.conf for explanation"

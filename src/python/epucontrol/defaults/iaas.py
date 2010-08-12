@@ -53,13 +53,13 @@ class DefaultIaaS:
         if not self.ec2_key or not self.ec2_secret:
             raise InvalidConfig("You need to export both AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to the environment.")
         
-        graceperiod = self.p.get_arg_or_none(ec_args.GRACEPERIOD)
+        graceperiod = self.p.get_arg_or_none(ec_args.GRACE_PERIOD)
         if graceperiod:
             self.grace = int(graceperiod)
             self.graceleft = self.grace
         
         confsection = self.p.get_conf_or_none("iaas", "confsection")
-        argsection = self.p.get_arg_or_none(ec_args.IAASCONF)
+        argsection = self.p.get_arg_or_none(ec_args.IAAS_CONF)
         section = None
         if argsection:
             section = argsection
@@ -247,11 +247,11 @@ class DefaultIaaS:
         if services.servicename == "provisioner":
             fabtask = "bootstrap_cei"
         
-        rolesfile = services.chefrolespath
         
+        self.c.log.debug("roles file: '%s'" % services.rolesfile)
         self.c.log.debug("fabtask: '%s'" % fabtask)
         
-        args = [services.fablaunch, fabtask, self.ssh_username, self.localsshkeypath, hostname, rolesfile]
+        args = [services.fablaunch, fabtask, self.ssh_username, self.localsshkeypath, hostname, services.rolesfile]
         
         cmd = ' '.join(args)
         self.c.log.debug("command = '%s'" % cmd)

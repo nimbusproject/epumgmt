@@ -75,7 +75,7 @@ def core(opts, dbgmsgs=None):
     try:
         _core(action, p, c)
     except Exception,e:
-        c.log.exception(e)
+        #c.log.exception(e)
         raise
         
 def _core(action, p, c):

@@ -27,21 +27,21 @@ For example, by adding something like this to your shell rc file:
 
     alias epucontrol='. ~/code/environment-epucontrol && cd ~/code/epucontrol'
 
-Temporary: unique scope for your launches.  Change *all* occurrences of
-"cei_hello1" to something unique in the json files in "etc/epucontrol/services"
-Use grep to be sure.
+Copy "share/epucontrol/variables.json.sample" somewhere outside the repository.
+Unique scope for your launches: change the "cei_hello1" variable in that
+file to something unique.
 
 ======================================
 Usage
 ======================================
 
 
-$ ./bin/epu-control.sh --action create --haservice provisioner --name run1
-$ ./bin/epu-control.sh --action create --haservice sleeper --name run1
+$ ./bin/epu-control.sh --action create --haservice provisioner --name run1 --jsonvars ~/myvars.json
+$ ./bin/epu-control.sh --action create --haservice sleeper --name run1 --jsonvars ~/myvars.json
 
 
-(or: ./bin/epu-control.sh -a create -s provisioner -n run1
-     ./bin/epu-control.sh -a create -s sleeper -n run1
+(or: ./bin/epu-control.sh -a create -s provisioner -n run1 -j ~/myvars.json
+     ./bin/epu-control.sh -a create -s sleeper -n run1 -j ~/myvars.json
 
      See -h or --help for shortcuts.)
 
@@ -63,7 +63,8 @@ seeking out provisioner events recording worker launches.  It adds new
 VMs to the run, all future run-based commands (like "killrun", "logfetch",
 and "update-events") will include the worker VMs as well (unless they
 are scoped by --haservice or at least this scoping is the plan, not fully
-implemented).
+implemented).  To fetch logs from the workers, this command needs to detect
+hostnames first, which might not happen when the worker is first detected.
 
 $ ./bin/epu-control.sh -a find-workers -n run1
 

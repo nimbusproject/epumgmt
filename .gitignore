@@ -1,5 +1,6 @@
 *.pyc
 var/epucontrol/logs/ec*
 var/epucontrol/runlogs/*
+var/epucontrol/confs_used/*
 var/epucontrol/persistence/*lock
 var/epucontrol/persistence/*list
