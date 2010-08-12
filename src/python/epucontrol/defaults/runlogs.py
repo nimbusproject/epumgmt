@@ -81,11 +81,14 @@ class DefaultRunlogs:
         
         newvm.vmlogdir = self.allvmslogdir
         
-        
     def fetch_logs(self, vm, m):
         
         if not self.validated:
             raise ProgrammingError("operation called without necessary validation")
+        
+        if not vm.hostname:
+            self.c.log.warn("Cannot retrieve logs for '%s', hostname is unknown" % vm.instanceid)
+            return
             
         scpcmd = m.iaas.scp_cmd(vm.hostname)
     

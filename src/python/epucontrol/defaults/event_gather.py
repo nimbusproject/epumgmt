@@ -59,7 +59,12 @@ class DefaultEventGather:
                     new = False
                     break
             if new:
-                self.c.log.debug("New event: %s" % event.key)
+                event_txt = "New event: %s" % event.key
+                event_txt += "\n    source: %s, " % event.source
+                event_txt += "name: %s, " % event.name
+                event_txt += "timestamp: %s" % event.timestamp
+                event_txt += "\n    extra: %s" % event.extra
+                self.c.log.debug(event_txt)
                 vm.events.append(event)
     
     def _all_events_in_dir(self, logdir):

@@ -43,4 +43,7 @@ def vms_launched_by_provisioner(p, c, m, run_name):
             vm.service_type = "unknown" + vm.WORKER_SUFFIX
             m.runlogs.new_vm(vm)
             vms.append(vm)
+        elif event.name == "node_started":
+            vm.hostname = event.extra['public_ip']
+            m.persistence.new_vm_maybe(run_name, vm)
     return vms

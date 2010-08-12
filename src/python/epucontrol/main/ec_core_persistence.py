@@ -90,11 +90,19 @@ class Persistence:
         run_vms = self.get_run_vms_or_none(run_name)
         if not run_vms:
             run_vms = []
+        
         found = False
         for avm in run_vms:
             if avm.instanceid == vm.instanceid:
+                # late binding hostnames are possible
+                if not avm.hostname and vm.hostname:
+                    avm.hostname = vm.hostname
+                    strparams = (avm.instanceid, avm.hostname)
+                    self.c.log.debug("found hostname for '%s': %s" % strparams)
                 found = True
+        
         if found:
+            self.store_run_vms(run_name, run_vms)
             return False # not new
         else:
             run_vms.append(vm)
