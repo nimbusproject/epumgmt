@@ -109,7 +109,7 @@ class DefaultRunlogs:
         cmd = ' '.join(args)
         self.c.log.debug("command = '%s'" % cmd)
         
-        timeout = 5.0 # seconds
+        timeout = 30.0 # seconds
         (killed, retcode, stdout, stderr) = \
             child.child(cmd, timeout=timeout)
         
