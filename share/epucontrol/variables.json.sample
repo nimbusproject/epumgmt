@@ -1,3 +1,4 @@
 {
-  "exchange_scope":"cei_hello1"
+  "exchange_scope":"cei_hello1",
+  "epuworker_image_id":"ami-9a9e76f3"
 }
