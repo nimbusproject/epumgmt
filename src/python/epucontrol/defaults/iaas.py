@@ -1,7 +1,9 @@
 import os
 import time
 
+import boto
 from boto.ec2.connection import EC2Connection
+from boto.ec2.regioninfo import RegionInfo
 from epucontrol.api.exceptions import *
 import epucontrol.main.ec_args as ec_args
 from epucontrol.main import ACTIONS
@@ -26,6 +28,8 @@ class DefaultIaaS:
         self.graceleft = 0
         
         self.baseimage = None
+        self.nimbus_key = None
+        self.nimbus_secret = None
         self.ec2_key = None
         self.ec2_secret = None
         self.instancetype = None
@@ -33,6 +37,8 @@ class DefaultIaaS:
         self.ssh_username = None
         self.scp_username = None
         self.localsshkeypath = None
+        self.custom_hostname = None
+        self.custom_port = -1
         
     def validate(self):
         
@@ -43,15 +49,16 @@ class DefaultIaaS:
             return
         
         
-        # In the near future, this will branch on IaaS, e.g. EC2 vs. Nimbus.
-        # And use Nimboss to do contextualization.  Currently, instead this
-        # is using boto + fabfile.  At that future point, this will need to
-        # validate hostnames, availability zones, context broker address, etc.
+        # In the near future, this will branch on generic IaaS and use Nimboss
+        # to do contextualization.  Currently, instead this is using boto +
+        # fabfile.  At that future point, this will need to validate hostnames,
+        # availability zones, context broker address, etc.
+        
+        self.nimbus_key = os.environ.get('NIMBUS_KEY')
+        self.nimbus_secret = os.environ.get('NIMBUS_SECRET')
     
         self.ec2_key = os.environ.get('AWS_ACCESS_KEY_ID')
         self.ec2_secret = os.environ.get('AWS_SECRET_ACCESS_KEY')
-        if not self.ec2_key or not self.ec2_secret:
-            raise InvalidConfig("You need to export both AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to the environment.")
         
         graceperiod = self.p.get_arg_or_none(ec_args.GRACE_PERIOD)
         if graceperiod:
@@ -96,11 +103,29 @@ class DefaultIaaS:
             if not os.path.exists(self.localsshkeypath):
                 raise InvalidConfig("localsshkeypath is not a valid file: %s" % self.localsshkeypath)
             
+        self.custom_hostname = self.p.get_conf_or_none(section, "custom_hostname")
+        if not self.custom_hostname:
+            self.c.log.debug("no custom endpoint for iaas (ignoring port)")
+        else:
+            self.custom_port = self.p.get_conf_or_none(section, "custom_port")
+            if self.custom_port:
+                self.custom_port = int(self.custom_port)
+                if self.custom_port < 1:
+                    raise InvalidConfig("custom_port looks invalid, %d less than 1?  Comment it out if it is unused." % self.custom_port)
+        
+        if self.custom_hostname:
+            self.c.log.info("custom endpoint for iaas, looking for NIMBUS_KEY/NIMBUS_SECRET")
+            if not self.nimbus_key or not self.nimbus_secret:
+                raise InvalidConfig("You need to export both NIMBUS_KEY and NIMBUS_SECRET to the environment.")
+        elif not self.ec2_key or not self.ec2_secret:
+            raise InvalidConfig("You need to export both AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to the environment.")
         
         self.validated = True
         self.c.log.debug("baseimage: " + self.baseimage)
         self.c.log.debug("ec2_key: " + self.ec2_key)
         self.c.log.debug("ec2_secret: [REDACTED]")
+        self.c.log.debug("nimbus_key: " + self.nimbus_key)
+        self.c.log.debug("nimbus_secret: [REDACTED]")
         self.c.log.debug("instancetype: " + self.instancetype)
         self.c.log.debug("sshkeyname: " + self.sshkeyname)
         self.c.log.debug("ssh_username: " + self.ssh_username)
@@ -115,7 +140,7 @@ class DefaultIaaS:
             raise ProgrammingError("operation called without necessary validation")
             
         # In the future, these things will be compromised of one Nimboss call
-        (instanceid, hostname) = self._launch_ec2()
+        (instanceid, hostname) = self._launch_iaas()
         
         # Firewall not letting pings through at moment, revisit
         #self._wait_for_ping(hostname)
@@ -123,9 +148,19 @@ class DefaultIaaS:
         
         return (instanceid, hostname)
         
-    def _launch_ec2(self):
+    def _launch_iaas(self):
         
-        con = EC2Connection(self.ec2_key, self.ec2_secret)
+        # see comments in validate()
+        if not self.custom_hostname:
+            con = EC2Connection(self.ec2_key, self.ec2_secret)
+        else:
+            region = RegionInfo(name="nimbus", endpoint=self.custom_hostname)
+            if self.custom_port:
+                con =  boto.connect_ec2(self.nimbus_key, self.nimbus_secret,
+                                        region=region)
+            else:
+                 con =  boto.connect_ec2(self.nimbus_key, self.nimbus_secret,
+                                         port=self.custom_port, region=region)   
         
         self.c.log.info("Launching baseimage '%s' with instance type '%s' and key name '%s'" % (self.baseimage, self.instancetype, self.sshkeyname))
         
