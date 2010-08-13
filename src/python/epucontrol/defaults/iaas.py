@@ -152,17 +152,7 @@ class DefaultIaaS:
         
     def _launch_iaas(self):
         
-        # see comments in validate()
-        if not self.custom_hostname:
-            con = EC2Connection(self.ec2_key, self.ec2_secret)
-        else:
-            region = RegionInfo(name="nimbus", endpoint=self.custom_hostname)
-            if not self.custom_port:
-                con =  boto.connect_ec2(self.nimbus_key, self.nimbus_secret,
-                                        region=region)
-            else:
-                con =  boto.connect_ec2(self.nimbus_key, self.nimbus_secret,
-                                        port=self.custom_port, region=region)   
+        con = self._get_connection()
         
         self.c.log.info("Launching baseimage '%s' with instance type '%s' and key name '%s'" % (self.baseimage, self.instancetype, self.sshkeyname))
         
@@ -312,5 +302,19 @@ class DefaultIaaS:
             raise UnexpectedError(errmsg)
         
     def terminate_ids(self, instanceids):
-        con = EC2Connection(self.ec2_key, self.ec2_secret)
+        con = self._get_connection()
         con.terminate_instances(instanceids)
+
+    def _get_connection(self):
+        # see comments in validate()
+        if not self.custom_hostname:
+            con = EC2Connection(self.ec2_key, self.ec2_secret)
+        else:
+            region = RegionInfo(name="nimbus", endpoint=self.custom_hostname)
+            if not self.custom_port:
+                con =  boto.connect_ec2(self.nimbus_key, self.nimbus_secret,
+                                        region=region)
+            else:
+                con =  boto.connect_ec2(self.nimbus_key, self.nimbus_secret,
+                                        port=self.custom_port, region=region) 
+        return con
