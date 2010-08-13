@@ -38,7 +38,7 @@ class DefaultIaaS:
         self.scp_username = None
         self.localsshkeypath = None
         self.custom_hostname = None
-        self.custom_port = -1
+        self.custom_port = 0
         
     def validate(self):
         
@@ -107,12 +107,14 @@ class DefaultIaaS:
         if not self.custom_hostname:
             self.c.log.debug("no custom endpoint for iaas (ignoring port)")
         else:
+            self.c.log.debug("custom hostname: %s" % self.custom_hostname)
             self.custom_port = self.p.get_conf_or_none(section, "custom_port")
             if self.custom_port:
                 self.custom_port = int(self.custom_port)
                 if self.custom_port < 1:
                     raise InvalidConfig("custom_port looks invalid, %d less than 1?  Comment it out if it is unused." % self.custom_port)
-        
+                self.c.log.debug("custom port: %d" % self.custom_port)
+                
         if self.custom_hostname:
             self.c.log.info("custom endpoint for iaas, looking for NIMBUS_KEY/NIMBUS_SECRET")
             if not self.nimbus_key or not self.nimbus_secret:
@@ -155,12 +157,12 @@ class DefaultIaaS:
             con = EC2Connection(self.ec2_key, self.ec2_secret)
         else:
             region = RegionInfo(name="nimbus", endpoint=self.custom_hostname)
-            if self.custom_port:
+            if not self.custom_port:
                 con =  boto.connect_ec2(self.nimbus_key, self.nimbus_secret,
                                         region=region)
             else:
-                 con =  boto.connect_ec2(self.nimbus_key, self.nimbus_secret,
-                                         port=self.custom_port, region=region)   
+                con =  boto.connect_ec2(self.nimbus_key, self.nimbus_secret,
+                                        port=self.custom_port, region=region)   
         
         self.c.log.info("Launching baseimage '%s' with instance type '%s' and key name '%s'" % (self.baseimage, self.instancetype, self.sshkeyname))
         
