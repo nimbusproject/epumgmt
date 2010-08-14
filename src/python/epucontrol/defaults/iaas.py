@@ -43,7 +43,8 @@ class DefaultIaaS:
     def validate(self):
         
         action = self.p.get_arg_or_none(ec_args.ACTION)
-        if action not in [ACTIONS.CREATE, ACTIONS.LOGFETCH, ACTIONS.FIND_WORKERS, ACTIONS.KILLRUN]:
+        if action not in [ACTIONS.CREATE, ACTIONS.LOGFETCH, ACTIONS.FETCH_KILL,
+                          ACTIONS.FIND_WORKERS, ACTIONS.KILLRUN]:
             if self.c.trace:
                 self.c.log.debug("validation for IaaS module complete, '%s' is not a relevant action" % action)
             return
@@ -304,7 +305,42 @@ class DefaultIaaS:
     def terminate_ids(self, instanceids):
         con = self._get_connection()
         con.terminate_instances(instanceids)
-
+    
+    def filter_by_running(self, vm_list):
+        """Filter out any VMs in this list that terminating/terminated"""
+        
+        ids = []
+        vm_map = {}
+        for vm in vm_list:
+            ids.append(vm.instanceid)
+            vm_map[vm.instanceid] = vm
+            
+        con = self._get_connection()
+        self.c.log.debug("querying status of %d instances" % len(ids))
+        reservations = con.get_all_instances(instance_ids=ids)
+        
+        sd = "shutting-down"
+        ter = "terminated"
+        
+        filtered = []
+        for res in reservations:
+            for inst in res.instances:
+                iid = inst.id
+                
+                if vm_map.has_key(iid):
+                    if inst.state == sd:
+                        self.c.log.info("Instance %s is %s, filtering" % (iid, sd))
+                    elif inst.state == ter:
+                        self.c.log.info("Instance %s is %s, filtering" % (iid, ter))
+                    else:
+                        self.c.log.debug("Instance %s is %s" % (iid, inst.state))
+                        filtered.append(vm_map[iid])
+                else:
+                    stray = "Instance %s is %s (stray in reservation? did you run find-workers?)" % (iid, inst.state)
+                    self.c.log.warn(stray)
+        
+        return filtered
+        
     def _get_connection(self):
         # see comments in validate()
         if not self.custom_hostname:

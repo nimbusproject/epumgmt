@@ -37,6 +37,7 @@ class Modules:
 class ACTIONS:
     
     CREATE = "create"
+    FETCH_KILL = "fetchkill"
     FIND_WORKERS = "find-workers"
     KILLRUN = "killrun"
     LOGFETCH = "logfetch"

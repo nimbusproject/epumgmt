@@ -8,6 +8,7 @@ from epucontrol.main import Modules, ACTIONS
 import epucontrol.main.ec_args as ec_args
 import ec_core_creation
 import ec_core_eventgather
+import ec_core_fetchkill
 import ec_core_findworkers
 import ec_core_logfetch
 import ec_core_persistence
@@ -144,6 +145,8 @@ def _core(action, p, c):
         except:
             c.log.exception("Fetch failed, moving on to terminate anyhow")
         ec_core_termination.terminate(p, c, modules, run_name)
+    elif action == ACTIONS.FETCH_KILL:
+        ec_core_fetchkill.fetch_kill(p, c, modules, run_name)
     elif action == ACTIONS.LOGFETCH:
         ec_core_logfetch.fetch_all(p, c, modules, run_name)
     elif action == ACTIONS.FIND_WORKERS:

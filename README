@@ -69,6 +69,14 @@ hostnames first, which might not happen when the worker is first detected.
 $ ./bin/epu-control.sh -a find-workers -n run1
 
 
+The fetchkill action is a convenience for experiments or administrator
+intervention: fetch logs from N workers and kill them.
+Run find-workers before each use.
+
+$ ./bin/epu-control.sh -a find-workers -n run1
+$ ./bin/epu-control.sh -a fetchkill -n run1 -k 2
+
+
 ======================================
 Sleeper service
 ======================================

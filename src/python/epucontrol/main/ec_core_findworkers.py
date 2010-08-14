@@ -44,6 +44,7 @@ def vms_launched(p, c, m, run_name, eventname):
             else:
                 raise IncompatibleEnvironment()
             vm.hostname = event.extra['public_ip']
+            # todo: 'unknown' is hardcoded in fetchkill, too
             vm.service_type = "unknown" + vm.WORKER_SUFFIX
             m.runlogs.new_vm(vm)
             vms.append(vm)

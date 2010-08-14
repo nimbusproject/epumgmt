@@ -17,6 +17,9 @@ class RunVM:
         # No IaaS awareness yet, assumes you start/stop with same conf
         self.instanceid = None
         
+        # Intended for immediate consultation after an IaaS status query
+        self.running = False
+        
         # Assumed that harness can ssh to this node
         self.hostname = None
         
