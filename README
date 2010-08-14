@@ -50,8 +50,7 @@ coordinated things with the whole run.
 
 For example, the "killrun" action (terminates all the involved instances
 via IaaS) and the "logfetch" action (grabs all the logs from the involved
-instances).
-(* Currently these don't operate on the workers yet, getting to it).
+instances that have not been terminated).
 
 Fetching + gathering:
 

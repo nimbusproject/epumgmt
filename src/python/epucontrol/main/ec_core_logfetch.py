@@ -9,7 +9,7 @@ def fetch_all(p, c, m, run_name):
     if c.trace:
         c.log.debug("fetch_all()")
     
-    run_vms = _get_runvms_required(m.persistence, run_name)
+    run_vms = _get_runvms_required(m, run_name)
         
     for vm in run_vms:
         _fetch_one_vm(p, c, m, run_name, vm)
@@ -21,7 +21,7 @@ def fetch_by_vm_id(p, c, m, run_name, instanceid):
     """
     c.log.debug("fetch_by_vm_id()")
     
-    run_vms = _get_runvms_required(m.persistence, run_name)
+    run_vms = _get_runvms_required(m, run_name)
         
     vm = None
     for avm in run_vms:
@@ -29,7 +29,7 @@ def fetch_by_vm_id(p, c, m, run_name, instanceid):
             vm = avm
             break
     if not vm:
-        raise IncompatibleEnvironment("Cannot find a VM associated with run '%s' with the instance id '%s'" % (run_name, instanceid))
+        raise IncompatibleEnvironment("Cannot find an active VM associated with run '%s' with the instance id '%s'" % (run_name, instanceid))
         
     _fetch_one_vm(p, c, m, run_name, vm)
 
@@ -48,7 +48,7 @@ def fetch_by_service_name(p, c, m, run_name, servicename):
     if c.trace:
         c.log.debug("fetch_by_service_name()")
     
-    run_vms = _get_runvms_required(m.persistence, run_name)
+    run_vms = _get_runvms_required(m, run_name)
     
     vms = []
     for avm in run_vms:
@@ -56,18 +56,18 @@ def fetch_by_service_name(p, c, m, run_name, servicename):
             vms.append(avm)
             
     if len(vms) == 0:
-        raise IncompatibleEnvironment("Cannot find any VMs associated with run '%s' with the service type/name '%s'" % (run_name, servicename))
+        raise IncompatibleEnvironment("Cannot find any active VMs associated with run '%s' with the service type/name '%s'" % (run_name, servicename))
     
     for vm in vms:
         _fetch_one_vm(p, c, m, run_name, vm)
         
 # -----------------------------------------------------------------
 
-def _get_runvms_required(persistence, run_name):
-    run_vms = persistence.get_run_vms_or_none(run_name)
+def _get_runvms_required(m, run_name):
+    run_vms = m.persistence.get_run_vms_or_none(run_name)
     if not run_vms or len(run_vms) == 0:
         raise IncompatibleEnvironment("Cannot find any VMs associated with run '%s'" % run_name)
-    return run_vms
+    return m.iaas.filter_by_running(run_vms)
 
 def _fetch_one_vm(p, c, m, run_name, vm):
     c.log.info("fetching logs from '%s' instance '%s' (run '%s')" % (vm.service_type, vm.instanceid, run_name))
