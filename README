@@ -69,10 +69,10 @@ $ ./bin/epu-control.sh -a find-workers -n run1
 
 
 The fetchkill action is a convenience for experiments or administrator
-intervention: fetch logs from N workers and kill them.
-Run find-workers before each use.
+intervention: fetch logs from N workers and kill them.  This causes
+'find-workers' to happen first in order to be up to date when picking
+the workers to kill.
 
-$ ./bin/epu-control.sh -a find-workers -n run1
 $ ./bin/epu-control.sh -a fetchkill -n run1 -k 2
 
 
