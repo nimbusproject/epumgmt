@@ -97,7 +97,7 @@ class DefaultRunlogs:
         scpcmd[-1] = scpcmd[-1] + vm.vmlogdir
         
         # and then the glob
-        scpcmd[-1] = scpcmd[-1] + "/*log"
+        scpcmd[-1] = scpcmd[-1] + "/*log*"
         
         # transfer destination
         scpcmd.append(vm.runlogdir)
