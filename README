@@ -48,8 +48,8 @@ $ ./bin/epu-control.sh --action create --haservice sleeper --name run1 --jsonvar
 Note how each invocation gets the same run name.  This will let you do
 coordinated things with the whole run.
 
-For example, the "killrun" action (terminates all the involved instances
-via IaaS) and the "logfetch" action (grabs all the logs from the involved
+For example, the 'killrun' action (terminates all the involved instances
+via IaaS) and the 'logfetch' action (grabs all the logs from the involved
 instances that have not been terminated).
 
 Fetching + gathering:
@@ -57,20 +57,22 @@ Fetching + gathering:
 $ ./bin/epu-control.sh -a logfetch -n run1
 $ ./bin/epu-control.sh -a update-events -n run1
 
-The find-workers action puts together the logfetch and update-events cmds,
-seeking out provisioner events recording worker launches.  It adds new
-VMs to the run, all future run-based commands (like "killrun", "logfetch",
-and "update-events") will include the worker VMs as well (unless they
+The 'find-workers-once' action puts together the 'logfetch' and 'update-events'
+cmds, seeking out provisioner events recording worker launches.  It adds new
+VMs to the run, all future run-based commands (like 'killrun', 'logfetch',
+and 'update-events') will include the worker VMs as well (unless they
 are scoped by --haservice or at least this scoping is the plan, not fully
 implemented).  To fetch logs from the workers, this command needs to detect
 hostnames first, which might not happen when the worker is first detected.
 
-$ ./bin/epu-control.sh -a find-workers -n run1
+$ ./bin/epu-control.sh -a find-workers-once -n run1
 
+The 'find-workers' action will run that in a loop which is more for testing
+and development.
 
-The fetchkill action is a convenience for experiments or administrator
+The 'fetchkill' action is a convenience for experiments or administrator
 intervention: fetch logs from N workers and kill them.  This causes
-'find-workers' to happen first in order to be up to date when picking
+'find-workers-once' to happen first in order to be up to date when picking
 the workers to kill.
 
 $ ./bin/epu-control.sh -a fetchkill -n run1 -k 2
