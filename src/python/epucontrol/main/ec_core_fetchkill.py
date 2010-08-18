@@ -10,6 +10,8 @@ try:
 except ImportError:
     from dummy_threading import Thread
 
+THREADS_PER_BATCH = 20
+
 def fetch_kill(p, c, m, run_name):
     killnum = _get_killnum(p)
     tokill = []
@@ -41,11 +43,20 @@ def fetch_kill(p, c, m, run_name):
         txt += "s"
     c.log.info("Beginning to fetch and kill %s" % txt)
     
-    for thr in threads:
-        thr.start()
-       
-    for thr in threads:
-        thr.join()
+
+    done = False
+    idx = 0
+    while not done:
+        current_batch = threads[idx:idx+THREADS_PER_BATCH]
+        idx += THREADS_PER_BATCH
+        if idx > len(threads):
+            done = True
+            
+        for thr in current_batch:
+            thr.start()
+           
+        for thr in current_batch:
+            thr.join()
         
     error_count = 0
     for thr in threads:
