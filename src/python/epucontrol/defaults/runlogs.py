@@ -22,7 +22,7 @@ class DefaultRunlogs:
         
         action = self.p.get_arg_or_none(ec_args.ACTION)
         if action not in [ACTIONS.CREATE, ACTIONS.LOGFETCH, ACTIONS.FETCH_KILL,
-                          ACTIONS.FIND_WORKERS, ACTIONS.KILLRUN]:
+                          ACTIONS.FIND_WORKERS, ACTIONS.FIND_WORKERS_ONCE, ACTIONS.KILLRUN]:
             if self.c.trace:
                 self.c.log.debug("validation for runlogs module complete, '%s' is not a relevant action" % action)
             return

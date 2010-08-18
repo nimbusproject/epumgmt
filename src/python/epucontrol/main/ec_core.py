@@ -152,7 +152,7 @@ def _core(action, p, c):
         ec_core_logfetch.fetch_all(p, c, modules, run_name)
     elif action == ACTIONS.FIND_WORKERS:
         ec_core_findworkers.find(p, c, modules, action, run_name)
-    elif action == ACTIONS.FIND_WORKERS:
+    elif action == ACTIONS.FIND_WORKERS_ONCE:
         ec_core_findworkers.find(p, c, modules, action, run_name, once=True)
     else:
         raise ProgrammingError("unhandled action %s" % action)
