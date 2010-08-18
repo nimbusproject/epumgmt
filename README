@@ -31,6 +31,8 @@ Copy "share/epucontrol/variables.json.sample" somewhere outside the repository.
 Unique scope for your launches: change the "cei_hello1" variable in that
 file to something unique.
 
+Also change the RabbitMQ broker IP address to an appropriate value. 
+
 ======================================
 Usage
 ======================================
