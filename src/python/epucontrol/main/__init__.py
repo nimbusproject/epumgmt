@@ -39,6 +39,7 @@ class ACTIONS:
     CREATE = "create"
     FETCH_KILL = "fetchkill"
     FIND_WORKERS = "find-workers"
+    FIND_WORKERS_ONCE = "find-workers-once"
     KILLRUN = "killrun"
     LOGFETCH = "logfetch"
     UPDATE_EVENTS = "update-events"
