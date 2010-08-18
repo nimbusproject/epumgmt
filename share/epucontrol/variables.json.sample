@@ -1,4 +1,6 @@
 {
   "exchange_scope":"cei_hello1",
+  "broker_ip_address":"184.72.231.60",
+  "lcaarch_commit_hash":"HEAD",
   "epuworker_image_id":"ami-9a9e76f3"
 }

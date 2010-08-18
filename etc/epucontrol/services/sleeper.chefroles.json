@@ -1,11 +1,11 @@
 {
   "capabilitycontainer":{
-    "broker":"184.72.231.60",
+    "broker":"${broker_ip_address}",
     "bootscript":"res/scripts/newcc.py",
     "sysname":"${exchange_scope}",
     "broker_heartbeat":"5",
     "lcaarch_branch":"cei",
-    "lcaarch_commit_hash":"HEAD",
+    "lcaarch_commit_hash":"${lcaarch_commit_hash}",
     "log_level":"WARNING"
   },
   "username":"cc",
@@ -14,7 +14,7 @@
     
     "sleeper_rabbitmq_sensor":"{'name':'rabbitmq_sensor', 'module':'ion.services.cei.sensors.rabbitmq_sensor', 'class':'RabbitMQSensor', 'spawnargs':{'queue_name_work':'cei_work_queue', 'queue_name_events':'rabbitmq_sensor_events', 'rabbitmq_node':'rabbit@184.73.158.98', 'erlang_cookie':'GILWSLAQFKTZNABMKMQP'}}",
     
-    "sleeper_epu_controller":"{'name':'epu_controller','module':'ion.services.cei.epu_controller','class':'EPUControllerService', 'spawnargs':{'queue_name_work':'cei_work_queue', 'engine_conf':{'provisioner_vars':{'exchange_scope':'${exchange_scope}', 'epuworker_image_id':'${epuworker_image_id}'}}}}",
+    "sleeper_epu_controller":"{'name':'epu_controller','module':'ion.services.cei.epu_controller','class':'EPUControllerService', 'spawnargs':{'queue_name_work':'cei_work_queue', 'engine_conf':{'provisioner_vars':{'exchange_scope':'${exchange_scope}', 'epuworker_image_id':'${epuworker_image_id}', 'broker_ip_address':'${broker_ip_address}', 'lcaarch_commit_hash':'${lcaarch_commit_hash}'}}}}",
     
     "sleeper_work_producer":"{'name':'sleeper_work_producer','module':'ion.services.cei.sleeper.epu_work_producer','class':'EPUWorkProducer', 'spawnargs':{'queue_name_work':'cei_work_queue'}}"
   },
