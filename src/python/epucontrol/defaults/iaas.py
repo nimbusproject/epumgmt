@@ -217,7 +217,7 @@ class DefaultIaaS:
             self.c.log.debug("command = '%s'" % cmd)
             if self._run_one_cmd(args):
                 break
-            time.sleep(0.5)
+            time.sleep(2.0)
         
     def ssh_cmd(self, hostname):
         """Return list of args for an SSH login"""
