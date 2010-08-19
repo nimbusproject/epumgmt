@@ -79,6 +79,12 @@ the workers to kill.
 
 $ ./bin/epu-control.sh -a fetchkill -n run1 -k 2
 
+The 'status' action will print out information about the VMs that epucontrol
+knows about.  'find-workers' will not be run first but IaaS status queries
+on each node will be.
+
+$ ./bin/epu-control.sh -a status -n run1
+
 
 ======================================
 Sleeper service

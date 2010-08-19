@@ -42,6 +42,7 @@ class ACTIONS:
     FIND_WORKERS_ONCE = "find-workers-once"
     KILLRUN = "killrun"
     LOGFETCH = "logfetch"
+    STATUS = "status"
     UPDATE_EVENTS = "update-events"
     
     def all_actions(self):

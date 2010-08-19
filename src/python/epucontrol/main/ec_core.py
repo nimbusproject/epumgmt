@@ -12,6 +12,7 @@ import ec_core_fetchkill
 import ec_core_findworkers
 import ec_core_logfetch
 import ec_core_persistence
+import ec_core_status
 import ec_core_termination
 
 # -----------------------------------------------------------------------------
@@ -154,6 +155,8 @@ def _core(action, p, c):
         ec_core_findworkers.find(p, c, modules, action, run_name)
     elif action == ACTIONS.FIND_WORKERS_ONCE:
         ec_core_findworkers.find(p, c, modules, action, run_name, once=True)
+    elif action == ACTIONS.STATUS:
+        ec_core_status.status(p, c, modules, run_name)
     else:
         raise ProgrammingError("unhandled action %s" % action)
 

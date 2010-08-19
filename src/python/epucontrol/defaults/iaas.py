@@ -42,14 +42,6 @@ class DefaultIaaS:
         
     def validate(self):
         
-        action = self.p.get_arg_or_none(ec_args.ACTION)
-        if action not in [ACTIONS.CREATE, ACTIONS.LOGFETCH, ACTIONS.FETCH_KILL,
-                          ACTIONS.FIND_WORKERS, ACTIONS.FIND_WORKERS_ONCE, ACTIONS.KILLRUN]:
-            if self.c.trace:
-                self.c.log.debug("validation for IaaS module complete, '%s' is not a relevant action" % action)
-            return
-        
-        
         # In the near future, this will branch on generic IaaS and use Nimboss
         # to do contextualization.  Currently, instead this is using boto +
         # fabfile.  At that future point, this will need to validate hostnames,
@@ -305,6 +297,28 @@ class DefaultIaaS:
     def terminate_ids(self, instanceids):
         con = self._get_connection()
         con.terminate_instances(instanceids)
+        
+    def state_map(self, vm_list):
+        """Return dictionary of {vm.instanceid, state}"""
+        
+        ids = []
+        vm_map = {}
+        for vm in vm_list:
+            ids.append(vm.instanceid)
+            vm_map[vm.instanceid] = vm
+            
+        con = self._get_connection()
+        self.c.log.debug("querying status of %d instances" % len(ids))
+        reservations = con.get_all_instances(instance_ids=ids)
+        
+        state = {}
+        for res in reservations:
+            for inst in res.instances:
+                iid = inst.id
+                if vm_map.has_key(iid):
+                    state[iid] = inst.state
+        
+        return state
     
     def filter_by_running(self, vm_list):
         """Filter out any VMs in this list that terminating/terminated"""
