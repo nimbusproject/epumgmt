@@ -92,6 +92,7 @@ class Persistence:
             run_vms = []
         
         found = False
+        newhostname = False
         for avm in run_vms:
             if avm.instanceid == vm.instanceid:
                 # late binding hostnames are possible
@@ -99,15 +100,18 @@ class Persistence:
                     avm.hostname = vm.hostname
                     strparams = (avm.instanceid, avm.hostname)
                     self.c.log.debug("found hostname for '%s': %s" % strparams)
+                    newhostname = True
                 found = True
         
-        if found:
+        if newhostname:
             self.store_run_vms(run_name, run_vms)
+            
+        if found:
             return False # not new
         else:
             run_vms.append(vm)
             self.store_run_vms(run_name, run_vms)
-            return True
+            return True # new one
         
     def run_with_flock(self, f, *args, **kw):
         """Run function with persistence's filesystem-based lock.
