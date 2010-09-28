@@ -3,7 +3,7 @@ import uuid
 import simplejson as json
 
 # Anything after this token in a log line is considered a parsable event
-CEI_EVENT_SEPARATOR = "CEI_EVENT_JSON:"
+CYVENT_SEPARATOR = "CYVENT_JSON:"
 
 KEY_SOURCE = "eventsource"
 KEY_NAME = "eventname"
@@ -35,7 +35,7 @@ def event_logtxt(source, name, extra=None):
     """Same as the 'event' function, but you control where text is recorded.
     """
     json = event_json(source, name, extra=extra)
-    return "%s %s" % (CEI_EVENT_SEPARATOR, json)
+    return "%s %s" % (CYVENT_SEPARATOR, json)
 
 def event_json(source, name, extra=None):
     """Event text without any keyword to help parser: you are on your own.
@@ -83,7 +83,7 @@ def _valid_dict(adict):
 
 # ------------------ EVENT HARVESTING --------------------------------
 
-class CEIEvent:
+class CYvent:
     """Convenience class for a parsed event.
     """
     
@@ -95,7 +95,7 @@ class CEIEvent:
         self.extra = extra
 
 def events_from_file(path, sourcefilter=None, namefilter=None):
-    """Return list of CEIEvent instances found in a file.
+    """Return list of CYvent instances found in a file.
     @param sourcefilter scope list to events with source having this prefix
     @param namefilter scope list to events with name having this prefix
     """
@@ -115,10 +115,10 @@ def events_from_file(path, sourcefilter=None, namefilter=None):
 def _event_from_logline(log_line):
     if not log_line:
         return None
-    idx = log_line.rfind(CEI_EVENT_SEPARATOR)
+    idx = log_line.rfind(CYVENT_SEPARATOR)
     if idx < 0:
         return None
-    parts = log_line.split(CEI_EVENT_SEPARATOR)
+    parts = log_line.split(CYVENT_SEPARATOR)
     if len(parts) != 2:
         return None
     return _event_from_json(parts[1])
@@ -131,7 +131,7 @@ def _event_from_json(json_string):
     extra = jsondict[KEY_EXTRA]
     stampdict = jsondict[KEY_STAMP]
     timestamp = _dict_to_timestamp(stampdict)
-    return CEIEvent(source, name, key, timestamp, extra)
+    return CYvent(source, name, key, timestamp, extra)
 
 
 # ------------------ TIMESTAMP --------------------------------
