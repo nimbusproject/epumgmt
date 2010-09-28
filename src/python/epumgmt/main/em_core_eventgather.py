@@ -1,5 +1,5 @@
 from epumgmt.api.exceptions import *
-import epumgmt.main.ec_args as ec_args
+import epumgmt.main.em_args as em_args
 
 def update_events(p, c, m, run_name):
     """Parse events from log files and fill the VM instances.
@@ -9,7 +9,7 @@ def update_events(p, c, m, run_name):
     p,c,m are seen everywhere: parameters, common, modules 
     """
     
-    servicename = p.get_arg_or_none(ec_args.HASERVICE)
+    servicename = p.get_arg_or_none(em_args.HASERVICE)
     if not servicename:
         m.event_gather.populate_run_vms(m, run_name)
     else:

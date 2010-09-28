@@ -4,12 +4,12 @@ a = []
 ALL_EC_ARGS_LIST = a
 
 ################################################################################
-# EC ARGUMENTS
+# EM ARGUMENTS
 #
 # The following cmdline arguments may be queried via Parameters, using either
 # the 'name' as the argument or simply the object like:
 #   
-#   params.get_arg_or_none(ec_args.GRACE_PERIOD)
+#   params.get_arg_or_none(em_args.GRACE_PERIOD)
 # 
 ################################################################################
 

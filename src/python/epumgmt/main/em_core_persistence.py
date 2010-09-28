@@ -5,7 +5,7 @@ import stat
 import sys
 
 from epumgmt.api.exceptions import *
-import epumgmt.main.ec_args as ec_args
+import epumgmt.main.em_args as em_args
 
 class Persistence:
     def __init__(self, params, common):

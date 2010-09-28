@@ -1,6 +1,6 @@
-import epumgmt.main.ec_args as ec_args
-import ec_core_eventgather
-import ec_core_logfetch
+import epumgmt.main.em_args as em_args
+import em_core_eventgather
+import em_core_logfetch
 from epumgmt.defaults import RunVM
 from epumgmt.api.exceptions import *
 import time
@@ -10,8 +10,8 @@ PROVISIONER="provisioner"
 def find(p, c, m, action, run_name, once=False):
     
     while True:
-        ec_core_logfetch.fetch_by_service_name(p, c, m, run_name, PROVISIONER)
-        ec_core_eventgather.update_events(p, c, m, run_name)
+        em_core_logfetch.fetch_by_service_name(p, c, m, run_name, PROVISIONER)
+        em_core_eventgather.update_events(p, c, m, run_name)
         
         # order is important, first "new_node"
         launched_vms = vms_launched(p, c, m, run_name, "new_node")

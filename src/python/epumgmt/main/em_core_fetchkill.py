@@ -1,4 +1,4 @@
-import epumgmt.main.ec_args as ec_args
+import epumgmt.main.em_args as em_args
 from epumgmt.api.exceptions import *
 from epumgmt.defaults import RunVM
 import cyvents
@@ -104,16 +104,16 @@ class FetchKillThread(Thread):
             self.error = e
     
 def _get_killnum(p):
-    killnum = p.get_arg_or_none(ec_args.KILLNUM)
+    killnum = p.get_arg_or_none(em_args.KILLNUM)
     if killnum == None:
-        raise InvalidInput("This action requires %s integer > 0" % ec_args.KILLNUM.long_syntax)
+        raise InvalidInput("This action requires %s integer > 0" % em_args.KILLNUM.long_syntax)
         
     try:
         killnum = int(killnum)
         if killnum < 1:
             raise Exception()
     except:
-        raise InvalidInput("%s needs to be an integer > 0" % ec_args.KILLNUM.long_syntax)
+        raise InvalidInput("%s needs to be an integer > 0" % em_args.KILLNUM.long_syntax)
     
     return killnum
 

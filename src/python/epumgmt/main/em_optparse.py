@@ -1,8 +1,8 @@
 # This is set up in such a way that you should not need to alter this file to
-# add an argument, in most cases.  See ec_args.py
+# add an argument, in most cases.  See em_args.py
 
 import optparse
-import ec_args
+import em_args
 
 # Not using yet
 EC_VERSION = "X.Y"
@@ -51,7 +51,7 @@ def parsersetup():
     create_args = []
     other_args = []
     
-    for arg in ec_args.ALL_EC_ARGS_LIST:
+    for arg in em_args.ALL_EC_ARGS_LIST:
         if arg.deprecated:
             deprecated_args.append(arg)
         elif arg.createarg:

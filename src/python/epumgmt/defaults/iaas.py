@@ -5,7 +5,7 @@ import boto
 from boto.ec2.connection import EC2Connection
 from boto.ec2.regioninfo import RegionInfo
 from epumgmt.api.exceptions import *
-import epumgmt.main.ec_args as ec_args
+import epumgmt.main.em_args as em_args
 from epumgmt.main import ACTIONS
 
 import child
@@ -53,13 +53,13 @@ class DefaultIaaS:
         self.ec2_key = os.environ.get('AWS_ACCESS_KEY_ID')
         self.ec2_secret = os.environ.get('AWS_SECRET_ACCESS_KEY')
         
-        graceperiod = self.p.get_arg_or_none(ec_args.GRACE_PERIOD)
+        graceperiod = self.p.get_arg_or_none(em_args.GRACE_PERIOD)
         if graceperiod:
             self.grace = int(graceperiod)
             self.graceleft = self.grace
         
         confsection = self.p.get_conf_or_none("iaas", "confsection")
-        argsection = self.p.get_arg_or_none(ec_args.IAAS_CONF)
+        argsection = self.p.get_arg_or_none(em_args.IAAS_CONF)
         section = None
         if argsection:
             section = argsection

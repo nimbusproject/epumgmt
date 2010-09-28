@@ -5,15 +5,15 @@ import time
 from epumgmt.api.exceptions import *
 from epumgmt.main import get_class_by_keyword, get_all_configs
 from epumgmt.main import Modules, ACTIONS
-import epumgmt.main.ec_args as ec_args
-import ec_core_creation
-import ec_core_eventgather
-import ec_core_fetchkill
-import ec_core_findworkers
-import ec_core_logfetch
-import ec_core_persistence
-import ec_core_status
-import ec_core_termination
+import epumgmt.main.em_args as em_args
+import em_core_creation
+import em_core_eventgather
+import em_core_fetchkill
+import em_core_findworkers
+import em_core_logfetch
+import em_core_persistence
+import em_core_status
+import em_core_termination
 
 # -----------------------------------------------------------------------------
 # CORE LOGIC (this is the whole program)
@@ -28,8 +28,8 @@ def core(opts, dbgmsgs=None):
     To make such a thing, construct an opts object with the expected
     member names and values and pass it in to this method.
     
-    See the 'ec_args' module and the defaults 'Parameters' implementations to
-    fully understand arg intake.  See the 'ec_cmdline' module to see how args
+    See the 'em_args' module and the defaults 'Parameters' implementations to
+    fully understand arg intake.  See the 'em_cmdline' module to see how args
     are taken in and how the result of the program (no exception or exception)
     is translated into a return code.
     """
@@ -56,9 +56,9 @@ def core(opts, dbgmsgs=None):
     
     # --conf is also required; already checked for above
     
-    given_action = p.get_arg_or_none(ec_args.ACTION)
+    given_action = p.get_arg_or_none(em_args.ACTION)
     if not given_action:
-        msg = "The %s argument is required, see -h" % ec_args.ACTION.long_syntax
+        msg = "The %s argument is required, see -h" % em_args.ACTION.long_syntax
         raise InvalidInput(msg)
         
     action = validate_action(given_action)
@@ -92,7 +92,7 @@ def _core(action, p, c):
     iaas_cls = c.get_class_by_keyword("IaaS")
     iaas = iaas_cls(p, c)
     
-    persistence = ec_core_persistence.Persistence(p, c)
+    persistence = em_core_persistence.Persistence(p, c)
     
     runlogs_cls = c.get_class_by_keyword("Runlogs")
     runlogs = runlogs_cls(p, c)
@@ -110,7 +110,7 @@ def _core(action, p, c):
     # -------------------------------------------------------------------------
     
     # At least currently, this is required for all actions.
-    run_name = p.get_arg_or_none(ec_args.NAME)
+    run_name = p.get_arg_or_none(em_args.NAME)
     if not run_name:
         raise InvalidInput("The %s action requires run_name, see -h" % action)
     
@@ -134,29 +134,29 @@ def _core(action, p, c):
         c.log.info("Performing '%s' for '%s'" % (action, run_name))
     
     if action == ACTIONS.CREATE:
-        ec_core_creation.create(p, c, modules, run_name)
+        em_core_creation.create(p, c, modules, run_name)
     elif action == ACTIONS.UPDATE_EVENTS:
-        ec_core_eventgather.update_events(p, c, modules, run_name)
+        em_core_eventgather.update_events(p, c, modules, run_name)
     elif action == ACTIONS.KILLRUN:
         try:
-            ec_core_findworkers.find(p, c, modules, action, run_name, once=True)
-            ec_core_logfetch.fetch_all(p, c, modules, run_name)
+            em_core_findworkers.find(p, c, modules, action, run_name, once=True)
+            em_core_logfetch.fetch_all(p, c, modules, run_name)
         except KeyboardInterrupt:
             raise
         except:
             c.log.exception("Fetch failed, moving on to terminate anyhow")
-        ec_core_termination.terminate(p, c, modules, run_name)
+        em_core_termination.terminate(p, c, modules, run_name)
     elif action == ACTIONS.FETCH_KILL:
-        ec_core_findworkers.find(p, c, modules, action, run_name, once=True)
-        ec_core_fetchkill.fetch_kill(p, c, modules, run_name)
+        em_core_findworkers.find(p, c, modules, action, run_name, once=True)
+        em_core_fetchkill.fetch_kill(p, c, modules, run_name)
     elif action == ACTIONS.LOGFETCH:
-        ec_core_logfetch.fetch_all(p, c, modules, run_name)
+        em_core_logfetch.fetch_all(p, c, modules, run_name)
     elif action == ACTIONS.FIND_WORKERS:
-        ec_core_findworkers.find(p, c, modules, action, run_name)
+        em_core_findworkers.find(p, c, modules, action, run_name)
     elif action == ACTIONS.FIND_WORKERS_ONCE:
-        ec_core_findworkers.find(p, c, modules, action, run_name, once=True)
+        em_core_findworkers.find(p, c, modules, action, run_name, once=True)
     elif action == ACTIONS.STATUS:
-        ec_core_status.status(p, c, modules, run_name)
+        em_core_status.status(p, c, modules, run_name)
     else:
         raise ProgrammingError("unhandled action %s" % action)
 

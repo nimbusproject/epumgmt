@@ -4,14 +4,14 @@ cmdline -- This consumes system commandline arguments.  Provides argument
 parsing and "--help" style text for a caller.  Translates exceptions into
 process return codes.
 
-main -- This drives the logic of the entire program.  Individual ecmodules
-are loaded and invoked here.  For a definition of 'ecmodule' see api 
+main -- This drives the logic of the entire program.  Individual EM modules
+are loaded and invoked here.  For a definition of 'emmodule' see api 
 documentation (epumgmt/api/__init__.py).  This code may never interact
-with anything but the interfaces defined there (the wcmodules).  "main" could
+with anything but the interfaces defined there (the EM modules).  "main" could
 itself be a zope.interface in the future but it is not currently.
 
 tests -- Programmatically drives various 'main' requests with real or mock
-ecmodules. See epumgmt/mocks/__init__.py.  
+EM modules. See epumgmt/mocks/__init__.py.
 Nose testing is used (easy_install nose).
 """
 
@@ -24,7 +24,7 @@ import string
 from epumgmt.api.exceptions import InvalidConfig, ProgrammingError
 
 # See api/TODO.xt
-#from workspacecontrol.api import interfacesdict
+#from epumgmt.api import interfacesdict
 
 class Modules:
     def __init__(self, event_gather, iaas, persistence, runlogs, services):
@@ -78,7 +78,7 @@ def get_class_by_keyword(keyword, allconfigs=None, implstr=None):
     
     # get the configured implementation class
     if not implstr:
-        implstr = allconfigs.get("ecimpls", keyword)
+        implstr = allconfigs.get("emimpls", keyword)
     c = get_class(implstr)
     if not c:
         raise InvalidConfig("Cannot find implementation class: '%s'" % implstr)
@@ -154,7 +154,7 @@ class ControlArg:
         createarg -- Most of the arguments are for the create action. Use a
         False createarg so they are grouped differently from the create args
         
-        if no metavar (see ec_optparse), metavar is capitalization of name
+        if no metavar (see em_optparse), metavar is capitalization of name
         """
         if not name:
             raise Exception("no arg name")

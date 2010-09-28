@@ -10,7 +10,7 @@ except:
     from StringIO import StringIO
 
 from epumgmt.api.exceptions import *
-import epumgmt.main.ec_args as ec_args
+import epumgmt.main.em_args as em_args
 from epumgmt.main import ACTIONS
 
 class DefaultServices:
@@ -28,15 +28,15 @@ class DefaultServices:
 
     def validate(self):
         
-        action = self.p.get_arg_or_none(ec_args.ACTION)
+        action = self.p.get_arg_or_none(em_args.ACTION)
         if action not in [ACTIONS.CREATE]:
             if self.c.trace:
                 self.c.log.debug("validation for services module complete, not a relevant action")
             return
         
-        self.servicename = self.p.get_arg_or_none(ec_args.HASERVICE)
+        self.servicename = self.p.get_arg_or_none(em_args.HASERVICE)
         if not self.servicename:
-            raise InvalidConfig("service name is required (%s)" % ec_args.HASERVICE.long_syntax)
+            raise InvalidConfig("service name is required (%s)" % em_args.HASERVICE.long_syntax)
             
         self.c.log.debug("service name: " + self.servicename)
         
@@ -62,7 +62,7 @@ class DefaultServices:
             
         self.c.log.debug("fablaunch exe: " + self.fablaunch)
         
-        json_vars_path = self.p.get_arg_or_none(ec_args.JSON_VARS)
+        json_vars_path = self.p.get_arg_or_none(em_args.JSON_VARS)
         if json_vars_path:
             if not os.path.exists(json_vars_path):
                 raise InvalidConfig("json file does not exist: %s" % json_vars_path)
@@ -70,7 +70,7 @@ class DefaultServices:
             self.userjson = simplejson.load(f)
             f.close()
         
-        run_name = self.p.get_arg_or_none(ec_args.NAME)
+        run_name = self.p.get_arg_or_none(em_args.NAME)
         confs_used_dir = self.p.get_conf_or_none("confs_used", "confs_used_dir")
         if not confs_used_dir:
             raise InvalidConfig("There is no confs_used_dir configuration")

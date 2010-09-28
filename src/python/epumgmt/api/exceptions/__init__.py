@@ -1,8 +1,8 @@
-class IECError(Exception):
+class IEMError(Exception):
     """Generic exception; parent of all API exceptions.
     
     Every class/interface in the epumgmt.api package descends from
-    IECModule, IECObject, or IECError.
+    IEMModule, IEMObject, or IEMError.
     """
     
     def __init__(self, msg):
@@ -10,7 +10,7 @@ class IECError(Exception):
     def __str__(self):
         return self.msg
 
-class InvalidInput(IECError):
+class InvalidInput(IEMError):
     """Exception for illegal/nonsensical commandline syntax/combinations.
     """
     
@@ -19,7 +19,7 @@ class InvalidInput(IECError):
     def __str__(self):
         return self.msg
 
-class InvalidConfig(IECError):
+class InvalidConfig(IEMError):
     """Exception for misconfigurations.
     """
     
@@ -28,7 +28,7 @@ class InvalidConfig(IECError):
     def __str__(self):
         return self.msg
 
-class IncompatibleEnvironment(IECError):
+class IncompatibleEnvironment(IEMError):
     """Exception for when something has determined a problem with the
     deployment environment.
     """
@@ -38,7 +38,7 @@ class IncompatibleEnvironment(IECError):
     def __str__(self):
         return self.msg
 
-class UnexpectedError(IECError):
+class UnexpectedError(IEMError):
     """Exception for when a function/module cannot proceed.
     """
     
@@ -47,7 +47,7 @@ class UnexpectedError(IECError):
     def __str__(self):
         return self.msg
 
-class ProgrammingError(IECError):
+class ProgrammingError(IEMError):
     """Not listed in docstrings, should never be seen except during
     development.  An 'assert' device that can be propagated through the
     exception handling mechanisms just in case it is seen during deployment.

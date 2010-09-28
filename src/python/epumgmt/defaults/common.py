@@ -2,12 +2,12 @@ import logging
 import os
 import time
 
-# See api/TODO.txt
+# See epumgmt/api/TODO.txt
 #import zope.interface
 #import epumgmt.api.objects
 
 from epumgmt.api.exceptions import *
-import epumgmt.main.ec_args as ec_args
+import epumgmt.main.em_args as em_args
 
 # used for default object impls, modules are not required to use this:
 from epumgmt.main import get_class_by_keyword as main_gcbk
@@ -30,7 +30,7 @@ class DefaultCommon:
         if not p:
             raise InvalidConfig("parameters object may not be None")
         self.trace = False
-        self.dryrun = p.get_arg_or_none(ec_args.DRYRUN)
+        self.dryrun = p.get_arg_or_none(em_args.DRYRUN)
         self.logfilehandler = None
         self.logfilepath = None
         self.log = self._configure_logging()
@@ -114,7 +114,7 @@ class DefaultCommon:
         # This needs to agree with epumgmt.main/__init__.py
         # i.e., the DI code that bootstraps Common should be bootstrapping
         # from the same configurations as we do here.
-        implstr = self.p.get_conf_or_none("ecimpls", keyword)
+        implstr = self.p.get_conf_or_none("emimpls", keyword)
         if not implstr:
             raise UnexpectedError("could not locate implementation class for keyword '%s'" % keyword)
         return main_gcbk(keyword, implstr=implstr)
@@ -205,13 +205,13 @@ class DefaultCommon:
             
         # base filename on time; + action, run name and haservice if available
         self.logfilepath = logfiledir + "/" + time.strftime("ec-%Y-%m-%d")
-        run_name = self.p.get_arg_or_none(ec_args.NAME)
+        run_name = self.p.get_arg_or_none(em_args.NAME)
         if run_name:
             self.logfilepath += "--" + str(run_name)
-        service_name = self.p.get_arg_or_none(ec_args.HASERVICE)
+        service_name = self.p.get_arg_or_none(em_args.HASERVICE)
         if service_name:
             self.logfilepath += "-" + str(service_name)
-        action = self.p.get_arg_or_none(ec_args.ACTION)
+        action = self.p.get_arg_or_none(em_args.ACTION)
         if action:
             self.logfilepath += "-" + str(action)
             

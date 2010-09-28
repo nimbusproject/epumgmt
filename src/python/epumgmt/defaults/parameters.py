@@ -5,7 +5,7 @@ from ConfigParser import NoOptionError, NoSectionError
 #import zope.interface
 #import epumgmt.api.objects
 
-import epumgmt.main.ec_args as ec_args
+import epumgmt.main.em_args as em_args
 from epumgmt.main import ControlArg 
 
 # -----------------------------------------------------------------------------
@@ -84,7 +84,7 @@ def _create_optdict(opts):
     if not opts:
         return d
         
-    for arg in ec_args.ALL_EC_ARGS_LIST:
+    for arg in em_args.ALL_EC_ARGS_LIST:
         if not arg.deprecated:
             d[arg.name] = _get_one_attr(opts, arg.name)
     

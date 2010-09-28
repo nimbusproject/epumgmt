@@ -2,9 +2,9 @@ import os
 import sys
 import traceback
 
-import ec_core
-import ec_deprecated
-import ec_optparse
+import em_core
+import em_deprecated
+import em_optparse
 from epumgmt.api.exceptions import *
 
 def main(argv=None):
@@ -12,7 +12,7 @@ def main(argv=None):
         print >>sys.stderr, "Only runs on POSIX systems."
         return 3
         
-    parser = ec_optparse.parsersetup()
+    parser = em_optparse.parsersetup()
 
     if argv:
         (opts, args) = parser.parse_args(argv[1:])
@@ -20,14 +20,14 @@ def main(argv=None):
         (opts, args) = parser.parse_args()
         
     try:
-        dbgmsgs = ec_deprecated.deprecated_args(opts)
+        dbgmsgs = em_deprecated.deprecated_args(opts)
         
         # From here 'down' there is no concept of a commandline program, only
         # 'args' which could be coming from any kind of protocol based request.
         # To make such a thing, construct an opts objects with the expected
-        # member names (see the ec_args module) and pass it in.
+        # member names (see the em_args module) and pass it in.
         
-        ec_core.core(opts, dbgmsgs=dbgmsgs)
+        em_core.core(opts, dbgmsgs=dbgmsgs)
         
     except InvalidInput, e:
         msg = "Problem with input: %s" % e.msg

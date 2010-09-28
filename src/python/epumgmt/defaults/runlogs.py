@@ -1,7 +1,7 @@
 import os
 
 from epumgmt.api.exceptions import *
-import epumgmt.main.ec_args as ec_args
+import epumgmt.main.em_args as em_args
 from epumgmt.main import ACTIONS
 
 import child
@@ -20,14 +20,14 @@ class DefaultRunlogs:
     
     def validate(self):
         
-        action = self.p.get_arg_or_none(ec_args.ACTION)
+        action = self.p.get_arg_or_none(em_args.ACTION)
         if action not in [ACTIONS.CREATE, ACTIONS.LOGFETCH, ACTIONS.FETCH_KILL,
                           ACTIONS.FIND_WORKERS, ACTIONS.FIND_WORKERS_ONCE, ACTIONS.KILLRUN]:
             if self.c.trace:
                 self.c.log.debug("validation for runlogs module complete, '%s' is not a relevant action" % action)
             return
         
-        run_name = self.p.get_arg_or_none(ec_args.NAME)
+        run_name = self.p.get_arg_or_none(em_args.NAME)
         
         runlogdir = self.p.get_conf_or_none("events", "runlogdir")
         if not runlogdir:
