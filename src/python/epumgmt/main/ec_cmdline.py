@@ -5,7 +5,7 @@ import traceback
 import ec_core
 import ec_deprecated
 import ec_optparse
-from epucontrol.api.exceptions import *
+from epumgmt.api.exceptions import *
 
 def main(argv=None):
     if os.name != 'posix':

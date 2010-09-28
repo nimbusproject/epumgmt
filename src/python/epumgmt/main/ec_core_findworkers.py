@@ -1,8 +1,8 @@
-import epucontrol.main.ec_args as ec_args
+import epumgmt.main.ec_args as ec_args
 import ec_core_eventgather
 import ec_core_logfetch
-from epucontrol.defaults import RunVM
-from epucontrol.api.exceptions import *
+from epumgmt.defaults import RunVM
+from epumgmt.api.exceptions import *
 import time
 
 PROVISIONER="provisioner"

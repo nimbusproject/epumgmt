@@ -1,4 +1,4 @@
-from epucontrol.main import ACTIONS, ControlArg
+from epumgmt.main import ACTIONS, ControlArg
 
 a = []
 ALL_EC_ARGS_LIST = a

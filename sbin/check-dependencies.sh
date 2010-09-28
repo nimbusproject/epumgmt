@@ -21,5 +21,5 @@ export PYTHONPATH
 
 # -----------------------------------------------------------------------------
 
-$PYTHON_EXE $NIMBUS_CONTROL_PYSRC/epucontrol/sbin/check_dependencies.py $CONFSTRING
+$PYTHON_EXE $NIMBUS_CONTROL_PYSRC/epumgmt/sbin/check_dependencies.py $CONFSTRING
 

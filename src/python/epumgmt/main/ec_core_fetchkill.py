@@ -1,7 +1,7 @@
-import epucontrol.main.ec_args as ec_args
-from epucontrol.api.exceptions import *
-from epucontrol.defaults import RunVM
-import cyevents
+import epumgmt.main.ec_args as ec_args
+from epumgmt.api.exceptions import *
+from epumgmt.defaults import RunVM
+import cyvents
 
 import random
 import time
@@ -98,7 +98,7 @@ class FetchKillThread(Thread):
             self.m.iaas.terminate_ids(self.iid)
             self.c.log.info("Terminated '%s'" % self.iid)
             extradict = {"iaas_id":self.iid}
-            cyevents.event("epucontrol", "fetch_killed", self.c.log, extra=extradict)
+            cyvents.event("epumgmt", "fetch_killed", self.c.log, extra=extradict)
         except Exception,e:
             self.c.log.error("error terminating '%s'" % self.iid)
             self.error = e

@@ -1,7 +1,7 @@
-import cyevents
+import cyvents
 import os
 
-from epucontrol.api.exceptions import *
+from epumgmt.api.exceptions import *
 
 class DefaultEventGather:
         
@@ -72,6 +72,6 @@ class DefaultEventGather:
         for root, dirs, files in os.walk(logdir):
             for name in files:
                 path = os.path.join(root, name)
-                events.extend(cyevents.events_from_file(path))
+                events.extend(cyvents.events_from_file(path))
             break # only look in the top directory
         return events

@@ -4,7 +4,7 @@ Testing/development
 # Sample, only works from topdir:
 
 $ source src/env.sh
-$ nosetests --nologcapture -x -v -w src/python/epucontrol/main
+$ nosetests --nologcapture -x -v -w src/python/epumgmt/main
 
 During (test driven) development this can be conveniently combined with:
 
@@ -16,5 +16,5 @@ $ ./sbin/cat-latest-logfile.sh
 IPShell
 =======
 
-See the notes @ src/python/epucontrol/__init__.py
+See the notes @ src/python/epumgmt/__init__.py
 

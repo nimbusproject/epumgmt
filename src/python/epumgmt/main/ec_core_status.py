@@ -1,7 +1,7 @@
-from epucontrol.api.exceptions import *
+from epumgmt.api.exceptions import *
 
 def status(p, c, m, run_name):
-    """Print out status/hostname info that epucontrol knows about each
+    """Print out status/hostname info that epumgmt knows about each
     instance in the run."""
     
     run_vms = m.persistence.get_run_vms_or_none(run_name)

@@ -4,8 +4,8 @@ import pickle
 import stat
 import sys
 
-from epucontrol.api.exceptions import *
-import epucontrol.main.ec_args as ec_args
+from epumgmt.api.exceptions import *
+import epumgmt.main.ec_args as ec_args
 
 class Persistence:
     def __init__(self, params, common):

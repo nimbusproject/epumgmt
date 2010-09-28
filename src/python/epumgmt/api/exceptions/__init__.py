@@ -1,7 +1,7 @@
 class IECError(Exception):
     """Generic exception; parent of all API exceptions.
     
-    Every class/interface in the epucontrol.api package descends from
+    Every class/interface in the epumgmt.api package descends from
     IECModule, IECObject, or IECError.
     """
     

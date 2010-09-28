@@ -3,10 +3,10 @@ from ConfigParser import NoOptionError, NoSectionError
 
 #See api/TODO.txt
 #import zope.interface
-#import epucontrol.api.objects
+#import epumgmt.api.objects
 
-import epucontrol.main.ec_args as ec_args
-from epucontrol.main import ControlArg 
+import epumgmt.main.ec_args as ec_args
+from epumgmt.main import ControlArg 
 
 # -----------------------------------------------------------------------------
 # DefaultParameters 

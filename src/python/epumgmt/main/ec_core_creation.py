@@ -1,5 +1,5 @@
-from epucontrol.defaults import RunVM
-from epucontrol.api.exceptions import *
+from epumgmt.defaults import RunVM
+from epumgmt.api.exceptions import *
 
 def create(p, c, m, run_name):
     """Create a VM instance that is part of the EPU infrastructure.

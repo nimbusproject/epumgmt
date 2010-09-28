@@ -1,5 +1,5 @@
-from epucontrol.api.exceptions import *
-import epucontrol.main.ec_args as ec_args
+from epumgmt.api.exceptions import *
+import epumgmt.main.ec_args as ec_args
 
 def update_events(p, c, m, run_name):
     """Parse events from log files and fill the VM instances.

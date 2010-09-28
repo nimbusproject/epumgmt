@@ -1,4 +1,4 @@
-"""Entry points to epucontrol
+"""Entry points to epumgmt
 
 cmdline -- This consumes system commandline arguments.  Provides argument
 parsing and "--help" style text for a caller.  Translates exceptions into
@@ -6,12 +6,12 @@ process return codes.
 
 main -- This drives the logic of the entire program.  Individual ecmodules
 are loaded and invoked here.  For a definition of 'ecmodule' see api 
-documentation (epucontrol/api/__init__.py).  This code may never interact
+documentation (epumgmt/api/__init__.py).  This code may never interact
 with anything but the interfaces defined there (the wcmodules).  "main" could
 itself be a zope.interface in the future but it is not currently.
 
 tests -- Programmatically drives various 'main' requests with real or mock
-ecmodules. See epucontrol/mocks/__init__.py.  
+ecmodules. See epumgmt/mocks/__init__.py.  
 Nose testing is used (easy_install nose).
 """
 
@@ -21,7 +21,7 @@ import ConfigParser
 import os
 import string
 
-from epucontrol.api.exceptions import InvalidConfig, ProgrammingError
+from epumgmt.api.exceptions import InvalidConfig, ProgrammingError
 
 # See api/TODO.xt
 #from workspacecontrol.api import interfacesdict

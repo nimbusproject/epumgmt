@@ -1,4 +1,4 @@
-from epucontrol.api.exceptions import *
+from epumgmt.api.exceptions import *
 
 def terminate(p, c, m, run_name):
     """Destroy all VM instances that are part of the run.

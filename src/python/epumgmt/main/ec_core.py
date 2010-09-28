@@ -2,10 +2,10 @@ import string
 import sys
 import time
 
-from epucontrol.api.exceptions import *
-from epucontrol.main import get_class_by_keyword, get_all_configs
-from epucontrol.main import Modules, ACTIONS
-import epucontrol.main.ec_args as ec_args
+from epumgmt.api.exceptions import *
+from epumgmt.main import get_class_by_keyword, get_all_configs
+from epumgmt.main import Modules, ACTIONS
+import epumgmt.main.ec_args as ec_args
 import ec_core_creation
 import ec_core_eventgather
 import ec_core_fetchkill

@@ -5,10 +5,10 @@
 # conditional statement, etc.)
 
 """
-from epucontrol import ipshell; ipshell("")
+from epumgmt import ipshell; ipshell("")
 """
 
-# Do not *ever* commit a line like that to the repository!  epucontrol
+# Do not *ever* commit a line like that to the repository!  epumgmt
 # should be able to be scriptable etc., not always require a human.
 
 ipshell = None

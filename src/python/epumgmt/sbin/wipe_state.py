@@ -3,7 +3,7 @@
 import os
 import sys
 import time
-from epucontrol.sbin import sbin_common
+from epumgmt.sbin import sbin_common
 
 def get_logfiledir(p):
     logfiledir = p.get_conf_or_none("logging", "logfiledir")

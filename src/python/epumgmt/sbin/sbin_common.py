@@ -1,7 +1,7 @@
 import os
-from epucontrol.api.exceptions import *
-from epucontrol.main import get_all_configs
-from epucontrol.main import get_class_by_keyword
+from epumgmt.api.exceptions import *
+from epumgmt.main import get_all_configs
+from epumgmt.main import get_class_by_keyword
 
 def get_parameters(confpath):
     # mini implementation of the dependency injection used in the real program:

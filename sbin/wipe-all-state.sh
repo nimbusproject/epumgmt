@@ -3,7 +3,7 @@
 PYTHON_EXE="/usr/bin/env python"
 NIMBUS_CONTROL_DIR_REL="`dirname $0`/.."
 NIMBUS_CONTROL_DIR=`cd $NIMBUS_CONTROL_DIR_REL; pwd`
-NIMBUS_CONTROL_MAINCONF="$NIMBUS_CONTROL_DIR/etc/epucontrol/main.conf"
+NIMBUS_CONTROL_MAINCONF="$NIMBUS_CONTROL_DIR/etc/epumgmt/main.conf"
 
 # -----------------------------------------------------------------------------
 
@@ -28,4 +28,4 @@ export PYTHONPATH
 
 # -----------------------------------------------------------------------------
 
-$PYTHON_EXE $NIMBUS_CONTROL_PYSRC/epucontrol/sbin/wipe_state.py $NIMBUS_CONTROL_MAINCONF
+$PYTHON_EXE $NIMBUS_CONTROL_PYSRC/epumgmt/sbin/wipe_state.py $NIMBUS_CONTROL_MAINCONF

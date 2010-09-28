@@ -4,13 +4,13 @@ import time
 
 # See api/TODO.txt
 #import zope.interface
-#import epucontrol.api.objects
+#import epumgmt.api.objects
 
-from epucontrol.api.exceptions import *
-import epucontrol.main.ec_args as ec_args
+from epumgmt.api.exceptions import *
+import epumgmt.main.ec_args as ec_args
 
 # used for default object impls, modules are not required to use this:
-from epucontrol.main import get_class_by_keyword as main_gcbk
+from epumgmt.main import get_class_by_keyword as main_gcbk
 
 # -----------------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ _logleveldict = {0:logging.DEBUG,
 class DefaultCommon:
     
     #See api/TODO.txt
-    #zope.interface.implements(epucontrol.api.objects.ICommon)
+    #zope.interface.implements(epumgmt.api.objects.ICommon)
     
     def __init__(self, p):
         self.p = p
@@ -111,7 +111,7 @@ class DefaultCommon:
         """
         
         # NOTE:
-        # This needs to agree with epucontrol.main/__init__.py
+        # This needs to agree with epumgmt.main/__init__.py
         # i.e., the DI code that bootstraps Common should be bootstrapping
         # from the same configurations as we do here.
         implstr = self.p.get_conf_or_none("ecimpls", keyword)

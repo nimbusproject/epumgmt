@@ -5,7 +5,7 @@ PYTHON_EXE="/usr/bin/env python"
 NIMBUS_CONTROL_DIR_REL="`dirname $0`/.."
 NIMBUS_CONTROL_DIR=`cd $NIMBUS_CONTROL_DIR_REL; pwd`
 
-NIMBUS_CONTROL_MAINCONF="$NIMBUS_CONTROL_DIR/etc/epucontrol/main.conf"
+NIMBUS_CONTROL_MAINCONF="$NIMBUS_CONTROL_DIR/etc/epumgmt/main.conf"
 
 needsconf="y"
 for i in "$@"; do
@@ -35,4 +35,4 @@ export PYTHONPATH
 
 # -----------------------------------------------------------------------------
 
-$PYTHON_EXE $NIMBUS_CONTROL_PYSRC/epucontrol/main/ec_cmdline.py $CONFSTRING $@
+$PYTHON_EXE $NIMBUS_CONTROL_PYSRC/epumgmt/main/ec_cmdline.py $CONFSTRING $@

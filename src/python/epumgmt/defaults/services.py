@@ -9,9 +9,9 @@ try:
 except:
     from StringIO import StringIO
 
-from epucontrol.api.exceptions import *
-import epucontrol.main.ec_args as ec_args
-from epucontrol.main import ACTIONS
+from epumgmt.api.exceptions import *
+import epumgmt.main.ec_args as ec_args
+from epumgmt.main import ACTIONS
 
 class DefaultServices:
     

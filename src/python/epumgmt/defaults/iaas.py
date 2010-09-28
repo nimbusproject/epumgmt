@@ -4,9 +4,9 @@ import time
 import boto
 from boto.ec2.connection import EC2Connection
 from boto.ec2.regioninfo import RegionInfo
-from epucontrol.api.exceptions import *
-import epucontrol.main.ec_args as ec_args
-from epucontrol.main import ACTIONS
+from epumgmt.api.exceptions import *
+import epumgmt.main.ec_args as ec_args
+from epumgmt.main import ACTIONS
 
 import child
 
