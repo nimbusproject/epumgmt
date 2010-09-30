@@ -20,7 +20,7 @@ import em_core_termination
 # -----------------------------------------------------------------------------
 
 def core(opts, dbgmsgs=None):
-    """Run epu-control.
+    """Run epumgmt.
     
     From here 'down' there is no concept of a commandline program, only
     'args' which could be coming from any kind of protocol based request.

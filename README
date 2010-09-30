@@ -1,33 +1,35 @@
 ======================================
-Dependencies
+Dependencies & Installation
 ======================================
 
-A Linux/OSX environment is currently required, it is not portable to Windows.
+A Linux/OSX environment is currently required.
 
-Fabfile ("fab" on the commandline), simplejson and boto are required.
+You may want to use a virtualenv:
 
-Sample env:
-$ virtualenv --no-site-packages somedir
-$ source somedir/bin/activate
-$ easy_install fabric
-$ easy_install boto
-$ easy_install simplejson
+$ virtualenv --python=python2.6 --no-site-packages epumgmt-deps
+$ source epumgmt-deps/bin/activate
 
+Sample setup:
+
+$ easy_install fabric boto simplejson
+$ git clone http://github.com/nimbusproject/epumgmt.git
+$ cd epumgmt
+$ ./sbin/check-dependencies.sh
 
 ======================================
 Preparations
 ======================================
 
-Copy "share/epucontrol/environment.sample" somewhere outside the repository.
+Copy "share/epumgmt/environment.sample" somewhere outside the repository.
 
 Edit that, adding your credentials, and then always source it before using
 the program.
 
 For example, by adding something like this to your shell rc file:
 
-    alias epucontrol='. ~/code/environment-epucontrol && cd ~/code/epucontrol'
+    alias epumgmt='. ~/code/environment-epumgmt && cd ~/code/epumgmt'
 
-Copy "share/epucontrol/variables.json.sample" somewhere outside the repository.
+Copy "share/epumgmt/variables.json.sample" somewhere outside the repository.
 Unique scope for your launches: change the "cei_hello1" variable in that
 file to something unique.
 
@@ -38,12 +40,12 @@ Usage
 ======================================
 
 
-$ ./bin/epu-control.sh --action create --haservice provisioner --name run1 --jsonvars ~/myvars.json
-$ ./bin/epu-control.sh --action create --haservice sleeper --name run1 --jsonvars ~/myvars.json
+$ ./bin/epumgmt.sh --action create --haservice provisioner --name run1 --jsonvars ~/myvars.json
+$ ./bin/epumgmt.sh --action create --haservice sleeper --name run1 --jsonvars ~/myvars.json
 
 
-(or: ./bin/epu-control.sh -a create -s provisioner -n run1 -j ~/myvars.json
-     ./bin/epu-control.sh -a create -s sleeper -n run1 -j ~/myvars.json
+(or: ./bin/epumgmt.sh -a create -s provisioner -n run1 -j ~/myvars.json
+     ./bin/epumgmt.sh -a create -s sleeper -n run1 -j ~/myvars.json
 
      See -h or --help for shortcuts.)
 
@@ -56,8 +58,8 @@ instances that have not been terminated).
 
 Fetching + gathering:
 
-$ ./bin/epu-control.sh -a logfetch -n run1
-$ ./bin/epu-control.sh -a update-events -n run1
+$ ./bin/epumgmt.sh -a logfetch -n run1
+$ ./bin/epumgmt.sh -a update-events -n run1
 
 The 'find-workers-once' action puts together the 'logfetch' and 'update-events'
 cmds, seeking out provisioner events recording worker launches.  It adds new
@@ -67,7 +69,7 @@ are scoped by --haservice or at least this scoping is the plan, not fully
 implemented).  To fetch logs from the workers, this command needs to detect
 hostnames first, which might not happen when the worker is first detected.
 
-$ ./bin/epu-control.sh -a find-workers-once -n run1
+$ ./bin/epumgmt.sh -a find-workers-once -n run1
 
 The 'find-workers' action will run that in a loop which is more for testing
 and development.
@@ -77,13 +79,13 @@ intervention: fetch logs from N workers and kill them.  This causes
 'find-workers-once' to happen first in order to be up to date when picking
 the workers to kill.
 
-$ ./bin/epu-control.sh -a fetchkill -n run1 -k 2
+$ ./bin/epumgmt.sh -a fetchkill -n run1 -k 2
 
-The 'status' action will print out information about the VMs that epucontrol
+The 'status' action will print out information about the VMs that epumgmt
 knows about.  'find-workers' will not be run first but IaaS status queries
 on each node will be.
 
-$ ./bin/epu-control.sh -a status -n run1
+$ ./bin/epumgmt.sh -a status -n run1
 
 
 ======================================
