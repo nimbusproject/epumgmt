@@ -3,7 +3,7 @@ import uuid
 import simplejson as json
 
 # Anything after this token in a log line is considered a parsable event
-CYVENT_SEPARATOR = "CYVENT_JSON:"
+CYVENT_SEPARATOR = "CEI_EVENT_JSON:"
 
 KEY_SOURCE = "eventsource"
 KEY_NAME = "eventname"
