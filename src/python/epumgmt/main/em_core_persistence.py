@@ -3,178 +3,77 @@ import os
 import pickle
 import stat
 import sys
-
+from epumgmt.defaults import RunVM
 from epumgmt.api.exceptions import *
 import epumgmt.main.em_args as em_args
+
+from cloudminer import CloudMiner
+from cloudyvents.cyvents import CYvent
+
 
 class Persistence:
     def __init__(self, params, common):
         self.p = params
         self.c = common
-        self.pdir = None
+        self.pdb = None
         self.lockfilepath = None
         
     def validate(self):
-        pdir = self.p.get_conf_or_none("persistence", "persistencedir")
-        if not pdir:
-            raise InvalidConfig("There is no persistence->persistencedir configuration")
-            
-        if not os.path.isabs(pdir):
-            pdir = self.c.resolve_var_dir(pdir)
-            
-        if not os.path.exists(pdir):
-            try:
-                os.mkdir(pdir)
-                self.c.log.debug("created persistence directory: %s" % pdir)
-            except:
-                exception_type = sys.exc_type
-                try:
-                    exceptname = exception_type.__name__ 
-                except AttributeError:
-                    exceptname = exception_type
-                errstr = "problem creating persistence dir '%s': %s: %s" % (pdir, str(exceptname), str(sys.exc_value))
-                
-                fullerrstr = "persistence directory does not have valid permissions and cannot be made to have valid permissions: '%s'" % pdir
-                fullerrstr += errstr
-                self.c.log.error(fullerrstr)
-                raise IncompatibleEnvironment(fullerrstr)
-            
-        if os.access(pdir, os.W_OK | os.X_OK | os.R_OK):
-            self.c.log.debug("persistence directory is rwx-able: %s" % pdir)
-        else:
-            try:
-                os.chmod(pdir, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
-            except:
-                exception_type = sys.exc_type
-                try:
-                    exceptname = exception_type.__name__ 
-                except AttributeError:
-                    exceptname = exception_type
-                errstr = " - problem changing persistence directory permissions '%s': %s: %s" % (pdir, str(exceptname), str(sys.exc_value))
-                
-                fullerrstr = "persistence directory does not have valid permissions and cannot be made to have valid permissions: '%s'" % pdir
-                fullerrstr += errstr
-                raise IncompatibleEnvironment(fullerrstr)
-                
-            self.c.log.debug("persistence directory was made to be rwx-able: %s" % pdir)
-            
-        
-        lockfilepath = os.path.join(pdir, "persistence.lock")
-        if not os.path.exists(lockfilepath):
-            open(lockfilepath, 'w').close()
-        
-        self.lockfilepath = lockfilepath
-        self.pdir = pdir
+        pdb = self.p.get_conf_or_none("persistence", "persistencedb")
+        if not pdb:
+            raise InvalidConfig("There is no persistence->persistencedb configuration")
+        self.pdb = pdb
+        self.cdb = CloudMiner(self.pdb)
         
     def new_vm(self, run_name, vm):
         """Adds VM to a run_vms list if it exists for "run_name".  If list
         does not exist, it will be created."""
-        return self.run_with_flock(self._new_vm, run_name, vm)
-    
+        # vm.events = CYvents
+        # vm.instanceid = iaasid
+        # runname
+        self.cdb.add_cloudyvent_vm(run_name, vm.instanceid)
+        for e in vm.events:
+            self.cdb.add_cloudyvent(run_name, vm.instanceid, e)
+        self.cdb.commit()
+
     def new_vm_maybe(self, run_name, vm):
         """Adds VM to a run_vms list if it exists for "run_name".  If list
         does not exist, it will be created.  If VM instance ID is present,
         it won't be added."""
-        return self.run_with_flock(self._new_vm_maybe, run_name, vm)
-        
-    def _new_vm(self, run_name, vm):
-        """Run this under a lock so that the list is not messed up"""
-        run_vms = self.get_run_vms_or_none(run_name)
-        if not run_vms:
-            run_vms = []
-        run_vms.append(vm)
-        self.store_run_vms(run_name, run_vms)
-    
-    def _new_vm_maybe(self, run_name, vm):
-        """Run this under a lock so that the list is not messed up"""
-        run_vms = self.get_run_vms_or_none(run_name)
-        if not run_vms:
-            run_vms = []
-        
-        found = False
-        newhostname = False
-        for avm in run_vms:
-            if avm.instanceid == vm.instanceid:
-                # late binding hostnames are possible
-                if not avm.hostname and vm.hostname:
-                    avm.hostname = vm.hostname
-                    strparams = (avm.instanceid, avm.hostname)
-                    self.c.log.debug("found hostname for '%s': %s" % strparams)
-                    newhostname = True
-                found = True
-        
-        if newhostname:
-            self.store_run_vms(run_name, run_vms)
-            
-        if found:
+        cyvm = self.cdb.get_by_iaasid(vm.instanceid)
+        if cyvm != None:
             return False # not new
-        else:
-            run_vms.append(vm)
-            self.store_run_vms(run_name, run_vms)
-            return True # new one
+        self.new_vm(run_name, vm)
+        return True
         
-    def run_with_flock(self, f, *args, **kw):
-        """Run function with persistence's filesystem-based lock.
-        
-        Would be nice to use a decorator but want to find/create lockfile
-        during class instantiation, need to figure that out later.
-        
-        Anyhow, we will likely switch to SQLite at some point.
-        """
-        
-        lockfile = None
-        try:
-            lockfile = open(self.lockfilepath, "r")
-            fcntl.flock(lockfile.fileno(), fcntl.LOCK_EX)
-            return f(*args, **kw)
-        finally:
-            if lockfile:
-                lockfile.close()
-
     def store_run_vms(self, run_name, run_vms):
-        if not self.pdir:
+        if not self.cdb:
             raise ProgrammingError("cannot persist anything without setup/validation")
-            
-        if not run_vms:
-            raise ProgrammingError("no run_vms")
-        
-        if not run_name:
-            raise ProgrammingError("no run_name")
-            
-        pobject = self._derive_runset_filepath(run_name)
-        
-        f = None
-        try:
-            f = open(pobject, 'w')
-            pickle.dump(run_vms, f)
-        finally:
-            if f:
-                f.close()
-                
+        for vm in run_vms:        
+            for e in vm.events:
+                self.cdb.add_cloudyvent(run_name, vm.instanceid, e)
+        self.cdb.commit()
+
     def get_run_vms_or_none(self, run_name):
         """Get list of VMs for a run name or return None.
         
         If you mutate this list, you should lock first (we will switch
         to SQLite at some point)."""
-        
-        if not self.pdir:
-            raise ProgrammingError("cannot persist anything without setup/validation")
-        
-        pobject = self._derive_runset_filepath(run_name)
-        if not os.path.exists(pobject):
-            return None
-            
-        f = None
-        try:
-            f = open(pobject, 'r')
-            x = pickle.load(f)
-            return x
-        finally:
-            if f:
-                f.close()
 
-    def _derive_runset_filepath(self, run_name):
-        if not run_name:
-            raise ProgrammingError("no run_name")
-        return os.path.join(self.pdir, run_name + "-run_vms_list")
-        
+        if not self.cdb:
+            raise ProgrammingError("cannot persist anything without setup/validation")
+        cyvm_a = self.cdb.get_iaas_by_runname(run_name) 
+        vm_a = []
+        for cyvm in cyvm_a:
+            rvm = RunVM()
+            rvm.instanceid = cyvm.iaasid
+
+            for e in cyvm.events:
+                xtras = {}
+                for x in e.extra:
+                    xtra[x.key] = x.value
+                c = CYvent(e.source, e.name, e.key, e.timestamp, xtras)
+                rvm.events.append(c)
+            vm_a.append(rvm)
+
+        return vm_a
