@@ -1,7 +1,7 @@
 import epumgmt.main.em_args as em_args
 from epumgmt.api.exceptions import *
 from epumgmt.defaults import RunVM
-import cyvents
+import cloudyvents.cyvents as cyvents
 
 import random
 import time

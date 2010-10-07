@@ -1,4 +1,4 @@
-import cyvents
+import cloudyvents.cyvents as cyvents
 import os
 
 from epumgmt.api.exceptions import *
@@ -13,10 +13,10 @@ class DefaultEventGather:
         pass
     
     def populate_run_vms(self, m, run_name):
-        m.persistence.run_with_flock(self._populate_run_vms, m.persistence, run_name)
+        self._populate_run_vms(m.persistence, run_name)
         
     def populate_one_vm(self, m, run_name, instanceid):
-        m.persistence.run_with_flock(self._populate_one_vm, m.persistence, run_name, instanceid)
+        self._populate_one_vm(m.persistence, run_name, instanceid)
         
     def _populate_run_vms(self, persistence, run_name):
         """Run under a lock so that the VMs are not altered by something else"""

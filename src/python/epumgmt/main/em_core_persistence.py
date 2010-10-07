@@ -31,9 +31,9 @@ class Persistence:
         # vm.events = CYvents
         # vm.instanceid = iaasid
         # runname
-        self.cdb.add_cloudyvent_vm(run_name, vm.instanceid)
+        self.cdb.add_cloudyvent_vm(run_name, vm.instanceid, vm.hostname, vm.service_type, vm.runlogdir, vm.vmlogdir)
         for e in vm.events:
-            self.cdb.add_cloudyvent(run_name, vm.instanceid, e)
+            self.cdb.add_cloudyvent(run_name, vm.instanceid, vm.hostname, vm.service_type, vm.runlogdir, vm.vmlogdir, e)
         self.cdb.commit()
 
     def new_vm_maybe(self, run_name, vm):
@@ -42,16 +42,17 @@ class Persistence:
         it won't be added."""
         cyvm = self.cdb.get_by_iaasid(vm.instanceid)
         if cyvm != None:
-            return False # not new
+            rc = False # not new
         self.new_vm(run_name, vm)
-        return True
+        rc = True
+        return rc
         
     def store_run_vms(self, run_name, run_vms):
         if not self.cdb:
             raise ProgrammingError("cannot persist anything without setup/validation")
         for vm in run_vms:        
             for e in vm.events:
-                self.cdb.add_cloudyvent(run_name, vm.instanceid, e)
+                self.cdb.add_cloudyvent(run_name, vm.instanceid, vm.hostname, vm.service_type, vm.runlogdir, vm.vmlogdir, e)
         self.cdb.commit()
 
     def get_run_vms_or_none(self, run_name):
@@ -67,12 +68,16 @@ class Persistence:
         for cyvm in cyvm_a:
             rvm = RunVM()
             rvm.instanceid = cyvm.iaasid
+            rvm.hostname = cyvm.hostname
+            rvm.service_type = cyvm.service_type
+            rvm.runlogdir = cyvm.runlogdir
+            rvm.vmlogdir = cyvm.vmlogdir
 
             for e in cyvm.events:
                 xtras = {}
                 for x in e.extra:
-                    xtra[x.key] = x.value
-                c = CYvent(e.source, e.name, e.key, e.timestamp, xtras)
+                    xtras[x.key] = x.value
+                c = CYvent(e.source, e.name, e.unique_event_key, e.timestamp, xtras)
                 rvm.events.append(c)
             vm_a.append(rvm)
 
