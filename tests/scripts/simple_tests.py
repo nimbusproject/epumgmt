@@ -35,6 +35,22 @@ def main(argv=sys.argv[1:]):
 
         epu_opts.action = ACTIONS.STATUS
         epumgmt_run(epu_opts)
+
+        epu_opts.action = ACTIONS.FIND_WORKERS_ONCE
+        epumgmt_run(epu_opts)
+
+        epu_opts.action = ACTIONS.LOGFETCH
+        epumgmt_run(epu_opts)
+
+        epu_opts.action = ACTIONS.UPDATE_EVENTS
+        epumgmt_run(epu_opts)
+
+        epu_opts.action = ACTIONS.STATUS
+        epumgmt_run(epu_opts)
+
+        epu_opts.action = ACTIONS.LOGFETCH
+        epumgmt_run(epu_opts)
+
     finally:
         epu_opts.action = ACTIONS.KILLRUN
         epumgmt_run(epu_opts)
