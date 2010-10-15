@@ -46,6 +46,7 @@ echo $rabbit_instance
 echo "export EPU_RABBIT_ID=$rabbit_instance" > test_env.sh
 
 failed_tests=""
+error_count=0
 cd scripts 
 final_rc=0
 for t in *tests.py
@@ -54,8 +55,12 @@ do
     if [ $? -ne 0 ]; then
         failed_tests="$t $failed_tests"
         final_rc=1
+        error_count=`expr $error_count + 1`
     fi
 done
 #nosetests *tests.py
+
+echo "$error_count errors"
+echo "\t$failed_tests"
 
 exit $final_rc
