@@ -19,16 +19,18 @@ def find(p, c, m, action, run_name, once=False):
             if m.persistence.new_vm_maybe(run_name, vm):
                 c.log.info("Found new worker: %s : %s" 
                             % (vm.instanceid, vm.hostname))
+        new_nodes = launched_vms
                 
         # then "node_started"
         launched_vms = vms_launched(p, c, m, run_name, "node_started")
         for vm in launched_vms:
             m.persistence.new_vm_maybe(run_name, vm)
+        started_nodes = launched_vms
         
         allvms = m.persistence.get_run_vms_or_none(run_name)
         c.log.debug("Know of %d VMs in run '%s'" % (len(allvms), run_name))
         if once:
-            break
+            return (new_nodes, started_nodes)
         time.sleep(15)
 
 def vms_launched(p, c, m, run_name, eventname):

@@ -17,4 +17,4 @@ def terminate(p, c, m, run_name):
         c.log.info("Terminating '%s', Host '%s'" % (vm.instanceid, vm.hostname))
     
     instanceids = [vm.instanceid for vm in run_vms]
-    m.iaas.terminate_ids(instanceids)
+    return m.iaas.terminate_ids(instanceids)

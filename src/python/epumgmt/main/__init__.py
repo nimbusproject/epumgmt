@@ -175,6 +175,9 @@ class ControlArg:
         self.metavar = metavar
         if not metavar:
             self.metavar = string.upper(name)
+        self.value = None
+        if self.boolean:
+            self.value = False
     
     def __repr__(self):
         return "ControlArg: %s" % self.name

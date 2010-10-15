@@ -70,6 +70,8 @@ def fetch_kill(p, c, m, run_name):
         c.log.info("All fetched and killed with %d errors" % error_count)
     else:
         c.log.info("All fetched and killed")
+
+    return error_count
         
 class FetchKillThread(Thread):
     

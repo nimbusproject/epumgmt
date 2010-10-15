@@ -48,6 +48,8 @@ def status(p, c, m, run_name):
             out += "%s\n" % warning
         c.log.warn(out + "\n")
 
+    return actives
+
 def _widest_state(run_vms):
     widest = 0
     for vm in run_vms:

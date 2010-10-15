@@ -32,3 +32,4 @@ def create(p, c, m, run_name):
     msg += "\n\nSSH suggestion:\n%s" % ' '.join(sshcmd)
     c.log.info(msg)
 
+    return vm

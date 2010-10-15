@@ -296,7 +296,7 @@ class DefaultIaaS:
         
     def terminate_ids(self, instanceids):
         con = self._get_connection()
-        con.terminate_instances(instanceids)
+        return con.terminate_instances(instanceids)
         
     def state_map(self, vm_list):
         """Return dictionary of {vm.instanceid, state}"""

@@ -69,7 +69,7 @@ def core(opts, dbgmsgs=None):
     
     c_cls = get_class_by_keyword("Common", allconfigs=ac)
     c = c_cls(p)
-    
+
     # now there is a logger finally:
     if dbgmsgs:
         c.log.debug(dbgmsgs)

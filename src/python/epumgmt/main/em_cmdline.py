@@ -6,6 +6,7 @@ import em_core
 import em_deprecated
 import em_optparse
 from epumgmt.api.exceptions import *
+from epumgmt.api import *
 
 def main(argv=None):
     if os.name != 'posix':
@@ -18,7 +19,9 @@ def main(argv=None):
         (opts, args) = parser.parse_args(argv[1:])
     else:
         (opts, args) = parser.parse_args()
-        
+       
+    epu = EPUMgmtOpts(cmd_opts=opts)
+ 
     try:
         dbgmsgs = em_deprecated.deprecated_args(opts)
         
@@ -26,9 +29,8 @@ def main(argv=None):
         # 'args' which could be coming from any kind of protocol based request.
         # To make such a thing, construct an opts objects with the expected
         # member names (see the em_args module) and pass it in.
-        
-        em_core.core(opts, dbgmsgs=dbgmsgs)
-        
+        epumgmt_run(epu, dbgmsgs=dbgmsgs) 
+
     except InvalidInput, e:
         msg = "Problem with input: %s" % e.msg
         print >>sys.stderr, msg
