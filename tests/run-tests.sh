@@ -17,6 +17,7 @@ cd $TESTS_DIR
 
 json_file=`mktemp`
 out_file=`mktemp`
+pre_running_instances=`mktemp`
 export EPU_TEST_VARS=$json_file
 rabbit_instance=
 
@@ -28,6 +29,7 @@ function on_exit()
 
 trap on_exit EXIT
 
+$PYTHON_EXE ./init_tests.py > $pre_running_instances
 
 echo "running rabbitmq VM on ec2, this may take a bit"
 ./run_rabbit.py $json_file $EPU_RABBIT_ID | tee $out_file
@@ -61,6 +63,14 @@ done
 #nosetests *tests.py
 
 echo "$error_count errors"
-echo "\t$failed_tests"
+echo "    $failed_tests"
+
+echo "waiting for clean up time..."
+sleep 5
+to_kill=`cat $pre_running_instances`
+echo "cleaning up [$to_kill]" 
+
+cd $TESTS_DIR
+$PYTHON_EXE ./init_tests.py $to_kill
 
 exit $final_rc
