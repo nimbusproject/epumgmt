@@ -70,6 +70,7 @@ failed_tests=""
 error_count=0
 cd scripts 
 final_rc=0
+
 for t in *tests.py
 do
     $PYTHON_EXE $t
@@ -81,8 +82,6 @@ do
 done
 #nosetests *tests.py
 
-echo "$error_count errors"
-echo "    $failed_tests"
 
 echo "waiting for clean up time..."
 sleep 5
@@ -91,5 +90,9 @@ echo "cleaning up [$to_kill]"
 
 cd $TESTS_DIR
 $PYTHON_EXE ./init_tests.py $to_kill
+
+echo "$error_count errors"
+echo "    $failed_tests"
+
 
 exit $final_rc
