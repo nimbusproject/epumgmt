@@ -1,5 +1,24 @@
 #/bin/bash
 
+# For Nimbus IaaS but also for Context Broker
+
+if [ "X$NIMBUS_KEY" == "X" ]; then
+    echo "NIMBUS_KEY must be set"
+    exit 1
+fi
+if [ "X$NIMBUS_SECRET" == "X" ]; then
+    echo "NIMBUS_SECRET must be set"
+    exit 1
+fi
+if [ "X$AWS_ACCESS_KEY_ID" == "X" ]; then
+    echo "AWS_ACCESS_KEY_ID must be set"
+    exit 1
+fi
+if [ "X$AWS_SECRET_ACCESS_KEY" == "X" ]; then
+    echo "AWS_SECRET_ACCESS_KEY must be set"
+    exit 1
+fi
+
 PYTHON_EXE="/usr/bin/env python"
 
 EPU_HOME_REL="`dirname $0`/.."

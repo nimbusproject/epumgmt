@@ -35,25 +35,40 @@ def main(argv=sys.argv[1:]):
         epu_opts.action = ACTIONS.FIND_WORKERS_ONCE
         epumgmt_run(epu_opts)
 
-        epu_opts.action = ACTIONS.LOGFETCH
+        cyvm_a = cm.get_iaas_by_runname(runname)
+
+        if len(cyvm_a) != 1:
+            raise Exception("too many vms in miner")
+        if c.service_type != "provisioner":
+            raise Exception("wrong service type")
+
+        epu_opts.haservice = "sleeper"
+        epu_opts.action = ACTIONS.CREATE
         epumgmt_run(epu_opts)
 
-        epu_opts.action = ACTIONS.UPDATE_EVENTS
-        epumgmt_run(epu_opts)
-
-        epu_opts.action = ACTIONS.STATUS
+        epu_opts.action = ACTIONS.FIND_WORKERS_ONCE
         epumgmt_run(epu_opts)
 
         cyvm_a = cm.get_iaas_by_runname(runname)
+
+        if len(cyvm_a) != 2:
+            raise Exception("the wrong number of VMs found by miner")
+
+        found = 0
+        for c in cyvm_a:
+            if c.service_type == "provisioner":
+                found = found + 1
+            elif c.service_type == "sleeper":
+                found = found + 1
+            else:
+                raise Exception("unknown service type found")
+        if found != 2:
+            raise Exception("did not find sleeper and/or provisioner")
 
     finally:
         epu_opts.action = ACTIONS.KILLRUN
         epumgmt_run(epu_opts)
 
-    if len(cyvm_a) != 1:
-        raise Exception("too many vms in miner")
-    if c.service_type != "provisioner":
-        raise Exception("wrong service type")
 
     print "SUCCESS"
     return 0
