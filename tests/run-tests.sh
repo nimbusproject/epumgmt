@@ -71,15 +71,24 @@ error_count=0
 cd scripts 
 final_rc=0
 
-for t in *tests.py
-do
-    $PYTHON_EXE $t
+if [ "X$1" == "X" ]; then
+    for t in *tests.py
+    do
+        $PYTHON_EXE $t
+        if [ $? -ne 0 ]; then
+            failed_tests="$t $failed_tests"
+            final_rc=1
+            error_count=`expr $error_count + 1`
+        fi
+    done
+else
+    $PYTHON_EXE $1
     if [ $? -ne 0 ]; then
         failed_tests="$t $failed_tests"
         final_rc=1
         error_count=`expr $error_count + 1`
     fi
-done
+fi
 #nosetests *tests.py
 
 
@@ -93,6 +102,5 @@ $PYTHON_EXE ./init_tests.py $to_kill
 
 echo "$error_count errors"
 echo "    $failed_tests"
-
 
 exit $final_rc
