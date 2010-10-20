@@ -3,6 +3,7 @@ import os
 import pickle
 import stat
 import sys
+import urlparse
 from epumgmt.defaults import RunVM
 from epumgmt.api.exceptions import *
 import epumgmt.main.em_args as em_args
@@ -15,15 +16,46 @@ class Persistence:
     def __init__(self, params, common):
         self.p = params
         self.c = common
-        self.pdb = None
         self.lockfilepath = None
         
-    def validate(self):
-        pdb = self.p.get_conf_or_none("persistence", "persistencedb")
-        if not pdb:
+    def _find_db_conf(self):
+        dbconf = self.p.get_conf_or_none("persistence", "persistencedb")
+        if not dbconf:
             raise InvalidConfig("There is no persistence->persistencedb configuration")
-        self.pdb = pdb
-        self.cdb = CloudMiner(self.pdb)
+        url = urlparse.urlparse(dbconf)
+        
+        # If it's some kind of URL, return verbatim
+        if url.scheme:
+            self.c.log.info("Database configuration (verbatim): %s" % dbconf)
+            return dbconf
+        
+        # If it's an absolute path, assuming SQLite.
+        # Relative paths are taken from the persistencedir setting.
+        
+        if not os.path.isabs(dbconf):
+            pdir = self.p.get_conf_or_none("persistence", "persistencedir")
+            if not pdir:
+                raise InvalidConfig("There is no persistence->persistencedir configuration")
+                
+            if not os.path.isabs(pdir):
+                pdir = self.c.resolve_var_dir(pdir)
+                
+            if not os.path.isdir(pdir):
+                raise InvalidConfig("Not a directory: %s" % pdir)
+        
+            dbconf = os.path.join(pdir, dbconf)
+        
+        sqlitedbconf = "sqlite:///" + dbconf
+        self.c.log.info("Database configuration (deduced): %s" % sqlitedbconf)
+        
+        if not os.path.exists(dbconf):
+            raise InvalidConfig("File does not exist: %s" % dbconf)
+            
+        return sqlitedbconf
+        
+            
+    def validate(self):
+        self.cdb = CloudMiner(self._find_db_conf())
         
     def new_vm(self, run_name, vm):
         """Adds VM to a run_vms list if it exists for "run_name".  If list
