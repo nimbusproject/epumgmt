@@ -22,6 +22,8 @@ def main(argv=sys.argv[1:]):
     #epu_action.set_logfile(os.path.join(os.environ['EPUMGMT_HOME'], "tests/tests.logs"))
 
     try:
+        dburl = os.environ['EPUMGMT_DB']
+
         epu_opts.haservice = "provisioner"
         epu_opts.action = ACTIONS.CREATE
         epumgmt_run(epu_opts)

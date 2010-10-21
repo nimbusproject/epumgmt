@@ -65,7 +65,7 @@ def main(argv=sys.argv[1:]):
         cyvm_a = cm.get_iaas_by_runname(runname)
 
         if len(cyvm_a) != pre_kill_len:
-            raise Exception("a new worker should have started")
+            raise Exception("a new worker should have started %d %d" % (pre_kill_len, len(cyvm_a)))
     except Exception, ex:
         print ex
         return 1

@@ -89,8 +89,6 @@ else
         error_count=`expr $error_count + 1`
     fi
 fi
-#nosetests *tests.py
-
 
 echo "waiting for clean up time..."
 sleep 5
