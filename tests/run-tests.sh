@@ -97,7 +97,7 @@ to_kill=`cat $pre_running_instances`
 echo "cleaning up [$to_kill]" 
 
 cd $TESTS_DIR
-$PYTHON_EXE ./init_tests.py $to_kill
+$PYTHON_EXE ./init_tests.py kill $to_kill
 
 echo "$error_count errors"
 echo "    $failed_tests"

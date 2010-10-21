@@ -25,8 +25,10 @@ def main(argv=sys.argv[1:]):
 
     cyvm_a = []
     try:
-        dburl = 'sqlite:////home/bresnaha/Dev/Nimbus/OOI/epumgmt.db'
-        cm = CloudMiner(dburl)
+        (c, p, ac) = epumgmt.api.get_common(opts=epu_opts)
+        persist = Persistence(p, c)
+        persist.validate()
+        cm = persist.cdb
 
         epu_opts.haservice = "provisioner"
         epu_opts.action = ACTIONS.CREATE

@@ -7,6 +7,7 @@ import sys
 import time
 
 import logging
+import os
 
 from epumgmt.api.exceptions import *
 from epumgmt.main import get_class_by_keyword, get_all_configs
@@ -24,6 +25,34 @@ import epumgmt.main.em_core_termination as em_core_termination
 control_args = {}
 for k in em_args.ALL_EC_ARGS_LIST:
     control_args[k.name] = k
+
+def get_default_config():
+    conf_file=os.path.join(os.environ['EPUMGMT_HOME'], "etc/epumgmt/main.conf")
+    return conf_file
+
+def get_default_ac():
+    conf_file = get_default_conf_file()
+    ac = get_all_configs(conf_file)
+    return ac
+
+def get_parameters(opts, ac=None):
+    if ac == None:
+        ac = get_default_ac()
+    p_cls = get_class_by_keyword("Parameters", allconfigs=ac)
+    p = p_cls(ac, opts)
+    return (p, ac)
+
+def get_common(opts=None, p=None, ac=None):
+    if p == None and opts == None:
+        raise Exception("either opts of p must be specified")
+    if ac == None:
+        ac = get_default_ac()
+    if p == None:
+        p = get_parameters(opts, ac)
+    c_cls = get_class_by_keyword("Common", allconfigs=ac)
+    c = c_cls(p)
+    return (c, p, ac)
+
 
 class EPUMgmtOpts(object):
 
