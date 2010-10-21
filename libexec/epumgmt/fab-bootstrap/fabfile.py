@@ -5,7 +5,7 @@ from fabric.api import env, run, local, put, cd, hide
 from fabric.decorators import runs_once
 
 def bootstrap(rolesfile=None):
-    update()
+    update_dt_data()
     put_chef_data(rolesfile=rolesfile)
     run_chef_solo()
 
@@ -26,7 +26,6 @@ def put_provisioner_secrets():
         print "ERROR.  Please export AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY"
         sys.exit(1)
 
-    ensure_opt()
     run("sudo sh -c 'echo export NIMBUS_KEY=%s >> /opt/cei_environment'" % nimbus_key)
     run("sudo sh -c 'echo export AWS_ACCESS_KEY_ID=%s >> /opt/cei_environment'" % ec2_key)
     
@@ -38,32 +37,20 @@ def update():
     with hide('stdout'):
         run("sudo apt-get -q update")
 
-def install_chef():
-    run("sudo apt-get install -y ruby-dev libopenssl-ruby rubygems")
-    run("sudo gem install chef ohai --no-ri --no-rdoc --source http://gems.opscode.com --source http://gems.rubyforge.org")
-    run("sudo ln -s /var/lib/gems/1.8/bin/chef-solo /usr/local/bin/")
-    run("sudo ln -s /var/lib/gems/1.8/bin/ohai /usr/local/bin/")
-
-@runs_once
-def ensure_opt():
-    run("if [ ! -d /opt ]; then sudo mkdir /opt; fi")
+def update_dt_data():
+    # checkout the latest cookbooks:
+    with cd("/opt/dt-data"):
+        run("sudo git fetch")
+        run("sudo git reset --hard origin/HEAD")
     
 def put_chef_data(rolesfile=None):
-    ensure_opt()
-    run("if [ -d /opt/chef ]; then sudo rm -rf /opt/chef; fi")
-    run("sudo mkdir /opt/chef && sudo chown ubuntu:ubuntu /opt/chef")
-    # checkout the latest cookbooks:
-    run("sudo apt-get install -y git-core")
-    run("git clone http://github.com/clemesha-ooi/ooi-cookbooks.git /opt/chef/cookbooks")
     # put the role and config files:
-    put("chefconf.rb", "/opt/chef/")
-    if rolesfile:
-        put(rolesfile, "/opt/chef/chefroles.json")
-    else:
-        put("chefroles.json", "/opt/chef/")
+    put("chefconf.rb", "/tmp/")
+    put(rolesfile or "chefroles.json", "/tmp/chefroles.json")
+    run("sudo mkdir -p /opt/dt-data/run")
+    run("sudo mv /tmp/chefconf.rb /tmp/chefroles.json /opt/dt-data/run/")
         
-
 def run_chef_solo():
-    run("sudo chef-solo -l debug -c /opt/chef/chefconf.rb -j /opt/chef/chefroles.json")
+    run("sudo chef-solo -l debug -c /opt/dt-data/run/chefconf.rb -j /opt/dt-data/run/chefroles.json")
 
     
