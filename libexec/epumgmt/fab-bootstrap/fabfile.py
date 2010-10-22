@@ -1,7 +1,7 @@
 from __future__ import with_statement
 import os
 import sys
-from fabric.api import env, run, local, put, cd, hide, settings
+from fabric.api import env, run, local, put, cd, hide, puts
 from fabric.decorators import runs_once
 
 def bootstrap(rolesfile=None):
@@ -14,6 +14,7 @@ def bootstrap_cei(rolesfile=None):
     bootstrap(rolesfile=rolesfile)
 
 def put_provisioner_secrets():
+    ensure_opt()
     nimbus_key = os.environ.get('NIMBUS_KEY')
     nimbus_secret = os.environ.get('NIMBUS_SECRET')
     if not nimbus_key or not nimbus_secret:
@@ -37,17 +38,33 @@ def update():
     with hide('stdout'):
         run("sudo apt-get -q update")
 
+@runs_once
+def ensure_opt():
+    run("if [ ! -d /opt ]; then sudo mkdir /opt; fi")
+
 def update_dt_data():
-    # checkout the latest cookbooks:
-    with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
-        if run('test -d /opt/dt-data'):
-            with cd("/opt/dt-data"):
-                run("sudo git fetch")
-        else:
-            with cd("/opt/"):
-                run("sudo git clone http://github.com/nimbusproject/dt-data.git")
+    ensure_opt()
+    
+    # Checkout the latest cookbooks:
+    cloned = False
+    try:
+        # If this test fails, fall back to cloning
+        run('test -d /opt/dt-data')
+        puts("dt-data repo present", flush=True)
+    except:
+        with cd("/opt/"):
+            run("sudo git clone http://github.com/nimbusproject/dt-data.git")
+            cloned = True
+            puts("new dt-data repo clone", flush=True)
+    
+    # Sanity check
     run('test -d /opt/dt-data')
+    
+    # In the future, this will need to set the repo to things besides HEAD
     with cd("/opt/dt-data"):
+        if not cloned:
+            # No need to fetch if the fallback clone method was used above
+            run("sudo git fetch")
         run("sudo git reset --hard origin/HEAD")
     
 def put_chef_data(rolesfile=None):
