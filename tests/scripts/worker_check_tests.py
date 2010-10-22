@@ -13,6 +13,7 @@ import httplib
 from epumgmt.api import *
 from epumgmt.main import *
 from cloudminer import CloudMiner
+from epumgmt.main.em_core_persistence import Persistence
 
 
 def main(argv=sys.argv[1:]):
@@ -25,11 +26,11 @@ def main(argv=sys.argv[1:]):
     #epu_action.set_logfile(os.path.join(os.environ['EPUMGMT_HOME'], "tests/tests.logs"))
 
     cyvm_a = []
+    (c, p, ac) = epumgmt.api.get_common(opts=epu_opts)
+    persist = Persistence(p, c) 
+    persist.validate()
+    cm = persist.cdb
     try:
-        (c, p, ac) = epumgmt.api.get_common(opts=epu_opts)
-        persist = Persistence(p, c) 
-        persist.validate()
-        cm = persist.cdb
 
         epu_opts.haservice = "provisioner"
         epu_opts.action = ACTIONS.CREATE

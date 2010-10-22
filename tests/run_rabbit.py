@@ -61,6 +61,28 @@ def run_rabbit(instance_id=None):
 
     return 0
 
+def check_rabbit(hostname, port=5672):
+
+    import socket
+    import time
+
+    s = socket.socket()
+
+    error_count = 0
+    try_again = True
+    while try_again:
+        try:
+            print "trying to connect to rabbit server %s:%d" % (hostname, port)
+            s.connect((hostname, port))
+            print "successfully connected to rabbit"
+            return
+        except Exception, ex:
+            print ex
+            error_count = error_count + 1
+            if error_count > 30:
+                raise Exception("could not connect to rabbit server")
+            time.sleep(10)
+
 def main(argv=sys.argv[1:]):
     filename = "myvars.json"
     if len(argv) > 0:
@@ -76,6 +98,7 @@ def main(argv=sys.argv[1:]):
     except Exception, ex:
         print "error: " + str(ex)
         return 1
+
     json_dict = {}
     json_dict["exchange_scope"] ="cei_hello1"
     json_dict["broker_cookie"] ="unknown"
@@ -85,6 +108,7 @@ def main(argv=sys.argv[1:]):
     outs = json.dumps(json_dict)
 
     print outs
+    check_rabbit(instance.dns_name)
     print instance.id
     f = open(filename, "w")
     f.write(outs)

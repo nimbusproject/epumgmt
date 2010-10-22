@@ -12,7 +12,7 @@ import uuid
 from epumgmt.api import *
 from epumgmt.main import *
 from cloudminer import CloudMiner
-
+from epumgmt.main.em_core_persistence import Persistence
 
 def main(argv=sys.argv[1:]):
 
@@ -24,12 +24,12 @@ def main(argv=sys.argv[1:]):
     #epu_action.set_logfile(os.path.join(os.environ['EPUMGMT_HOME'], "tests/tests.logs"))
 
     cyvm_a = []
-    try:
-        (c, p, ac) = epumgmt.api.get_common(opts=epu_opts)
-        persist = Persistence(p, c)
-        persist.validate()
-        cm = persist.cdb
+    (c, p, ac) = epumgmt.api.get_common(opts=epu_opts)
+    persist = Persistence(p, c)
+    persist.validate()
+    cm = persist.cdb
 
+    try:
         epu_opts.haservice = "provisioner"
         epu_opts.action = ACTIONS.CREATE
         epumgmt_run(epu_opts)

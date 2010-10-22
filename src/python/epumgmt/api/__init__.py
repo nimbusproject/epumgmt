@@ -31,7 +31,7 @@ def get_default_config():
     return conf_file
 
 def get_default_ac():
-    conf_file = get_default_conf_file()
+    conf_file = get_default_config()
     ac = get_all_configs(conf_file)
     return ac
 
@@ -48,7 +48,7 @@ def get_common(opts=None, p=None, ac=None):
     if ac == None:
         ac = get_default_ac()
     if p == None:
-        p = get_parameters(opts, ac)
+        (p, ac) = get_parameters(opts, ac)
     c_cls = get_class_by_keyword("Common", allconfigs=ac)
     c = c_cls(p)
     return (c, p, ac)
