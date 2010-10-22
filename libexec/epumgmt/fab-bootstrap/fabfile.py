@@ -1,7 +1,7 @@
 from __future__ import with_statement
 import os
 import sys
-from fabric.api import env, run, local, put, cd, hide
+from fabric.api import env, run, local, put, cd, hide, settings
 from fabric.decorators import runs_once
 
 def bootstrap(rolesfile=None):
@@ -39,8 +39,15 @@ def update():
 
 def update_dt_data():
     # checkout the latest cookbooks:
+    with settings(hide('warnings', 'running', 'stdout', 'stderr'), warn_only=True):
+        if run('test -d /opt/dt-data'):
+            with cd("/opt/dt-data"):
+                run("sudo git fetch")
+        else:
+            with cd("/opt/"):
+                run("sudo git clone http://github.com/nimbusproject/dt-data.git")
+    run('test -d /opt/dt-data')
     with cd("/opt/dt-data"):
-        run("sudo git fetch")
         run("sudo git reset --hard origin/HEAD")
     
 def put_chef_data(rolesfile=None):

@@ -1,6 +1,6 @@
 {
   "capabilitycontainer":{
-    "broker":"${broker_ip_address}",
+    "broker":"127.0.0.1",
     "bootscript":"res/scripts/newcc.py",
     "sysname":"${exchange_scope}",
     "broker_heartbeat":"5",
