@@ -4,8 +4,13 @@
     "bootscript":"res/scripts/newcc.py",
     "sysname":"${exchange_scope}",
     "broker_heartbeat":"5",
-    "lcaarch_branch":"cei",
-    "lcaarch_commit_hash":"${lcaarch_commit_hash}",
+    "pip_package_repo":"http://ooici.net/packages",
+    "git_lcaarch_repo":"${git_lcaarch_repo}",
+    "git_lcaarch_branch":"${git_lcaarch_branch}",
+    "git_lcaarch_commit":"${git_lcaarch_commit}",
+    "git_txrabbitmq_repo":"${git_txrabbitmq_repo}",
+    "git_txrabbitmq_branch":"${git_txrabbitmq_branch}",
+    "git_txrabbitmq_commit":"${git_txrabbitmq_commit}",
     "log_level":"WARNING"
   },
   "username":"cc",
@@ -13,5 +18,5 @@
     "dtrs":"{'name':'dtrs','module':'ion.services.cei.dtrs','class':'DeployableTypeRegistryService'}",
     "provisioner":"{'name':'provisioner','module':'ion.services.cei.provisioner','class':'ProvisionerService'}"
   },
-  "recipes":["setuptools", "twisted", "txamqp", "user", "provisioner", "capabilitycontainer"]
+  "recipes":["setuptools", "twisted", "user", "capabilitycontainer"]
 }

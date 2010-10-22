@@ -1,7 +1,12 @@
 {
+  "epuworker_image_id":"ami-9ac923f3",
   "exchange_scope":"cei_hello1",
   "broker_ip_address":"184.72.231.60",
-  "broker_cookie":"unknown",
-  "lcaarch_commit_hash":"HEAD",
-  "epuworker_image_id":"ami-9ac923f3"
+  "pip_package_repo":"http://ooici.net/packages",
+  "git_lcaarch_repo":"http://github.com/nimbusproject/lcaarch.git",
+  "git_lcaarch_branch":"cei",
+  "git_lcaarch_commit":"HEAD",
+  "git_txrabbitmq_repo":"http://github.com/nimbusproject/txrabbitmq.git",
+  "git_txrabbitmq_branch":"master",
+  "git_txrabbitmq_commit":"HEAD"
 }
