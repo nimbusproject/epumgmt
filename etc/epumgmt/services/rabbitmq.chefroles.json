@@ -15,6 +15,7 @@
   },
   "username":"cc",
   "services":{
+    "queuestat":"{'name':'queuestat','module':'ion.services.cei.queuestat','class':'QueueStatService', 'spawn_args' : {'interval_seconds' : 3.0}}"
   },
-  "recipes":["rabbitmq"]
+  "recipes":["rabbitmq", "setuptools", "twisted", "user", "rabbitmq_cookie", "capabilitycontainer"]
 }
