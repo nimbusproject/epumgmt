@@ -9,6 +9,8 @@ import sys
 import os
 import uuid
 
+import epumgmt
+import epumgmt.api
 from epumgmt.api import *
 from epumgmt.main import *
 from cloudminer import CloudMiner

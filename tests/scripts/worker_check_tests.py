@@ -10,11 +10,12 @@ import os
 import uuid
 import httplib
 
+import epumgmt
+import epumgmt.api
 from epumgmt.api import *
 from epumgmt.main import *
 from cloudminer import CloudMiner
 from epumgmt.main.em_core_persistence import Persistence
-
 
 def main(argv=sys.argv[1:]):
 
@@ -40,13 +41,21 @@ def main(argv=sys.argv[1:]):
         epu_opts.action = ACTIONS.CREATE
         epumgmt_run(epu_opts)
 
-        epu_opts.action = ACTIONS.FIND_WORKERS_ONCE
-        epumgmt_run(epu_opts)
+        pre_kill_len = 0
+        retry_count = 10
+        while pre_kill_len != 4:
+            print "finding workers"
+            epu_opts.action = ACTIONS.FIND_WORKERS_ONCE
+            epumgmt_run(epu_opts)
 
-        cyvm_a = cm.get_iaas_by_runname(runname)
+            cyvm_a = cm.get_iaas_by_runname(runname)
+            cm.commit()
+            pre_kill_len = len(cyvm_a)
+            retry_count = retry_count - 1
+            if retry_count < 0:
+                raise Exception("No new workers found after %d tries" % (s_retry_count))
+            time.sleep(10)
 
-        if len(cyvm_a) > 2:
-            raise Exception("there should be some workers")
     except Exception, ex:
         print ex
         return 1

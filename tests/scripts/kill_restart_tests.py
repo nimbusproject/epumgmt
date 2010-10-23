@@ -89,13 +89,12 @@ def main(argv=sys.argv[1:]):
 
         orig_iaas_ids = [c.iaasid for c in cyvm_a]
 
-        print "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"
         print "KILLING A WORKER!"
         epu_opts.killnum = 1
         epu_opts.action = ACTIONS.FETCH_KILL
         epumgmt_run(epu_opts)
-        print "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"
 
+        cyvm_a = None
         post_kill_len = 0
         retry_count = s_retry_count
         while post_kill_len <= pre_kill_len:
@@ -118,9 +117,11 @@ def main(argv=sys.argv[1:]):
         epu_opts.action = ACTIONS.STATUS
         epumgmt_run(epu_opts)
 
-        new_iaas_ids = [c.iaasid for c in cyvm_a2]
+        new_iaas_ids = [c.iaasid for c in cyvm_a]
 
-        if orig_iaas_ids.sort() == new_iaas_ids.sort():
+        orig_iaas_ids.sort()
+        new_iaas_ids.sort()
+        if orig_iaas_ids == new_iaas_ids:
             raise Exception("The iaas ids did not change: %s -> %s" % (str(orig_iaas_ids), str(new_iaas_ids)))
 
     except Exception, ex:
