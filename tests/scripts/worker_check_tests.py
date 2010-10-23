@@ -41,8 +41,11 @@ def main(argv=sys.argv[1:]):
         epu_opts.action = ACTIONS.CREATE
         epumgmt_run(epu_opts)
 
+        epu_opts.haservice = None
+
+        s_retry_count = 10
         pre_kill_len = 0
-        retry_count = 10
+        retry_count = s_retry_count
         while pre_kill_len != 4:
             print "finding workers"
             epu_opts.action = ACTIONS.FIND_WORKERS_ONCE
