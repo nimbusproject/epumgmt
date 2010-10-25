@@ -105,6 +105,7 @@ def main(argv=sys.argv[1:]):
     json_dict["lcaarch_commit_hash"] ="HEAD"
     json_dict["epuworker_image_id"] ="ami-9ac923f3"
     json_dict["broker_ip_address"] = instance.dns_name
+    json_dict["min_instances"] = 2
     outs = json.dumps(json_dict)
 
     print outs

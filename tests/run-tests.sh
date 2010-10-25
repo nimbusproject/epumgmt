@@ -35,6 +35,7 @@ TESTS_DIR=`cd $TESTS_DIR_REL; pwd`
 
 cd $TESTS_DIR
 
+services_to_test=`cat services.txt`
 json_file=`mktemp`
 out_file=`mktemp`
 pre_running_instances=`mktemp`
@@ -79,7 +80,6 @@ echo "export EPU_RABBIT_ID=$rabbit_instance" > test_env.sh
 
 cd scripts 
 final_rc=0
-services_to_test="sleeper "
 
 for service in $services_to_test
 do

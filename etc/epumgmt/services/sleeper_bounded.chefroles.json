@@ -14,7 +14,7 @@
     
     "sleeper_rabbitmq_sensor":"{'name':'rabbitmq_sensor', 'module':'ion.services.cei.sensors.rabbitmq_sensor', 'class':'RabbitMQSensor', 'spawnargs':{'queue_name_work':'cei_work_queue', 'queue_name_events':'rabbitmq_sensor_events', 'rabbitmq_node':'rabbit@${broker_ip_address}', 'erlang_cookie':'${broker_cookie}'}}",
     
-    "sleeper_epu_controller":"{'name':'epu_controller','module':'ion.services.cei.epu_controller','class':'EPUControllerService', 'spawnargs':{'queue_name_work':'cei_work_queue', 'engine_class':'ion.services.cei.decisionengine.impls.QueueLengthBoundedEngine', 'engine_conf':{'min_instances':'2', 'queuelen_high_water':'20000', 'queuelen_low_water':'1', 'provisioner_vars':{'exchange_scope':'${exchange_scope}', 'epuworker_image_id':'${epuworker_image_id}', 'broker_ip_address':'${broker_ip_address}', 'lcaarch_commit_hash':'${lcaarch_commit_hash}'} } }}",
+    "sleeper_epu_controller":"{'name':'epu_controller','module':'ion.services.cei.epu_controller','class':'EPUControllerService', 'spawnargs':{'queue_name_work':'cei_work_queue', 'engine_class':'ion.services.cei.decisionengine.impls.QueueLengthBoundedEngine', 'engine_conf':{'min_instances':'${min_instances}', 'queuelen_high_water':'20000', 'queuelen_low_water':'1', 'provisioner_vars':{'exchange_scope':'${exchange_scope}', 'epuworker_image_id':'${epuworker_image_id}', 'broker_ip_address':'${broker_ip_address}', 'lcaarch_commit_hash':'${lcaarch_commit_hash}'} } }}",
     
     "sleeper_work_producer":"{'name':'sleeper_work_producer','module':'ion.services.cei.sleeper.epu_work_producer','class':'EPUWorkProducer', 'spawnargs':{'queue_name_work':'cei_work_queue'}}"
   },

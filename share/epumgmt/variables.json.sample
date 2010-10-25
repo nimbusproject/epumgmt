@@ -4,4 +4,5 @@
   "broker_cookie":"unknown",
   "lcaarch_commit_hash":"HEAD",
   "epuworker_image_id":"ami-9ac923f3"
+  "min_instances":"2"
 }

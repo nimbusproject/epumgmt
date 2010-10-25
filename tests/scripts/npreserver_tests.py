@@ -12,20 +12,20 @@ import httplib
 import epumgmt
 import epumgmt.api
 import traceback
+import tempfile
 
 from epumgmt.api import *
 from epumgmt.main import *
 from cloudminer import CloudMiner
 from epumgmt.main.em_core_persistence import Persistence
-
+import simplejson as json
 import time
 
-def main(argv=sys.argv[1:]):
+def test_it(worker_count, my_vars_file):
 
     runname = str(uuid.uuid1()).replace("-", "")
     conf = os.path.join(os.environ['EPUMGMT_HOME'], "etc/epumgmt/main.conf")
     epu_opts = EPUMgmtOpts(name=runname, conf_file=conf)
-    my_vars_file = os.environ['EPU_TEST_VARS']
     epu_opts.jsonvars = my_vars_file
     #epu_action.set_logfile(os.path.join(os.environ['EPUMGMT_HOME'], "tests/tests.logs"))
 
@@ -87,6 +87,29 @@ def main(argv=sys.argv[1:]):
     print error_msg
 
     return rc
+
+def main(argv=sys.argv[1:]):
+
+    my_vars_file = os.environ['EPU_TEST_VARS']
+    worker_counts = [0, 2, 4]
+    for wc in worker_counts:
+        print "Trying to preserve %d" % (wc)
+        fp = open(my_vars_file, "r")
+        jvars = json.load(fp)
+        fp.close()
+        jvars['min_instances'] = str(wc)
+        (osf, filename) = tempfile.mkstemp()
+        os.close(osf)
+        osf = open(filename, "w")
+        j = json.dumps(jvars)
+        osf.write(j)
+        osf.close()
+        print filename
+        rc = test_it(wc, filename)
+        if rc != 0:
+            print "failed on count %d" (wc)
+            return rc
+    return 0
 
 if __name__ == "__main__":
     rc = main()
