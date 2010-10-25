@@ -79,27 +79,32 @@ echo "export EPU_RABBIT_ID=$rabbit_instance" > test_env.sh
 
 cd scripts 
 final_rc=0
+services_to_test="sleeper "
 
-if [ "X$1" == "X" ]; then
-    for t in *tests.py
-    do
-        echo "running $t"
-        $PYTHON_EXE $t
+for service in $services_to_test
+do
+    export EPU_SERVICE=$service
+    if [ "X$1" == "X" ]; then
+        for t in *tests.py
+        do
+            echo "running $t"
+            $PYTHON_EXE $t
+            if [ $? -ne 0 ]; then
+                failed_tests="$t $failed_tests"
+                final_rc=1
+                error_count=`expr $error_count + 1`
+            fi
+        done
+    else
+        echo "running $1"
+        $PYTHON_EXE $1
         if [ $? -ne 0 ]; then
-            failed_tests="$t $failed_tests"
+            failed_tests="$1 $failed_tests"
             final_rc=1
             error_count=`expr $error_count + 1`
         fi
-    done
-else
-    echo "running $1"
-    $PYTHON_EXE $1
-    if [ $? -ne 0 ]; then
-        failed_tests="$1 $failed_tests"
-        final_rc=1
-        error_count=`expr $error_count + 1`
     fi
-fi
+done
 
 echo "waiting for clean up time..."
 sleep 5

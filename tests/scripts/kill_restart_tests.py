@@ -34,10 +34,12 @@ def main(argv=sys.argv[1:]):
     persist = Persistence(p, c)
     persist.validate()
     cm = persist.cdb
-    s_retry_count = 2
+    s_retry_count = 5
+    worker_count = 2  # need to get this from conf file
 
     print "RUNNAME IS %s" % (runname)
 
+    service_name = os.environ['EPU_SERVICE']
     rc = 0
     error_msg = "SUCCESS"
     try:
@@ -46,15 +48,15 @@ def main(argv=sys.argv[1:]):
         epu_opts.action = ACTIONS.CREATE
         epumgmt_run(epu_opts)
 
-        print "starting sleeper"
-        epu_opts.haservice = "sleeper"
+        print "starting %s" % (service_name)
+        epu_opts.haservice = service_name
         epu_opts.action = ACTIONS.CREATE
         epumgmt_run(epu_opts)
 
         epu_opts.haservice = None
         pre_kill_len = 0
         retry_count = s_retry_count
-        while pre_kill_len != 4: 
+        while pre_kill_len != 2 + worker_count: 
             print "finding workers"
             epu_opts.action = ACTIONS.FIND_WORKERS_ONCE
             epumgmt_run(epu_opts)
