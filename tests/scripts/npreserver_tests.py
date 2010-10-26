@@ -34,8 +34,7 @@ def test_it(worker_count, my_vars_file):
     persist = Persistence(p, c)
     persist.validate()
     cm = persist.cdb
-    s_retry_count = 5
-    worker_count = 2  # need to get this from conf file
+    s_retry_count = 10
 
     print "RUNNAME IS %s" % (runname)
     service_name = os.environ['EPU_SERVICE']
@@ -61,13 +60,16 @@ def test_it(worker_count, my_vars_file):
             epu_opts.action = ACTIONS.FIND_WORKERS_ONCE
             epumgmt_run(epu_opts)
 
+            epu_opts.action = ACTIONS.LOGFETCH
+            epumgmt_run(epu_opts)
+
             cyvm_a = cm.get_iaas_by_runname(runname)
             cm.commit()
             pre_kill_len = len(cyvm_a)
             retry_count = retry_count - 1
             if retry_count < 0:
-                raise Exception("No new workers found after %d tries" % (s_retry_count))
-            time.sleep(10)
+                raise Exception("No new workers found after %d tries %d" % (s_retry_count, worker_count))
+            time.sleep(20)
 
         epu_opts.action = ACTIONS.STATUS
         epumgmt_run(epu_opts)
@@ -91,7 +93,7 @@ def test_it(worker_count, my_vars_file):
 def main(argv=sys.argv[1:]):
 
     my_vars_file = os.environ['EPU_TEST_VARS']
-    worker_counts = [0, 2, 4]
+    worker_counts = [2, 4, 0]
     for wc in worker_counts:
         print "Trying to preserve %d" % (wc)
         fp = open(my_vars_file, "r")
@@ -107,7 +109,7 @@ def main(argv=sys.argv[1:]):
         print filename
         rc = test_it(wc, filename)
         if rc != 0:
-            print "failed on count %d" (wc)
+            print "failed on count %d" % (wc)
             return rc
     return 0
 
