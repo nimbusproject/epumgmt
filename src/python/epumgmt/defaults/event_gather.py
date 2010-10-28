@@ -69,9 +69,19 @@ class DefaultEventGather:
     
     def _all_events_in_dir(self, logdir):
         events = []
-        for root, dirs, files in os.walk(logdir):
-            for name in files:
-                path = os.path.join(root, name)
-                events.extend(cyvents.events_from_file(path))
-            break # only look in the top directory
+        for fullpath in self.dirwalk(logdir):
+            self.c.log.debug("Looking in '%s'" % fullpath)
+            events.extend(cyvents.events_from_file(fullpath))
         return events
+
+    def dirwalk(self, adir):
+        """walk a directory tree, using a generator,
+        http://code.activestate.com/recipes/105873-walk-a-directory-tree-using-a-generator/
+        """
+        for f in os.listdir(adir):
+            fullpath = os.path.join(adir,f)
+            if os.path.isdir(fullpath) and not os.path.islink(fullpath):
+                for x in self.dirwalk(fullpath):  # recurse into subdir
+                    yield x
+            else:
+                yield fullpath

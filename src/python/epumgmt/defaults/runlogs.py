@@ -96,9 +96,6 @@ class DefaultRunlogs:
         # last arg is "user@host:", we need to enhance this with the path
         scpcmd[-1] = scpcmd[-1] + vm.vmlogdir
         
-        # and then the glob
-        scpcmd[-1] = scpcmd[-1] + "/*.log*"
-        
         # transfer destination
         scpcmd.append(vm.runlogdir)
         
