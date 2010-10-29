@@ -25,6 +25,13 @@ def get_runlogdir(p):
         sys.stderr.write("There is no runlogdir configuration")
         return None
     return sbin_common.apply_vardir_maybe(p, runlogdir)
+
+def get_confs_used_dir(p):
+    confsuseddir = p.get_conf_or_none("confs_used", "confs_used_dir")
+    if not confsuseddir:
+        sys.stderr.write("There is no confs_used_dir configuration")
+        return None
+    return sbin_common.apply_vardir_maybe(p, confsuseddir)
     
 if len(sys.argv) != 2:
     sys.stderr.write("This program requires 1 argument, the absolute path to the main.conf file")
@@ -44,16 +51,29 @@ runlogdir = get_runlogdir(p)
 if not runlogdir:
     sys.exit(1)
     
+confs_used_dir = get_confs_used_dir(p)
+if not confs_used_dir:
+    sys.exit(1)
+    
 runlogdirs = []
 for root, dirs, files in os.walk(runlogdir, topdown=False):
     for adir in dirs:
         path = os.path.join(root, adir)
         runlogdirs.append(path)
 
+confs_used_dirs = []
+for root, dirs, files in os.walk(confs_used_dir, topdown=False):
+    for adir in dirs:
+        path = os.path.join(root, adir)
+        confs_used_dirs.append(path)
+
 # find the newest file in the directory:
 
 sys.stderr.write("Log file dir:    %s\n" % logfiledir)
 sys.stderr.write("Persistence dir: %s\n" % persistencedir)
+sys.stderr.write("Confs-used dir:      %s\n" % confs_used_dir)
+for adir in confs_used_dirs:
+    sys.stderr.write("    subdir:      %s\n" % adir)
 sys.stderr.write("Runlog dir:      %s\n" % runlogdir)
 for adir in runlogdirs:
     sys.stderr.write("    subdir:      %s\n" % adir)
@@ -96,6 +116,16 @@ for root, dirs, files in os.walk(persistencedir):
     break # only look in the top directory
 
 for adir in runlogdirs:
+    for root, dirs, files in os.walk(adir):
+        for name in files:
+            path = os.path.join(adir, name)
+            if os.path.isfile(path):
+                sys.stderr.write("Deleting: %s\n" % path)
+                os.remove(path)
+    sys.stderr.write("Deleting directory: %s\n" % adir)
+    os.rmdir(adir)
+
+for adir in confs_used_dirs:
     for root, dirs, files in os.walk(adir):
         for name in files:
             path = os.path.join(adir, name)
