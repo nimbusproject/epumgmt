@@ -63,10 +63,14 @@ class Persistence:
         # vm.events = CYvents
         # vm.instanceid = iaasid
         # runname
-        self.cdb.add_cloudyvent_vm(run_name, vm.instanceid, vm.hostname, vm.service_type, vm.runlogdir, vm.vmlogdir)
+        newone = self.cdb.add_cloudyvent_vm(run_name, vm.instanceid, vm.hostname, vm.service_type, vm.runlogdir, vm.vmlogdir)
         for e in vm.events:
             self.cdb.add_cloudyvent(run_name, vm.instanceid, vm.hostname, vm.service_type, vm.runlogdir, vm.vmlogdir, e)
         self.cdb.commit()
+        if newone:
+            self.c.log.debug("Persistence has seen VM before: '%s'" % vm.instanceid)
+        else:
+            self.c.log.debug("New VM persisted: '%s'" % vm.instanceid)
 
     def new_vm_maybe(self, run_name, vm):
         """Adds VM to a run_vms list if it exists for "run_name".  If list
