@@ -97,7 +97,7 @@ class FetchKillThread(Thread):
         # terminate even if there was an error log fetching
         try:
             #self.c.log.debug("terminating '%s'" % self.iid)
-            self.m.iaas.terminate_ids(self.iid)
+            self.m.iaas.terminate_ids([self.iid,])
             self.c.log.info("Terminated '%s'" % self.iid)
             extradict = {"iaas_id":self.iid}
             cyvents.event("epumgmt", "fetch_killed", self.c.log, extra=extradict)

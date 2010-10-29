@@ -35,16 +35,27 @@ TESTS_DIR=`cd $TESTS_DIR_REL; pwd`
 
 cd $TESTS_DIR
 
+services_to_test=`cat services.txt`
 json_file=`mktemp`
 out_file=`mktemp`
 pre_running_instances=`mktemp`
 export EPU_TEST_VARS=$json_file
 rabbit_instance=
 
+
+failed_tests=""
+error_count=0
 function on_exit()
 {
-    rm -f $json_file
-    rm -f $out_file
+    echo $json_file
+    echo $out_file
+
+    if [ $error_count -ne 0 ]; then
+        echo "Errors in $error_count tests"
+        echo "    $failed_tests"
+    else
+        echo "SUCCESS"
+    fi
 }
 
 trap on_exit EXIT
@@ -52,10 +63,10 @@ trap on_exit EXIT
 $PYTHON_EXE ./init_tests.py > $pre_running_instances
 
 echo "running rabbitmq VM on ec2, this may take a bit"
-./run_rabbit.py $json_file $EPU_RABBIT_ID | tee $out_file
+$PYTHON_EXE run_rabbit.py $json_file $EPU_RABBIT_ID | tee $out_file
 if [ $PIPESTATUS -ne 0 ]; then   
     echo "first attempt at rabbit failed.  trying again without instance id"
-    ./run_rabbit.py $json_file | tee $out_file
+    $PYTHON_EXE run_rabbit.py $json_file | tee $out_file
     if [ $PIPESTATUS -ne 0 ]; then   
         echo "could not start rabbit, sorry"
         exit 1
@@ -67,29 +78,33 @@ export EPU_RABBIT_ID=$rabbit_instance
 echo $rabbit_instance
 echo "export EPU_RABBIT_ID=$rabbit_instance" > test_env.sh
 
-failed_tests=""
-error_count=0
 cd scripts 
 final_rc=0
 
-if [ "X$1" == "X" ]; then
-    for t in *tests.py
-    do
-        $PYTHON_EXE $t
+for service in $services_to_test
+do
+    export EPU_SERVICE=$service
+    if [ "X$1" == "X" ]; then
+        for t in *tests.py
+        do
+            echo "running $t"
+            $PYTHON_EXE $t
+            if [ $? -ne 0 ]; then
+                failed_tests="$t $failed_tests"
+                final_rc=1
+                error_count=`expr $error_count + 1`
+            fi
+        done
+    else
+        echo "running $1"
+        $PYTHON_EXE $1
         if [ $? -ne 0 ]; then
-            failed_tests="$t $failed_tests"
+            failed_tests="$1 $failed_tests"
             final_rc=1
             error_count=`expr $error_count + 1`
         fi
-    done
-else
-    $PYTHON_EXE $1
-    if [ $? -ne 0 ]; then
-        failed_tests="$t $failed_tests"
-        final_rc=1
-        error_count=`expr $error_count + 1`
     fi
-fi
+done
 
 echo "waiting for clean up time..."
 sleep 5

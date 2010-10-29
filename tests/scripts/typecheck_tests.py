@@ -9,12 +9,16 @@ import sys
 import os
 import uuid
 
+import epumgmt
+import epumgmt.api
 from epumgmt.api import *
 from epumgmt.main import *
 from cloudminer import CloudMiner
-
+from epumgmt.main.em_core_persistence import Persistence
 
 def main(argv=sys.argv[1:]):
+
+    service_name = os.environ['EPU_SERVICE']
 
     runname = str(uuid.uuid1()).replace("-", "")
     conf = os.path.join(os.environ['EPUMGMT_HOME'], "etc/epumgmt/main.conf")
@@ -24,17 +28,17 @@ def main(argv=sys.argv[1:]):
     #epu_action.set_logfile(os.path.join(os.environ['EPUMGMT_HOME'], "tests/tests.logs"))
 
     cyvm_a = []
-    try:
-        (c, p, ac) = epumgmt.api.get_common(opts=epu_opts)
-        persist = Persistence(p, c)
-        persist.validate()
-        cm = persist.cdb
+    (c, p, ac) = epumgmt.api.get_common(opts=epu_opts)
+    persist = Persistence(p, c)
+    persist.validate()
+    cm = persist.cdb
 
+    try:
         epu_opts.haservice = "provisioner"
         epu_opts.action = ACTIONS.CREATE
         epumgmt_run(epu_opts)
 
-        epu_opts.haservice = "sleeper"
+        epu_opts.haservice = service_name
         epu_opts.action = ACTIONS.CREATE
         epumgmt_run(epu_opts)
 
@@ -47,12 +51,12 @@ def main(argv=sys.argv[1:]):
         for c in cyvm_a:
             if c.service_type == "provisioner":
                 found = found + 1
-            elif c.service_type == "sleeper":
+            elif c.service_type == service_name:
                 found = found + 1
             else:
                 raise Exception("unknown service type found")
         if found != 2:
-            raise Exception("did not find sleeper and/or provisioner")
+            raise Exception("did not find %s and/or provisioner" % (service_name))
 
     except Exception, ex:
         print ex

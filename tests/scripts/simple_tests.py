@@ -14,6 +14,8 @@ from epumgmt.main import *
 
 def main(argv=sys.argv[1:]):
 
+    service_name = os.environ['EPU_SERVICE']
+
     runname = str(uuid.uuid1()).replace("-", "")
     conf = os.path.join(os.environ['EPUMGMT_HOME'], "etc/epumgmt/main.conf")
     epu_opts = EPUMgmtOpts(name=runname, conf_file=conf)
@@ -24,7 +26,7 @@ def main(argv=sys.argv[1:]):
         epu_opts.haservice = "provisioner"
         epu_opts.action = ACTIONS.CREATE
         epumgmt_run(epu_opts)
-        epu_opts.haservice = "sleeper"
+        epu_opts.haservice = service_name
         epumgmt_run(epu_opts)
         epu_opts.action = ACTIONS.STATUS
         epumgmt_run(epu_opts)

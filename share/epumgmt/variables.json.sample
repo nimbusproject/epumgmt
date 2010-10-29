@@ -8,5 +8,6 @@
   "git_lcaarch_commit":"HEAD",
   "git_txrabbitmq_repo":"http://github.com/nimbusproject/txrabbitmq.git",
   "git_txrabbitmq_branch":"master",
-  "git_txrabbitmq_commit":"HEAD"
+  "git_txrabbitmq_commit":"HEAD",
+  "min_instances":"2"
 }

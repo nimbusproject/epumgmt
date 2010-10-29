@@ -22,12 +22,12 @@ def terminate(p, c, m, run_name):
     # Destroying the Provisioner first means that no compensatory units can
     # be started by EPU controllers.  When the Provisioner itself is
     # supervised, the supervisor will need to be killed first.
-    prov_ids = []
-    if provisioner_instanceids:
-        prov_ids = m.iaas.terminate_ids(provisioner_instanceids)
-        
-    ids = []
-    if instanceids:
-        ids = m.iaas.terminate_ids(instanceids)
+    for p in provisioner_instanceids:
+        c.log.info("Terminating provisioner '%s'" % (p))
+    for p in instanceids:
+        c.log.info("Terminating '%s'" % (p))
+
+    prov_ids = m.iaas.terminate_ids(provisioner_instanceids)
+    ids = m.iaas.terminate_ids(instanceids)
 
     return prov_ids + ids

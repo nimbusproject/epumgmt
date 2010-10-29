@@ -16,8 +16,9 @@
   "username":"cc",
   "services":{
     "sleeper_sensor_aggregator":"{'name':'sensor_aggregator','module':'ion.services.cei.sensor_aggregator','class':'SensorAggregatorService'}",
-    "sleeper_epu_controller":"{'name':'epu_controller','module':'ion.services.cei.epu_controller','class':'EPUControllerService', 'spawnargs':{'queue_name_work':'cei_work_queue', 'engine_class':'ion.services.cei.decisionengine.impls.QueueLengthBoundedEngine', 'engine_conf':{'min_instances':'2', 'queuelen_high_water':'20000', 'queuelen_low_water':'1', 'provisioner_vars':{'exchange_scope':'${exchange_scope}', 'epuworker_image_id':'${epuworker_image_id}', 'broker_ip_address':'${broker_ip_address}', 'lcaarch_commit_hash':'${git_lcaarch_commit}'} } }}",
-    
+
+    "sleeper_epu_controller":"{'name':'epu_controller','module':'ion.services.cei.epu_controller','class':'EPUControllerService', 'spawnargs':{'queue_name_work':'cei_work_queue', 'engine_class':'ion.services.cei.decisionengine.impls.QueueLengthBoundedEngine', 'engine_conf':{'min_instances':'${min_instances}', 'queuelen_high_water':'20000', 'queuelen_low_water':'1', 'provisioner_vars':{'exchange_scope':'${exchange_scope}', 'epuworker_image_id':'${epuworker_image_id}', 'broker_ip_address':'${broker_ip_address}', 'lcaarch_commit_hash':'${lcaarch_commit_hash}'} } }}",
+
     "sleeper_work_producer":"{'name':'sleeper_work_producer','module':'ion.services.cei.sleeper.epu_work_producer','class':'EPUWorkProducer', 'spawnargs':{'queue_name_work':'cei_work_queue'}}"
   },
   "recipes":["setuptools", "twisted", "user", "capabilitycontainer"]
