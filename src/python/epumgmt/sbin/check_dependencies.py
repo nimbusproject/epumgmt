@@ -26,7 +26,7 @@ if curr == (2,4):
 
 # This will be a package brought in later, right now it is embedded in lib/
 try:
-    import cyvents
+    import cloudyvents.cyvents
 except ImportError:
     print >>sys.stderr, "\n%sCannot locate the cyvents package." % ERR
     problem_count += 1
