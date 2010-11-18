@@ -1,0 +1,22 @@
+{
+  "capabilitycontainer":{
+    "broker":"${broker_ip_address}",
+    "bootscript":"res/scripts/newcc.py",
+    "sysname":"${exchange_scope}",
+    "broker_heartbeat":"5",
+    "pip_package_repo":"http://ooici.net/packages",
+    "git_lcaarch_repo":"${git_lcaarch_repo}",
+    "git_lcaarch_branch":"${git_lcaarch_branch}",
+    "git_lcaarch_commit":"${git_lcaarch_commit}",
+    "git_txrabbitmq_repo":"${git_txrabbitmq_repo}",
+    "git_txrabbitmq_branch":"${git_txrabbitmq_branch}",
+    "git_txrabbitmq_commit":"${git_txrabbitmq_commit}",
+    "log_level":"WARNING"
+  },
+  "username":"cc",
+  "services":{
+    "sqlstream_sensor_aggregator":"{'name':'sensor_aggregator','module':'ion.services.cei.sensor_aggregator','class':'SensorAggregatorService'}",
+    "sqlstream_epu_controller":"{'name':'epu_controller','module':'ion.services.cei.epu_controller','class':'EPUControllerService', 'spawnargs':{'engine_class':'ion.services.cei.decisionengine.impls.NpreservingEngine', 'engine_conf':{'preserve_n':'0', 'provisioner_vars':{'exchange_scope':'${exchange_scope}', 'epuworker_image_id':'ami-d23b6b97', 'epuworker_type':'sqlstream_worker', 'force_site':'us-west', 'epuworker_allocation':'small', 'broker_ip_address':'${broker_ip_address}', 'git_lcaarch_repo':'${git_lcaarch_repo}',    'git_lcaarch_branch':'${git_lcaarch_branch}',     'git_lcaarch_commit':'${git_lcaarch_commit}'} } }}",
+  },
+  "recipes":["setuptools", "twisted", "user", "capabilitycontainer"]
+}
