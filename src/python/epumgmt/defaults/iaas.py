@@ -276,7 +276,7 @@ class DefaultIaaS:
         cmd = ' '.join(args)
         self.c.log.debug("command = '%s'" % cmd)
         
-        timeout = 300
+        timeout = 600
         (killed, retcode, stdout, stderr) = \
             child.child(cmd, timeout=timeout)
             
@@ -295,6 +295,8 @@ class DefaultIaaS:
             raise UnexpectedError(errmsg)
         
     def terminate_ids(self, instanceids):
+        if not instanceids:
+            return []
         con = self._get_connection()
         return con.terminate_instances(instanceids)
         
