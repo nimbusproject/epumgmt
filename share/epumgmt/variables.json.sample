@@ -3,6 +3,7 @@
   "exchange_scope":"cei_hello1",
   "broker_ip_address":"184.72.231.60",
   "pip_package_repo":"http://ooici.net/packages",
+  "git_repo_dirname":"lcaarch",
   "git_lcaarch_repo":"http://github.com/nimbusproject/lcaarch.git",
   "git_lcaarch_branch":"cei",
   "git_lcaarch_commit":"HEAD",
