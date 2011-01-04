@@ -33,6 +33,7 @@ class DefaultIaaS:
         self.ec2_key = None
         self.ec2_secret = None
         self.instancetype = None
+        self.securitygroup = None
         self.sshkeyname = None
         self.ssh_username = None
         self.scp_username = None
@@ -79,6 +80,10 @@ class DefaultIaaS:
         self.instancetype = self.p.get_conf_or_none(section, "instancetype")
         if not self.instancetype:
             raise InvalidConfig("Missing the instancetype configuration")
+
+        self.securitygroup = self.p.get_conf_or_none(section, "securitygroup")
+        if not self.securitygroup:
+            raise InvalidConfig("Missing the securitygroup configuration")
             
         self.ssh_username = self.p.get_conf_or_none(section, "ssh_username")
         if not self.ssh_username:
@@ -151,7 +156,8 @@ class DefaultIaaS:
         
         reservation = con.run_instances(self.baseimage,
                                         instance_type=self.instancetype,
-                                        key_name=self.sshkeyname)
+                                        key_name=self.sshkeyname,
+                                        security_groups=[self.securitygroup])
 
         instance = reservation.instances[0]
         self.c.log.info("Instance launched: %s" % instance.id)
