@@ -14,6 +14,8 @@ import em_core_logfetch
 import em_core_persistence
 import em_core_status
 import em_core_termination
+import em_core_workloadtest
+import em_core_generategraph
 
 # -----------------------------------------------------------------------------
 # CORE LOGIC (this is the whole program)
@@ -157,6 +159,10 @@ def _core(action, p, c):
         em_core_findworkers.find(p, c, modules, action, run_name, once=True)
     elif action == ACTIONS.STATUS:
         em_core_status.status(p, c, modules, run_name)
+    elif action == ACTIONS.EXECUTE_WORKLOAD_TEST:
+        em_core_workloadtest.execute_workload_test(p, c, modules, run_name)
+    elif action == ACTIONS.GENERATE_GRAPH:
+        em_core_generategraph.generate_graph(p, c, modules, run_name)
     else:
         raise ProgrammingError("unhandled action %s" % action)
 

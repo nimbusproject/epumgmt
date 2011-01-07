@@ -44,6 +44,8 @@ class ACTIONS:
     LOGFETCH = "logfetch"
     STATUS = "status"
     UPDATE_EVENTS = "update-events"
+    EXECUTE_WORKLOAD_TEST = "execute-workload-test"
+    GENERATE_GRAPH = "generate-graph"
     
     def all_actions(self):
         """Return the values of all Python members of this class whose

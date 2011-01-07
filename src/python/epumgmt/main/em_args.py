@@ -36,6 +36,18 @@ NAME = ControlArg("name", "-n", metavar="RUN_NAME", createarg=False)
 a.append(NAME)
 NAME.help = "Unique run name for logs and management.  Can use across multiple invocations for launches that belong together."
 
+GRAPH_NAME = ControlArg("graphname", "-r", createarg=False, metavar="GRAPH_NAME")
+a.append(GRAPH_NAME)
+GRAPH_NAME.help = "For the generate-graph action, name of graph to generate: stacked-vms or job-tts."
+
+GRAPH_TYPE = ControlArg("graphtype", "-t", createarg=False, metavar="GRAPH_TYPE")
+a.append(GRAPH_TYPE)
+GRAPH_TYPE.help = "For the generate-graph action, output file type: eps or png."
+
+WORKLOAD_FILE = ControlArg("workloadfilename", "-f", createarg=False, metavar="WORKLOAD_FILE")
+a.append(WORKLOAD_FILE)
+WORKLOAD_FILE.help = "For the execute-workload-test action, file name of workload definition file."
+
 
 ################################################################################
 # CREATE ARGS
