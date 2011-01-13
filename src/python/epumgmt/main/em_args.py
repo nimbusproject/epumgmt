@@ -68,3 +68,12 @@ IAAS_CONF.help = "Override the iaas:confsection setting for this run.  See iaas.
 JSON_VARS = ControlArg("jsonvars", "-j", metavar="PATH")
 a.append(JSON_VARS)
 JSON_VARS.help = "path to JSON containing variable names + values for template replacement, see services.conf for explanation"
+
+################################################################################
+# LOAD ARGS
+################################################################################
+
+CLOUDBOOT_DIR = ControlArg("cloudbootdir", "-C", metavar="PATH")
+a.append(CLOUDBOOT_DIR)
+CLOUDBOOT_DIR.help = "path to the directory where cloudboot databases are kept.  default is ~/.cloudboot"
+

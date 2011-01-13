@@ -7,6 +7,7 @@ from epumgmt.main import get_class_by_keyword, get_all_configs
 from epumgmt.main import Modules, ACTIONS
 import epumgmt.main.em_args as em_args
 import em_core_creation
+import em_core_load
 import em_core_eventgather
 import em_core_fetchkill
 import em_core_findworkers
@@ -137,6 +138,8 @@ def _core(action, p, c):
     
     if action == ACTIONS.CREATE:
         em_core_creation.create(p, c, modules, run_name)
+    elif action == ACTIONS.LOAD:
+        em_core_load.load(p, c, modules, run_name)
     elif action == ACTIONS.UPDATE_EVENTS:
         em_core_eventgather.update_events(p, c, modules, run_name)
     elif action == ACTIONS.KILLRUN:

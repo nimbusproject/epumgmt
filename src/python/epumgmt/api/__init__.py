@@ -13,6 +13,7 @@ from epumgmt.api.exceptions import *
 from epumgmt.main import get_class_by_keyword, get_all_configs
 from epumgmt.main import Modules, ACTIONS
 import epumgmt.main.em_core_creation as em_core_creation
+import epumgmt.main.em_core_load as em_core_load
 import epumgmt.main.em_core_eventgather as em_core_eventgather
 import epumgmt.main.em_core_fetchkill as em_core_fetchkill
 import epumgmt.main.em_core_findworkers as em_core_findworkers
@@ -131,6 +132,9 @@ class EPUMgmtAction(object):
 
     def create(self, runname, haservice):
         return em_core_creation.create(self.p, self.c, self.m, runname)
+
+    def load(self, runname):
+        return em_core_load.load(self.p, self.c, self.m, runname)
 
     def update(self, runname):
         return em_core_eventgather.update_events(self.p, self.c, self.m, runname)
