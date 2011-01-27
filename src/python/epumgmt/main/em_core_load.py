@@ -1,15 +1,16 @@
 from epumgmt.defaults import RunVM
 from epumgmt.api.exceptions import *
-from cloudboot.user_api import CloudBoot
+from epumgmt.main import em_args
+from cloudinitd.user_api import CloudInitD
 import os
 import os.path
 
 def load(p, c, m, run_name):
-    cb_path = self.p.get_arg_or_none(em_args.CLOUDBOOT_DIR)
-    if not cb_path:
-        cb_path = os.path.expanduser("~/.cloudboot")
+    ci_path = self.p.get_arg_or_none(em_args.CLOUDINITD_DIR)
+    if not ci_path:
+        ci_path = os.path.expanduser("~/.cloudinit")
 
-    cb = CloudBoot(cb_path, db_name=run_name, terminate=False, boot=False, ready=False)
+    cb = CloudInitD(ci_path, db_name=run_name, terminate=False, boot=False, ready=False)
     svc_list = cb.get_all_services()
 
 
@@ -21,7 +22,7 @@ def load(p, c, m, run_name):
 
 
 def load_host(p, c, m, run_name, instanceid, hostname, servicename):
-    """Load a VM instance from cloudboot information
+    """Load a VM instance from cloudinit information
     
     p,c,m are seen everywhere: parameters, common, modules 
     """

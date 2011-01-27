@@ -73,7 +73,7 @@ JSON_VARS.help = "path to JSON containing variable names + values for template r
 # LOAD ARGS
 ################################################################################
 
-CLOUDBOOT_DIR = ControlArg("cloudbootdir", "-C", metavar="PATH")
-a.append(CLOUDBOOT_DIR)
-CLOUDBOOT_DIR.help = "path to the directory where cloudboot databases are kept.  default is ~/.cloudboot"
+CLOUDINITD_DIR = ControlArg("cloudinitdir", "-C", metavar="PATH")
+a.append(CLOUDINITD_DIR)
+CLOUDINITD_DIR.help = "path to the directory where cloudinit databases are kept.  default is ~/.cloudinit"
 
