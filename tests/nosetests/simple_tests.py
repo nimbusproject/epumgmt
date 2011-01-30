@@ -21,7 +21,7 @@ class TestSimpleOps(unittest.TestCase):
 
 
     def tearDown(self):
-        self.epu_action.killrun(self.runname)
+        self.epu_action.kill(self.runname)
 
     def test_main_sequence(self):
         self.epu_opts.haservice = "provisioner"
