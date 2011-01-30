@@ -77,10 +77,11 @@ class Persistence:
         does not exist, it will be created.  If VM instance ID is present,
         it won't be added."""
         cyvm = self.cdb.get_by_iaasid(vm.instanceid)
-        if cyvm != None:
+        if cyvm:
             rc = False # not new
-        self.new_vm(run_name, vm)
-        rc = True
+        else:
+            self.new_vm(run_name, vm)
+            rc = True
         return rc
         
     def store_run_vms(self, run_name, run_vms):
