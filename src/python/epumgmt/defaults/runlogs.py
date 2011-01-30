@@ -2,7 +2,7 @@ import os
 
 from epumgmt.api.exceptions import *
 import epumgmt.main.em_args as em_args
-from epumgmt.main import ACTIONS
+from epumgmt.api.actions import ACTIONS
 
 import child
 
@@ -21,7 +21,7 @@ class DefaultRunlogs:
     def validate(self):
         
         action = self.p.get_arg_or_none(em_args.ACTION)
-        if action not in [ACTIONS.CREATE, ACTIONS.LOGFETCH, ACTIONS.FETCH_KILL,
+        if action not in [ACTIONS.LOAD, ACTIONS.LOGFETCH, ACTIONS.FETCH_KILL,
                           ACTIONS.FIND_WORKERS, ACTIONS.FIND_WORKERS_ONCE, ACTIONS.KILLRUN]:
             if self.c.trace:
                 self.c.log.debug("validation for runlogs module complete, '%s' is not a relevant action" % action)
@@ -90,7 +90,8 @@ class DefaultRunlogs:
         if not vm.hostname:
             self.c.log.warn("Cannot retrieve logs for '%s', hostname is unknown" % vm.instanceid)
             return
-            
+
+        # TODO: SCP command for workers will be presumed the same as svc-provisioner.  This will faily currently.
         scpcmd = m.iaas.scp_cmd(vm.hostname)
     
         # last arg is "user@host:", we need to enhance this with the path
