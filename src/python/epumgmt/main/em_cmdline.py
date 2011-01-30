@@ -6,23 +6,16 @@ import em_deprecated
 import em_optparse
 from epumgmt.api.exceptions import *
 from epumgmt.api import *
-
-remote_pycharm_debug = 0
-try:
-    if remote_pycharm_debug:
-        from pydev import pydevd
-except ImportError, e:
-    print >>sys.stderr, "Could not import remote debugging library: %s" % str(e)
-    remote_pycharm_debug = 0
+import remote_debug
 
 def main(argv=None):
     if os.name != 'posix':
         print >>sys.stderr, "Only runs on POSIX systems."
         return 3
 
-    if remote_pycharm_debug:
-        pydevd.settrace('localhost', port=51234, stdoutToServer=True, stderrToServer=True)
-        
+    # Enabled by a constant in the remote_debug module.
+    remote_debug.connect_debugger_if_enabled()
+    
     parser = em_optparse.parsersetup()
 
     if argv:
