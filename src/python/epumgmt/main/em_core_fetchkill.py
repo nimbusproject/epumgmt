@@ -17,9 +17,11 @@ def fetch_kill(p, c, m, run_name):
     tokill = []
     all_workers = _get_workers(p, c, m, run_name)
     
+    # TODO: iaas filter-by-running is gone, compensate somehow
     # filter out any workers that are terminating/terminated
-    alive_workers = m.iaas.filter_by_running(all_workers)
-    
+    #alive_workers = m.iaas.filter_by_running(all_workers)
+    alive_workers = all_workers
+
     alivenum = len(alive_workers)
     if alivenum:
         c.log.info("Found %d workers we can kill" % alivenum)
@@ -97,6 +99,8 @@ class FetchKillThread(Thread):
         # terminate even if there was an error log fetching
         try:
             #self.c.log.debug("terminating '%s'" % self.iid)
+
+            # TODO: this will be via provisioner instead, will fail currently
             self.m.iaas.terminate_ids([self.iid,])
             self.c.log.info("Terminated '%s'" % self.iid)
             extradict = {"iaas_id":self.iid}

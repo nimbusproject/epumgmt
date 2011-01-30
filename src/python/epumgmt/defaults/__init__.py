@@ -1,7 +1,5 @@
 from common import DefaultCommon
 from parameters import DefaultParameters
-from iaas import DefaultIaaS
-from services import DefaultServices
 from runlogs import DefaultRunlogs
 from event_gather import DefaultEventGather
 
@@ -14,16 +12,15 @@ class RunVM:
     
     def __init__(self):
         
-        # No IaaS awareness yet, assumes you start/stop with same conf
+        # No IaaS awareness yet, assumes you start/stop with same conf.
+        # TODO: this will be a blocker when multiple IaaS systems are in use by a system.
+        # cloudinit.d itself will differentiate between multiple IaaS systems.
         self.instanceid = None
-        
-        # Intended for immediate consultation after an IaaS status query
-        self.running = False
         
         # Assumed that harness can ssh to this node
         self.hostname = None
         
-        # The "--haservice" name launch that caused this VM to be started.
+        # The haservice that caused this VM to be started.
         # If this VM was heard about from intaking an EPU controller's log
         # files (i.e., a worker VM for that EPU controller), then the value
         # will be that haservice name plus the constant WORKER_SUFFIX (see

@@ -2,9 +2,7 @@ import datetime
 import json
 import os
 
-import em_core_status
-
-# Events: 
+# Events:
 #  job_sent: time job sent from amqp server to worker
 #  job_begin: time job starts on worker
 #  fetch_killed: time VM killed

@@ -40,7 +40,7 @@ def _add_boolean_option(group, arg):
 def parsersetup():
     """Return configured command-line parser."""
 
-    ver="Nimbus EPU Control %s - http://www.nimbusproject.org" % EC_VERSION
+    ver="Nimbus EPU Management %s - http://www.nimbusproject.org" % EC_VERSION
     usage="see help (-h)."
     parser = optparse.OptionParser(version=ver, usage=usage)
 
@@ -48,14 +48,11 @@ def parsersetup():
     
     # Might be helpful to have more groups in the future.
     deprecated_args = []
-    create_args = []
     other_args = []
     
     for arg in em_args.ALL_EC_ARGS_LIST:
         if arg.deprecated:
             deprecated_args.append(arg)
-        elif arg.createarg:
-            create_args.append(arg)
         else:
             other_args.append(arg)
             
@@ -63,8 +60,7 @@ def parsersetup():
     # ---------------------------------------
             
     grouptxt1 = "  Arguments"
-    grouptxt2 = "  Creation arguments"
-    grouptxt3 = "  Deprecated"
+    grouptxt2 = "  Deprecated"
     # For each one, use twice length of the longest one:
     groupline = (len(2*grouptxt2)-1) * "-"
     
@@ -74,15 +70,9 @@ def parsersetup():
         _add_option(group, arg)
     parser.add_option_group(group)
     
-    # 2 - create_args
-    group = optparse.OptionGroup(parser, grouptxt2, groupline)
-    for arg in create_args:
-        _add_option(group, arg)
-    parser.add_option_group(group)
-    
     # 3 - deprecated_args
     if len(deprecated_args) > 0:
-        group = optparse.OptionGroup(parser, grouptxt3, groupline)
+        group = optparse.OptionGroup(parser, grouptxt2, groupline)
         for arg in deprecated_args:
             _add_option(group, arg)
         parser.add_option_group(group)

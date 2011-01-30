@@ -1,11 +1,7 @@
 from pylab import *
-import matplotlib
-import datetime
-import json
 import os
 
 from epumgmt.defaults.log_events import LogEvents
-import em_core_status
 
 def _convert_datetime_to_seconds(dateTime):
     seconds = (dateTime.microseconds + \

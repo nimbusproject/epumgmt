@@ -125,7 +125,11 @@ def _get_runvms_required(m, run_name):
     run_vms = m.persistence.get_run_vms_or_none(run_name)
     if not run_vms or len(run_vms) == 0:
         raise IncompatibleEnvironment("Cannot find any VMs associated with run '%s'" % run_name)
-    return m.iaas.filter_by_running(run_vms)
+
+    # TODO: now that filter-by-running is gone, find a good way to tackle nodes that are gone
+    #return m.iaas.filter_by_running(run_vms)
+
+    return run_vms
 
 def _fetch_one_vm(p, c, m, run_name, vm):
     c.log.info("fetching logs from '%s' instance '%s' (run '%s')" % (vm.service_type, vm.instanceid, run_name))

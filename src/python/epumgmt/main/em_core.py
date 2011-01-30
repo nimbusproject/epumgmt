@@ -1,22 +1,19 @@
 import string
-import sys
-import time
 
 from epumgmt.api.exceptions import *
+from epumgmt.api.actions import ACTIONS
 from epumgmt.main import get_class_by_keyword, get_all_configs
-from epumgmt.main import Modules, ACTIONS
+from epumgmt.main import Modules
 import epumgmt.main.em_args as em_args
-import em_core_creation
 import em_core_load
 import em_core_eventgather
 import em_core_fetchkill
 import em_core_findworkers
 import em_core_logfetch
 import em_core_persistence
-import em_core_status
 import em_core_termination
 import em_core_workloadtest
-import em_core_generategraph
+
 
 # -----------------------------------------------------------------------------
 # CORE LOGIC (this is the whole program)
@@ -76,11 +73,12 @@ def core(opts, dbgmsgs=None):
     # now there is a logger finally:
     if dbgmsgs:
         c.log.debug(dbgmsgs)
-        
+
     try:
         _core(action, p, c)
-    except Exception,e:
-        #c.log.exception(e)
+    except:
+        # Important for invocation logs to also record any problem
+        c.log.exception("")
         raise
         
 def _core(action, p, c):
@@ -92,20 +90,10 @@ def _core(action, p, c):
     event_gather_cls = c.get_class_by_keyword("EventGather")
     event_gather = event_gather_cls(p, c)
     
-    iaas_cls = c.get_class_by_keyword("IaaS")
-    iaas = iaas_cls(p, c)
-    
     persistence = em_core_persistence.Persistence(p, c)
-    
+
     runlogs_cls = c.get_class_by_keyword("Runlogs")
     runlogs = runlogs_cls(p, c)
-    
-    services_cls = c.get_class_by_keyword("Services")
-    services = services_cls(p, c)
-    
-    # The following classes are not used in this method, this is to ensure
-    # ahead of time that an implementation is configured for each object.
-    #c.get_class_by_keyword("DNS")
     
     
     # -------------------------------------------------------------------------
@@ -120,12 +108,10 @@ def _core(action, p, c):
     c.log.info("Validating '%s' action for '%s'" % (action, run_name))
     
     event_gather.validate()
-    iaas.validate()
     persistence.validate()
     runlogs.validate()
-    services.validate()
     
-    modules = Modules(event_gather, iaas, persistence, runlogs, services)
+    modules = Modules(event_gather, persistence, runlogs)
     
     # -------------------------------------------------------------------------
     # BRANCH on action
@@ -136,9 +122,7 @@ def _core(action, p, c):
     else:
         c.log.info("Performing '%s' for '%s'" % (action, run_name))
     
-    if action == ACTIONS.CREATE:
-        em_core_creation.create(p, c, modules, run_name)
-    elif action == ACTIONS.LOAD:
+    if action == ACTIONS.LOAD:
         em_core_load.load(p, c, modules, run_name)
     elif action == ACTIONS.UPDATE_EVENTS:
         em_core_eventgather.update_events(p, c, modules, run_name)
@@ -160,12 +144,17 @@ def _core(action, p, c):
         em_core_findworkers.find(p, c, modules, action, run_name)
     elif action == ACTIONS.FIND_WORKERS_ONCE:
         em_core_findworkers.find(p, c, modules, action, run_name, once=True)
-    elif action == ACTIONS.STATUS:
-        em_core_status.status(p, c, modules, run_name)
     elif action == ACTIONS.EXECUTE_WORKLOAD_TEST:
         em_core_workloadtest.execute_workload_test(p, c, modules, run_name)
     elif action == ACTIONS.GENERATE_GRAPH:
+        try:
+            import em_core_generategraph
+        except ImportError:
+            c.log.exception("")
+            raise IncompatibleEnvironment("Problem with graphing dependencies: do you have "
+            "matplotlib installed? (matplotlib is the source of the 'pylab' module)")
         em_core_generategraph.generate_graph(p, c, modules, run_name)
+
     else:
         raise ProgrammingError("unhandled action %s" % action)
 
@@ -184,4 +173,3 @@ def validate_action(action):
         raise InvalidInput("Unknown action: '%s'" % action)
         
     return action
-

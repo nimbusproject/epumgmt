@@ -1,27 +1,20 @@
-# See TODO.txt
+from epumgmt.api.actions import ACTIONS
 import epumgmt.main.em_args as em_args
 import epumgmt.main.em_core as em_core
-from epumgmt.api.exceptions import *
-import string
-import sys
-import time
 
 import logging
 import os
 
 from epumgmt.api.exceptions import *
 from epumgmt.main import get_class_by_keyword, get_all_configs
-from epumgmt.main import Modules, ACTIONS
-import epumgmt.main.em_core_creation as em_core_creation
+from epumgmt.main import Modules
 import epumgmt.main.em_core_load as em_core_load
 import epumgmt.main.em_core_eventgather as em_core_eventgather
 import epumgmt.main.em_core_fetchkill as em_core_fetchkill
 import epumgmt.main.em_core_findworkers as em_core_findworkers
 import epumgmt.main.em_core_logfetch as em_core_logfetch
 import epumgmt.main.em_core_persistence as em_core_persistence
-import epumgmt.main.em_core_status as em_core_status
 import epumgmt.main.em_core_termination as em_core_termination
-
 
 control_args = {}
 for k in em_args.ALL_EC_ARGS_LIST:
@@ -107,31 +100,20 @@ class EPUMgmtAction(object):
         event_gather_cls = self.c.get_class_by_keyword("EventGather")
         event_gather = event_gather_cls(self.p, self.c)
 
-        iaas_cls = self.c.get_class_by_keyword("IaaS")
-        iaas = iaas_cls(self.p, self.c)
-
         persistence = em_core_persistence.Persistence(self.p, self.c)
 
         runlogs_cls = self.c.get_class_by_keyword("Runlogs")
         runlogs = runlogs_cls(self.p, self.c)
 
-        services_cls = self.c.get_class_by_keyword("Services")
-        services = services_cls(self.p, self.c)
-
         event_gather.validate()
-        iaas.validate()
         persistence.validate()
         runlogs.validate()
-        services.validate()
 
-        self.m = Modules(event_gather, iaas, persistence, runlogs, services)
+        self.m = Modules(event_gather, persistence, runlogs)
 
     def set_logfile(self, fname):
 
         self.c.log = logging.getLogger("epu_test_logger")
-
-    def create(self, runname, haservice):
-        return em_core_creation.create(self.p, self.c, self.m, runname)
 
     def load(self, runname):
         return em_core_load.load(self.p, self.c, self.m, runname)
@@ -159,9 +141,6 @@ class EPUMgmtAction(object):
 
     def findworkers(self, runname, once=False):
         return em_core_findworkers.find(self.p, self.c, self.m, ACTIONS.FIND_WORKERS_ONCE, runname)
-
-    def status(self, runname):
-        return em_core_status.status(self.p, self.c, self.m, runname)
 
 def epumgmt_run(opts, dbgmsgs=None):
     em_core.core(opts, dbgmsgs=dbgmsgs)

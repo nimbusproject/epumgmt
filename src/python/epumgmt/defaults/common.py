@@ -77,27 +77,6 @@ class DefaultCommon:
             
         return os.path.join(libexecdir, name)
         
-    def resolve_serviceconf_dir(self, name):
-        """Return absolute path to the needed serviceconf file
-        name -- relative path to file
-        
-        Does not check if path is valid/exists.
-        """
-        
-        # If ecdirs values are relative paths, they are taken from the base
-        # directory.  If the program is 'installed' the values should not be
-        # relative (person writing install code needs to understand that).
-        
-        serviceconf_dir = self.p.get_conf_or_none("ecdirs", "serviceconfs")
-        if not serviceconf_dir:
-            raise InvalidConfig("There is no ecdirs->serviceconfs configuration.  This is required.")
-            
-        if not os.path.isabs(serviceconf_dir):
-            basedir = self._get_basedir()
-            serviceconf_dir = os.path.join(basedir, serviceconf_dir)
-            
-        return os.path.join(serviceconf_dir, name)
-        
     def get_class_by_keyword(self, keyword):
         """Use the default 'dependency injection' mechanism.  This system is
         not a requirement to use to create objects, all that is needed is
@@ -208,9 +187,6 @@ class DefaultCommon:
         run_name = self.p.get_arg_or_none(em_args.NAME)
         if run_name:
             self.logfilepath += "--" + str(run_name)
-        service_name = self.p.get_arg_or_none(em_args.HASERVICE)
-        if service_name:
-            self.logfilepath += "-" + str(service_name)
         action = self.p.get_arg_or_none(em_args.ACTION)
         if action:
             self.logfilepath += "-" + str(action)

@@ -27,38 +27,10 @@ from epumgmt.api.exceptions import InvalidConfig, ProgrammingError
 #from epumgmt.api import interfacesdict
 
 class Modules:
-    def __init__(self, event_gather, iaas, persistence, runlogs, services):
+    def __init__(self, event_gather, persistence, runlogs):
         self.event_gather = event_gather
-        self.iaas = iaas
         self.persistence = persistence
         self.runlogs = runlogs
-        self.services = services
-
-class ACTIONS:
-    
-    CREATE = "create"
-    CREATE = "load"
-    FETCH_KILL = "fetchkill"
-    FIND_WORKERS = "find-workers"
-    FIND_WORKERS_ONCE = "find-workers-once"
-    KILLRUN = "killrun"
-    LOGFETCH = "logfetch"
-    STATUS = "status"
-    UPDATE_EVENTS = "update-events"
-    EXECUTE_WORKLOAD_TEST = "execute-workload-test"
-    GENERATE_GRAPH = "generate-graph"
-    
-    def all_actions(self):
-        """Return the values of all Python members of this class whose
-        identifiers are capitalized. So if you add an action, make sure
-        to follow suit.
-        """
-        action_list = []
-        for item in dir(self):
-            if item == item.upper():
-                action_list.append(getattr(self, item))
-        return action_list
-
 
 # -----------------------------------------------------------------------------
 # "DEPENDENCY INJECTION"
@@ -145,7 +117,7 @@ def _get_one_config(filepath, config=None):
 
 class ControlArg:
     
-    def __init__(self, name, short_syntax, noval=False, since=None, deprecated=False, createarg=True, metavar=None):
+    def __init__(self, name, short_syntax, noval=False, since=None, deprecated=False, metavar=None):
         """Long syntax is always "--" + name
         
         short_syntax may be None
@@ -153,9 +125,6 @@ class ControlArg:
         If 'noval' is True, this is an arg that, if present, will trigger the
         value to be 'True', otherwise 'False'.  i.e., "was the flag present."
         Otherwise, it is presumed a string intake arg
-        
-        createarg -- Most of the arguments are for the create action. Use a
-        False createarg so they are grouped differently from the create args
         
         if no metavar (see em_optparse), metavar is capitalization of name
         """
@@ -174,7 +143,6 @@ class ControlArg:
         self.boolean = noval
         self.string = not noval
         self.deprecated = deprecated
-        self.createarg = createarg
         self.metavar = metavar
         if not metavar:
             self.metavar = string.upper(name)

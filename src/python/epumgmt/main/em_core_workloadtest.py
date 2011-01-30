@@ -7,7 +7,6 @@ import threading
 
 from epumgmt.defaults.log_events import LogEvents
 import epumgmt.api
-import em_core_status
 
 
 class WorkItem:
@@ -76,6 +75,7 @@ class Workload:
                                 'definition file: %s.' % line)
 
     def _get_hostname(self, name):
+        # TODO: adjust for the removal of the status command, this will fail
         actives = em_core_status.status(self.p, self.c, self.m, self.run_name)
         host = ''
         for active in actives:
