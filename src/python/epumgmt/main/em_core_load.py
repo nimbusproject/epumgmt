@@ -6,7 +6,14 @@ from cloudinitd.exceptions import APIUsageException
 import os
 import os.path
 
-def load(p, c, m, run_name):
+def get_cloudinit(p, c, m, run_name):
+    """Get cloudinit.d API handle.  Loads any new EPU related services in the process.
+    """
+    return load(p, c, m, run_name, silent=True)
+
+def load(p, c, m, run_name, silent=False):
+    """Load any EPU related instances from a local cloudinit.d launch with the same run name.
+    """
     ci_path = p.get_arg_or_none(em_args.CLOUDINITD_DIR)
     if not ci_path:
         ci_path = os.path.expanduser("~/.cloudinitd")
@@ -19,12 +26,20 @@ def load(p, c, m, run_name):
 
     count = 0
     for svc in svc_list:
-        if svc.name.find("epu-") == 0 or svc.name.find("provisioner") == 0:
+        foundservice = None
+        if svc.name.find("epu-") == 0:
+            foundservice = svc.name[4:]
+        if svc.name.find("provisioner") == 0:
+            foundservice = "provisioner"
+        if foundservice:
+            count += 1
             instance_id = svc.get_attr_from_bag("instance_id")
             hostname = svc.get_attr_from_bag("hostname")
-            load_host(p, c, m, run_name, instance_id, hostname, svc.name[4:])
-            count += 1
+            _load_host(p, c, m, run_name, instance_id, hostname, foundservice)
 
+    if silent:
+        return cb
+    
     if not count:
         msg = "Services must be named 'svc-epu-*' or 'svc-provisioner' in order to be recognized."
         c.log.info("No EPU related services in the cloudinit.d '%s' launch. %s" % (run_name, msg))
@@ -33,10 +48,10 @@ def load(p, c, m, run_name):
     else:
         c.log.info("%d EPU related services in the cloudinit.d '%s' launch" % (count, run_name))
 
-def load_host(p, c, m, run_name, instanceid, hostname, servicename):
+    return cb
+
+def _load_host(p, c, m, run_name, instanceid, hostname, servicename):
     """Load a VM instance from cloudinit information
-    
-    p,c,m are seen everywhere: parameters, common, modules 
     """
         
     vm = RunVM()

@@ -121,9 +121,14 @@ def _core(action, p, c):
         c.log.info("Performing DRYRUN '%s' for '%s'" % (action, run_name))
     else:
         c.log.info("Performing '%s' for '%s'" % (action, run_name))
-    
-    if action == ACTIONS.LOAD:
+
+    try:
         em_core_load.load(p, c, modules, run_name)
+    except IncompatibleEnvironment, e:
+        c.log.error(e)
+
+    if action == ACTIONS.LOAD:
+        c.log.info("Load only, done.")
     elif action == ACTIONS.UPDATE_EVENTS:
         em_core_eventgather.update_events(p, c, modules, run_name)
     elif action == ACTIONS.KILLRUN:
