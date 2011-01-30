@@ -2,16 +2,26 @@ import os
 import sys
 import traceback
 
-import em_core
 import em_deprecated
 import em_optparse
 from epumgmt.api.exceptions import *
 from epumgmt.api import *
 
+remote_pycharm_debug = 0
+try:
+    if remote_pycharm_debug:
+        from pydev import pydevd
+except ImportError, e:
+    print >>sys.stderr, "Could not import remote debugging library: %s" % str(e)
+    remote_pycharm_debug = 0
+
 def main(argv=None):
     if os.name != 'posix':
         print >>sys.stderr, "Only runs on POSIX systems."
         return 3
+
+    if remote_pycharm_debug:
+        pydevd.settrace('localhost', port=51234, stdoutToServer=True, stderrToServer=True)
         
     parser = em_optparse.parsersetup()
 
@@ -32,22 +42,22 @@ def main(argv=None):
         epumgmt_run(epu, dbgmsgs=dbgmsgs) 
 
     except InvalidInput, e:
-        msg = "Problem with input: %s" % e.msg
+        msg = "\nProblem with input: %s" % e.msg
         print >>sys.stderr, msg
         return 1
 
     except InvalidConfig, e:
-        msg = "Problem with configuration: %s" % e.msg
+        msg = "\nProblem with configuration: %s" % e.msg
         print >>sys.stderr, msg
         return 2
 
     except IncompatibleEnvironment, e:
-        msg = "Problem with environment: %s" % e.msg
+        msg = "\nProblem with environment: %s" % e.msg
         print >>sys.stderr, msg
         return 3
 
     except UnexpectedError, e:
-        msg = "Problem executing: %s" % e.msg
+        msg = "\nProblem executing: %s" % e.msg
         print >>sys.stderr, msg
         return 4
         
