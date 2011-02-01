@@ -1,3 +1,4 @@
+from epumgmt.main.em_core_load import get_cloudinitd_service
 import os
 
 from epumgmt.api.exceptions import *
@@ -74,17 +75,6 @@ class DefaultRunlogs:
         
         newvm.vmlogdir = self.allvmslogdir
 
-    def _cloudinitd_service(self, cloudinitd, name):
-        """Return the cloudinit.d service by exact name match or raise IncompatibleEnvironment"""
-        noservicemsg = "Cannot find the '%s' service in cloudinit.d run '%s'" % (name, cloudinitd.run_name)
-        try:
-            aservice = cloudinitd.get_service(name)
-        except Exception, e:
-            raise IncompatibleEnvironment("%s: %s" % (noservicemsg, str(e)))
-        if not aservice:
-            raise IncompatibleEnvironment(noservicemsg)
-        return aservice
-
     def get_scp_command_str(self, c, vm, cloudinitd):
         if not vm.hostname:
             c.log.warn("Cannot retrieve logs for '%s', hostname is unknown" % vm.instanceid)
@@ -101,7 +91,7 @@ class DefaultRunlogs:
         dest = vm.runlogdir
         forcehost = None
         try:
-            svc = self._cloudinitd_service(cloudinitd, vm.service_type)
+            svc = get_cloudinitd_service(cloudinitd, vm.service_type)
         except IncompatibleEnvironment:
             if vm.service_type.find("-worker") < 0:
                 c.log.warn("cloudinit.d is unaware of '%s' but it is not an EPU worker?" % vm.service_type)

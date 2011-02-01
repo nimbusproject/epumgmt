@@ -6,6 +6,21 @@ from cloudinitd.exceptions import APIUsageException
 import os
 import os.path
 
+def get_cloudinitd_service(self, cloudinitd, name):
+    """Return the cloudinit.d service by exact name match or raise IncompatibleEnvironment"""
+    if not cloudinitd:
+        raise Exception("requires cloudinitd reference")
+    if not name:
+        raise Exception("requires service name")
+    noservicemsg = "Cannot find the '%s' service in cloudinit.d run '%s'" % (name, cloudinitd.run_name)
+    try:
+        aservice = cloudinitd.get_service(name)
+    except Exception, e:
+        raise IncompatibleEnvironment("%s: %s" % (noservicemsg, str(e)))
+    if not aservice:
+        raise IncompatibleEnvironment(noservicemsg)
+    return aservice
+
 def get_cloudinit(p, c, m, run_name):
     """Get cloudinit.d API handle.  Loads any new EPU related services in the process.
     """

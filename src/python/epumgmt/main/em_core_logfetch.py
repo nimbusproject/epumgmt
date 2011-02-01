@@ -1,5 +1,6 @@
-import em_core_load
 from epumgmt.api.exceptions import *
+from epumgmt.main.em_core_load import get_cloudinit
+
 try:
     from threading import Thread
 except ImportError:
@@ -37,7 +38,7 @@ def fetch_all(p, c, m, run_name):
         c.log.debug("fetch_all()")
     
     run_vms = _get_runvms_required(m, run_name)
-    cloudinitd = em_core_load.get_cloudinit(p, c, m, run_name)
+    cloudinitd = get_cloudinit(p, c, m, run_name)
 
     threads = []
     for vm in run_vms:
