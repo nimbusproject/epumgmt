@@ -55,28 +55,7 @@ class DefaultCommon:
             vardir = os.path.join(basedir, vardir)
             
         return os.path.join(vardir, name)
-        
-    def resolve_libexec_dir(self, name):
-        """Return absolute path to the needed libexec file
-        name -- relative path to file
-        
-        Does not check if path is valid/exists.
-        """
-        
-        # If ecdirs values are relative paths, they are taken from the base
-        # directory.  If the program is 'installed' the values should not be
-        # relative!
-        
-        libexecdir = self.p.get_conf_or_none("ecdirs", "libexec")
-        if not libexecdir:
-            raise InvalidConfig("There is no ecdirs->libexec configuration.  This is required.")
-            
-        if not os.path.isabs(libexecdir):
-            basedir = self._get_basedir()
-            libexecdir = os.path.join(basedir, libexecdir)
-            
-        return os.path.join(libexecdir, name)
-        
+
     def get_class_by_keyword(self, keyword):
         """Use the default 'dependency injection' mechanism.  This system is
         not a requirement to use to create objects, all that is needed is
