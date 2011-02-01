@@ -3,35 +3,29 @@ import em_core_eventgather
 import em_core_logfetch
 from epumgmt.defaults import RunVM
 from epumgmt.api.exceptions import *
-import time
 
 PROVISIONER="provisioner"
 
-def find(p, c, m, action, run_name, once=False):
+def find_once(p, c, m, action, run_name):
     
-    while True:
-        em_core_logfetch.fetch_by_service_name(p, c, m, run_name, PROVISIONER)
-        em_core_eventgather.update_events(p, c, m, run_name)
-        
-        # order is important, first "new_node"
-        launched_vms = vms_launched(p, c, m, run_name, "new_node")
-        for vm in launched_vms:
-            if m.persistence.new_vm(run_name, vm):
-                c.log.info("Found new worker: %s : %s" 
-                            % (vm.instanceid, vm.hostname))
-        new_nodes = launched_vms
-                
-        # then "node_started"
-        launched_vms = vms_launched(p, c, m, run_name, "node_started")
-        for vm in launched_vms:
-            m.persistence.new_vm(run_name, vm)
-        started_nodes = launched_vms
-        
-        allvms = m.persistence.get_run_vms_or_none(run_name)
-        c.log.debug("Know of %d VMs in run '%s'" % (len(allvms), run_name))
-        if once:
-            return (new_nodes, started_nodes)
-        time.sleep(15)
+    em_core_logfetch.fetch_by_service_name(p, c, m, run_name, PROVISIONER)
+    em_core_eventgather.update_events(p, c, m, run_name)
+
+    # order is important, first "new_node"
+    launched_vms = vms_launched(p, c, m, run_name, "new_node")
+    for vm in launched_vms:
+        if m.persistence.new_vm(run_name, vm):
+            c.log.info("Found new worker: %s : %s"
+                        % (vm.instanceid, vm.hostname))
+    new_nodes = launched_vms
+
+    # then "node_started"
+    launched_vms = vms_launched(p, c, m, run_name, "node_started")
+    for vm in launched_vms:
+        m.persistence.new_vm(run_name, vm)
+
+    allvms = m.persistence.get_run_vms_or_none(run_name)
+    c.log.debug("Know of %d VMs in run '%s'" % (len(allvms), run_name))
 
 def vms_launched(p, c, m, run_name, eventname):
     provisioner = _get_provisioner(p, c, m, run_name)
@@ -44,7 +38,7 @@ def vms_launched(p, c, m, run_name, eventname):
             elif eventname == "node_started":
                 vm.instanceid = event.extra['node_id']
             else:
-                raise IncompatibleEnvironment()
+                raise IncompatibleEnvironment("eventname is illegal")
             vm.hostname = event.extra['public_ip']
             # todo: 'unknown' is hardcoded in fetchkill, too
             vm.service_type = "unknown" + vm.WORKER_SUFFIX

@@ -139,4 +139,6 @@ def _get_runvms_required(m, run_name):
 
 def _fetch_one_vm(p, c, m, run_name, vm):
     c.log.info("fetching logs from '%s' instance '%s' (run '%s')" % (vm.service_type, vm.instanceid, run_name))
-    m.runlogs.fetch_logs(vm, m)
+    cloudinitd = em_core_load.get_cloudinit(p, c, m, run_name)
+    scpcmd = m.runlogs.get_scp_command_str(c, vm, cloudinitd)
+    m.runlogs.fetch_logs(scpcmd)
