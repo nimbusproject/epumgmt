@@ -19,7 +19,6 @@ class DefaultEventGather:
         self._populate_one_vm(m.persistence, run_name, instanceid)
         
     def _populate_run_vms(self, persistence, run_name):
-        """Run under a lock so that the VMs are not altered by something else"""
         run_vms = persistence.get_run_vms_or_none(run_name)
         if not run_vms or len(run_vms) == 0:
             raise IncompatibleEnvironment("Cannot find any VMs associated with run '%s'" % run_name)
@@ -28,7 +27,6 @@ class DefaultEventGather:
         persistence.store_run_vms(run_name, run_vms)
         
     def _populate_one_vm(self, persistence, run_name, instanceid):
-        """Run under a lock so that the VMs are not altered by something else"""
         run_vms = persistence.get_run_vms_or_none(run_name)
         if not run_vms or len(run_vms) == 0:
             raise IncompatibleEnvironment("Cannot find any VMs associated with run '%s'" % run_name)
