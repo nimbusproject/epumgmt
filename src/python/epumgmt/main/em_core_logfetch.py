@@ -1,3 +1,4 @@
+import em_core_load
 from epumgmt.api.exceptions import *
 try:
     from threading import Thread
@@ -8,10 +9,11 @@ THREADS_PER_BATCH = 20
 
 class FetchThread(Thread):
     
-    def __init__ (self, worker, c, m):
+    def __init__ (self, worker, c, m, scpcmd):
         Thread.__init__(self)
         self.worker = worker
         self.iid = worker.instanceid # convenience
+        self.scpcmd = scpcmd
         self.c = c
         self.m = m
         self.error = None
@@ -19,7 +21,7 @@ class FetchThread(Thread):
     def run(self):
         try:
             #self.c.log.debug("fetching logs from '%s'" % self.iid)
-            self.m.runlogs.fetch_logs(self.worker, self.m)
+            self.m.runlogs.fetch_logs(self.scpcmd)
             self.c.log.info("Fetched logs from '%s'" % self.iid)
         except Exception,e:
             self.c.log.error("error retrieving logs from '%s'" % self.iid)
@@ -35,10 +37,14 @@ def fetch_all(p, c, m, run_name):
         c.log.debug("fetch_all()")
     
     run_vms = _get_runvms_required(m, run_name)
-    
+    cloudinitd = em_core_load.get_cloudinit(p, c, m, run_name)
+
     threads = []
     for vm in run_vms:
-        threads.append(FetchThread(vm, c, m))
+        scpcmd = m.runlogs.get_scp_command_str(c, vm, cloudinitd)
+        if not scpcmd:
+            continue
+        threads.append(FetchThread(vm, c, m, scpcmd))
     
     txt = "%d VM" % len(run_vms)
     if len(run_vms) != 1:

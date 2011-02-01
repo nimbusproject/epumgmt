@@ -19,14 +19,6 @@ class DefaultRunlogs:
     
     
     def validate(self):
-        
-        action = self.p.get_arg_or_none(em_args.ACTION)
-        if action not in [ACTIONS.LOAD, ACTIONS.LOGFETCH, ACTIONS.FETCH_KILL,
-                          ACTIONS.FIND_WORKERS, ACTIONS.FIND_WORKERS_ONCE, ACTIONS.KILLRUN]:
-            if self.c.trace:
-                self.c.log.debug("validation for runlogs module complete, '%s' is not a relevant action" % action)
-            return
-        
         run_name = self.p.get_arg_or_none(em_args.NAME)
         
         runlogdir = self.p.get_conf_or_none("events", "runlogdir")
@@ -81,36 +73,51 @@ class DefaultRunlogs:
             raise IncompatibleEnvironment("Could not find the runlog directory: %s" % newvm.runlogdir)
         
         newvm.vmlogdir = self.allvmslogdir
+
+    def _cloudinitd_service(self, cloudinitd, name):
+        """Return the cloudinit.d service by exact name match or raise IncompatibleEnvironment"""
+        noservicemsg = "Cannot find the '%s' service in cloudinit.d run '%s'" % (name, cloudinitd.run_name)
+        try:
+            aservice = cloudinitd.get_service(name)
+        except Exception, e:
+            raise IncompatibleEnvironment("%s: %s" % (noservicemsg, str(e)))
+        if not aservice:
+            raise IncompatibleEnvironment(noservicemsg)
+        return aservice
+
+    def get_scp_command_str(self, c, vm, cloudinitd):
+        if not vm.hostname:
+            c.log.warn("Cannot retrieve logs for '%s', hostname is unknown" % vm.instanceid)
+            return None
+
+        # SCP command for workers will be presumed the same as svc-provisioner.
+        try:
+            provisioner = cloudinitd.get_service("provisioner")
+        except IncompatibleEnvironment, e:
+            raise IncompatibleEnvironment("Problem finding the provisioner node in cloudinit.d, "
+                                          "cannot fetch any worker logs without it: %s" % str(e))
+
+        source = vm.vmlogdir
+        dest = vm.runlogdir
+        forcehost = None
+        try:
+            svc = self._cloudinitd_service(cloudinitd, vm.service_type)
+        except IncompatibleEnvironment:
+            if vm.service_type.find("-worker") < 0:
+                c.log.warn("cloudinit.d is unaware of '%s' but it is not an EPU worker?" % vm.service_type)
+            svc = provisioner
+            forcehost = vm.hostname
+        return svc.get_scp_command(source, dest, recursive=True, forcehost=forcehost)
         
-    def fetch_logs(self, vm, m):
-        
+    def fetch_logs(self, scpcmd):
         if not self.validated:
             raise ProgrammingError("operation called without necessary validation")
-        
-        if not vm.hostname:
-            self.c.log.warn("Cannot retrieve logs for '%s', hostname is unknown" % vm.instanceid)
-            return
-
-        # TODO: SCP command for workers will be presumed the same as svc-provisioner.  This will faily currently.
-        scpcmd = m.iaas.scp_cmd(vm.hostname)
-    
-        # last arg is "user@host:", we need to enhance this with the path
-        scpcmd[-1] = scpcmd[-1] + vm.vmlogdir
-        
-        # transfer destination
-        scpcmd.append(vm.runlogdir)
-        
         self._run_one_cmd(scpcmd)
 
-
-    # TODO: this is a copied snippet from iaas.py
-    def _run_one_cmd(self, args):
-        cmd = ' '.join(args)
+    def _run_one_cmd(self, cmd):
         self.c.log.debug("command = '%s'" % cmd)
-        
         timeout = 30.0 # seconds
-        (killed, retcode, stdout, stderr) = \
-            child.child(cmd, timeout=timeout)
+        (killed, retcode, stdout, stderr) = child.child(cmd, timeout=timeout)
         
         if killed:
             self.c.log.error("TIMED OUT: '%s'" % cmd)

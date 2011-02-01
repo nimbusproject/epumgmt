@@ -28,7 +28,7 @@ def load(p, c, m, run_name, silent=False):
     for svc in svc_list:
         foundservice = None
         if svc.name.find("epu-") == 0:
-            foundservice = svc.name[4:]
+            foundservice = svc.name
         if svc.name.find("provisioner") == 0:
             foundservice = "provisioner"
         if foundservice:
