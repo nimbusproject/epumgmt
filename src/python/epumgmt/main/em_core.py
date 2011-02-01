@@ -140,24 +140,24 @@ def _core(action, p, c):
         except:
             c.log.exception("Fetch failed, moving on to terminate anyhow")
         em_core_termination.terminate(p, c, modules, run_name)
-    elif action == ACTIONS.FETCH_KILL:
-        em_core_findworkers.find_once(p, c, modules, action, run_name)
-        em_core_fetchkill.fetch_kill(p, c, modules, run_name)
     elif action == ACTIONS.LOGFETCH:
         em_core_logfetch.fetch_all(p, c, modules, run_name)
     elif action == ACTIONS.FIND_WORKERS_ONCE:
         em_core_findworkers.find_once(p, c, modules, action, run_name)
-    elif action == ACTIONS.EXECUTE_WORKLOAD_TEST:
-        em_core_workloadtest.execute_workload_test(p, c, modules, run_name)
-    elif action == ACTIONS.GENERATE_GRAPH:
-        try:
-            import em_core_generategraph
-        except ImportError:
-            c.log.exception("")
-            raise IncompatibleEnvironment("Problem with graphing dependencies: do you have "
-            "matplotlib installed? (matplotlib is the source of the 'pylab' module)")
-        em_core_generategraph.generate_graph(p, c, modules, run_name)
-
+    #elif action == ACTIONS.FETCH_KILL:
+    #    em_core_findworkers.find_once(p, c, modules, action, run_name)
+    #    em_core_fetchkill.fetch_kill(p, c, modules, run_name)
+    #elif action == ACTIONS.EXECUTE_WORKLOAD_TEST:
+    #    em_core_workloadtest.execute_workload_test(p, c, modules, run_name)
+    #elif action == ACTIONS.GENERATE_GRAPH:
+    #    try:
+    #        import em_core_generategraph
+    #    except ImportError:
+    #        c.log.exception("")
+    #        raise IncompatibleEnvironment("Problem with graphing dependencies: do you have "
+    #        "matplotlib installed? (matplotlib is the source of the 'pylab' module)")
+    #    em_core_generategraph.generate_graph(p, c, modules, run_name)
+    #
     else:
         raise ProgrammingError("unhandled action %s" % action)
 

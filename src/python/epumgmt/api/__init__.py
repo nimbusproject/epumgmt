@@ -132,9 +132,9 @@ class EPUMgmtAction(object):
         return em_core_termination.terminate(self.p, self.c, self.m, runname)
 
 
-    def fetch_kill(self, runname):
-        em_core_findworkers.find(self.p, self.c, self.m, ACTIONS.FETCH_KILL, runname, once=True)
-        em_core_fetchkill.fetch_kill(self.p, self.c, self.m, runname)
+    #def fetch_kill(self, runname):
+    #    em_core_findworkers.find(self.p, self.c, self.m, ACTIONS.FETCH_KILL, runname, once=True)
+    #    em_core_fetchkill.fetch_kill(self.p, self.c, self.m, runname)
 
     def logfetch(self, runname):
         return em_core_logfetch.fetch_all(self.p, self.c, self.m, runname)
