@@ -1,7 +1,6 @@
-import epumgmt.main.em_args as em_args
 import em_core_eventgather
 import em_core_logfetch
-from epumgmt.defaults import RunVM
+from epumgmt.api import RunVM
 from epumgmt.api.exceptions import *
 
 PROVISIONER="provisioner"

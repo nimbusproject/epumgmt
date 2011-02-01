@@ -1,4 +1,4 @@
-from epumgmt.main.em_core_load import get_cloudinitd_service
+from epumgmt.defaults.cloudinitd_load import get_cloudinitd_service
 import os
 
 from epumgmt.api.exceptions import *
@@ -108,11 +108,11 @@ class DefaultRunlogs:
         self.c.log.debug("command = '%s'" % cmd)
         timeout = 30.0 # seconds
         (killed, retcode, stdout, stderr) = child.child(cmd, timeout=timeout)
-        
+
         if killed:
             self.c.log.error("TIMED OUT: '%s'" % cmd)
             return False
-        
+
         if retcode == 0:
             self.c.log.debug("command succeeded: '%s'" % cmd)
             return True
@@ -124,8 +124,8 @@ class DefaultRunlogs:
                 errmsg += "exited non-zero:"
             errmsg += "'%s' ::: return code" % cmd
             errmsg += ": %d ::: error:\n%s\noutput:\n%s" % (retcode, stdout, stderr)
-            
-            # these commands will commonly fail 
+
+            # these commands will commonly fail
             if self.c.trace:
                 self.c.log.debug(errmsg)
             return False

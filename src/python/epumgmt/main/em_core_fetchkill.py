@@ -1,9 +1,8 @@
 import epumgmt.main.em_args as em_args
 from epumgmt.api.exceptions import *
-from epumgmt.defaults import RunVM
+from epumgmt.api import RunVM
 import cloudyvents.cyvents as cyvents
 
-import random
 import time
 try:
     from threading import Thread

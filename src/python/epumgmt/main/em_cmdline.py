@@ -1,4 +1,4 @@
-import os
+from em_core import core, EPUMgmtOpts
 import sys
 import traceback
 
@@ -32,7 +32,7 @@ def main(argv=None):
         # 'args' which could be coming from any kind of protocol based request.
         # To make such a thing, construct an opts objects with the expected
         # member names (see the em_args module) and pass it in.
-        epumgmt_run(epu, dbgmsgs=dbgmsgs) 
+        core(epu, dbgmsgs=dbgmsgs)
 
     except InvalidInput, e:
         msg = "\nProblem with input: %s" % e.msg

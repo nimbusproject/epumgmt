@@ -1,16 +1,9 @@
-import fcntl
 import os
-import pickle
-import stat
-import sys
 import urlparse
-from epumgmt.defaults import RunVM
+from epumgmt.api import RunVM
 from epumgmt.api.exceptions import *
-import epumgmt.main.em_args as em_args
-
 from cloudminer import CloudMiner
 from cloudyvents.cyvents import CYvent
-
 
 class Persistence:
     def __init__(self, params, common):
