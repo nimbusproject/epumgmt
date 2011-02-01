@@ -49,6 +49,22 @@ except ImportError:
 
 # --------------------------------------------------------------------------
 
+try:
+    import cloudinitd
+except ImportError:
+    print >>sys.stderr, "\n%sCannot locate the cloudinitd package." % ERR
+    problem_count += 1
+
+# --------------------------------------------------------------------------
+
+try:
+    import cloudminer
+except ImportError:
+    print >>sys.stderr, "\n%sCannot locate the cloudminer package." % ERR
+    problem_count += 1
+
+# --------------------------------------------------------------------------
+
 if problem_count:
     sys.exit(1)
     
