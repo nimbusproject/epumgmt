@@ -1,6 +1,7 @@
 from epumgmt.api.exceptions import *
 import epumgmt.defaults.child as child
-from epumgmt.main.em_core_load import get_cloudinit
+from epumgmt.main.em_core_load import get_cloudinit_for_destruction
+import os
 import time
 
 def terminate(p, c, m, run_name):
@@ -12,7 +13,7 @@ def terminate(p, c, m, run_name):
     if c.trace:
         c.log.debug("terminate()")
 
-    cloudinitd = get_cloudinit(p, c, m, run_name)
+    cloudinitd = get_cloudinit_for_destruction(p, c, m, run_name)
 
     # First, instruct the provisioner to kill all the nodes.
     try:
@@ -37,12 +38,12 @@ def terminate(p, c, m, run_name):
     c.log.info("Sent signal to the provisioner, waiting for it to terminate all workers in run '%s'" % run_name)
     time.sleep(5)
 
-    services = cloudinitd.get_all_services()
-    for service in services:
-        c.log.info("Shutting down '%s'" % service.name)
-        service.shutdown()
+    cloudinitd.shutdown()
+    cloudinitd.block_until_complete(poll_period=1.0)
     c.log.info("Shutdown all services launched by cloudinit.d for '%s'" % run_name)
-    c.log.info("You may to run this command now to clean house: cloudinitd terminate '%s'" % run_name)
+    fname = cloudinitd.get_db_file()
+    os.remove(fname)
+    c.log.info("Removed cloudinit.d record of '%s': '%s'" % (run_name, fname))
 
 def _run_one_cmd(c, cmd):
     c.log.debug("command = '%s'" % cmd)

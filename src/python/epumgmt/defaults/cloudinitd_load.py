@@ -1,5 +1,6 @@
 from epumgmt.api import RunVM
 from epumgmt.api.exceptions import *
+import cloudinitd
 from cloudinitd.user_api import CloudInitD
 from cloudinitd.exceptions import APIUsageException
 
@@ -19,12 +20,22 @@ def get_cloudinitd_service(cloudinitd, name):
         raise IncompatibleEnvironment(noservicemsg)
     return aservice
 
-def load(p, c, m, run_name, cloudinitd_dbdir, silent=False):
+def service_callback(cb, cloudservice, action, msg):
+    if action == cloudinitd.callback_action_error:
+        cb._log.error("Problem with service %s: %s" % (cloudservice.name, msg))
+
+def load_for_destruction(p, c, m, run_name, cloudinitd_dbdir):
+    return CloudInitD(cloudinitd_dbdir, db_name=run_name,
+                      terminate=True, boot=False, ready=False,
+                      continue_on_error=True,
+                      service_callback=service_callback, log=c.log)
+
+def load(p, c, m, run_name, cloudinitd_dbdir, silent=False, terminate=False):
     """Load any EPU related instances from a local cloudinit.d launch with the same run name.
     """
     
     try:
-        cb = CloudInitD(cloudinitd_dbdir, db_name=run_name, terminate=False, boot=False, ready=False)
+        cb = CloudInitD(cloudinitd_dbdir, db_name=run_name, terminate=terminate, boot=False, ready=False)
     except APIUsageException, e:
         raise IncompatibleEnvironment("Problem loading records from cloudinit.d: %s" % str(e))
     svc_list = cb.get_all_services()
