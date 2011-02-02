@@ -121,10 +121,7 @@ def _core(action, p, c):
     else:
         c.log.info("Performing '%s' for '%s'" % (action, run_name))
 
-    try:
-        em_core_load.load(p, c, modules, run_name)
-    except IncompatibleEnvironment, e:
-        c.log.error(e)
+    em_core_load.load(p, c, modules, run_name)
 
     if action == ACTIONS.LOAD:
         c.log.info("Load only, done.")
