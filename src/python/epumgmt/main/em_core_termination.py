@@ -16,27 +16,31 @@ def terminate(p, c, m, run_name):
     cloudinitd = get_cloudinit_for_destruction(p, c, m, run_name)
 
     # First, instruct the provisioner to kill all the nodes.
+    provisioner_kill = True
     try:
         provisioner = cloudinitd.get_service("provisioner")
-    except IncompatibleEnvironment, e:
-        raise IncompatibleEnvironment("Problem finding the provisioner node in cloudinit.d, "
-                                      "cannot terminate workers without it: %s" % str(e))
+    except KeyError, e:
+        provisioner_kill = False
+        c.log.warn("Problem finding the provisioner node in cloudinit.d, "
+                   "cannot terminate workers without it: %s" % str(e))
 
-    cmd = provisioner.get_ssh_command()
 
-    # TODO: generalize
-    cmd += " 'cd /home/cc/ioncore-python && sudo ./start-killer.sh'"
-
-    if not _run_one_cmd(c, cmd):
-        raise UnexpectedError("Problem triggering worker termination via the provisioner node, "
+    if not provisioner_kill:
+        c.log.info("Killing only the cloudinit.d-launched nodes.")
+    else:
+	cmd = provisioner.get_ssh_command()
+	# TODO: generalize
+    	cmd += " 'cd /home/cc/ioncore-python && sudo ./start-killer.sh'"
+        if not _run_one_cmd(c, cmd):
+            raise UnexpectedError("Problem triggering worker termination via the provisioner node, "
                                       "you need to make sure these are terminated manually!")
 
-    # TODO: here, we need to make sure the provisioner is done killing things with some mechanism.
-    #       This will require some thought and design.  For now, this happens fairly instantly if
-    #       the IaaS service is available, etc.  But we should know for sure before proceeding.
+        # TODO: here, we need to make sure the provisioner is done killing things with some mechanism.
+        #       This will require some thought and design.  For now, this happens fairly instantly if
+        #       the IaaS service is available, etc.  But we should know for sure before proceeding.
 
-    c.log.info("Sent signal to the provisioner, waiting for it to terminate all workers in run '%s'" % run_name)
-    time.sleep(5)
+        c.log.info("Sent signal to the provisioner, waiting for it to terminate all workers in run '%s'" % run_name)
+        time.sleep(5)
 
     cloudinitd.shutdown()
     cloudinitd.block_until_complete(poll_period=1.0)
