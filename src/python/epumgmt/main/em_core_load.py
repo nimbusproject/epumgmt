@@ -5,7 +5,7 @@ from epumgmt.defaults import cloudinitd_load
 def get_cloudinit_for_destruction(p, c, m, run_name):
     """Get cloudinit.d API handle for destroying things.
     """
-    return cloudinitd_load.load_for_destruction(p, c, m, run_name, _find_dbdir(p), wholerun=_wholerun(p))
+    return cloudinitd_load.load_for_destruction(p, c, m, run_name, _find_dbdir(p))
 
 def get_cloudinit(p, c, m, run_name):
     """Get cloudinit.d API handle.  Loads any new EPU related services in the process.
