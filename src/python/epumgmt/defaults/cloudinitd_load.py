@@ -30,7 +30,7 @@ def load_for_destruction(p, c, m, run_name, cloudinitd_dbdir):
                       continue_on_error=True,
                       service_callback=service_callback, log=c.log)
 
-def load(p, c, m, run_name, cloudinitd_dbdir, silent=False, terminate=False):
+def load(p, c, m, run_name, cloudinitd_dbdir, silent=False, terminate=False, wholerun=False):
     """Load any EPU related instances from a local cloudinit.d launch with the same run name.
     """
     
@@ -47,6 +47,8 @@ def load(p, c, m, run_name, cloudinitd_dbdir, silent=False, terminate=False):
             foundservice = svc.name
         elif svc.name.find("provisioner") == 0:
             foundservice = "provisioner"
+        elif wholerun:
+            foundservice = svc.name
         if foundservice:
             count += 1
             instance_id = svc.get_attr_from_bag("instance_id")
@@ -56,13 +58,20 @@ def load(p, c, m, run_name, cloudinitd_dbdir, silent=False, terminate=False):
     if silent:
         return cb
 
-    if not count:
+    if not count and not wholerun:
         msg = "Services must be named 'svc-epu-*' or 'svc-provisioner' in order to be recognized."
         c.log.info("No EPU related services in the cloudinit.d '%s' launch. %s" % (run_name, msg))
-    elif count == 1:
-        c.log.info("One EPU related service in cloudinit.d '%s' launch" % run_name)
+
+    if not count and wholerun:
+        c.log.info("No services in the cloudinit.d '%s' launch." % run_name)
+
+    stype = "EPU related service"
+    if wholerun:
+        stype = "service"
+    if count == 1:
+        c.log.info("One %s in cloudinit.d '%s' launch" % (stype, run_name))
     else:
-        c.log.info("%d EPU related services in the cloudinit.d '%s' launch" % (count, run_name))
+        c.log.info("%d %ss in the cloudinit.d '%s' launch" % (count, stype, run_name))
 
     return cb
 

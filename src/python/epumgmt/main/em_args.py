@@ -53,3 +53,7 @@ CLOUDINITD_DIR = ControlArg("cloudinitdir", "-C", metavar="PATH")
 a.append(CLOUDINITD_DIR)
 CLOUDINITD_DIR.help = "Path to the directory where cloudinit databases are kept.  default is ~/.cloudinit"
 
+WHOLERUN = ControlArg("wholerun", None, noval=True)
+a.append(WHOLERUN)
+WHOLERUN.help = "When loading information from a cloudinit.d launch, get the whole run.  Actions like logfetch will happen on these nodes, too."
+
