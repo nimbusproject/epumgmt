@@ -41,9 +41,6 @@ def terminate(p, c, m, run_name):
     cloudinitd.shutdown()
     cloudinitd.block_until_complete(poll_period=1.0)
     c.log.info("Shutdown all services launched by cloudinit.d for '%s'" % run_name)
-    fname = cloudinitd.get_db_file()
-    os.remove(fname)
-    c.log.info("Removed cloudinit.d record of '%s': '%s'" % (run_name, fname))
 
 def _run_one_cmd(c, cmd):
     c.log.debug("command = '%s'" % cmd)
