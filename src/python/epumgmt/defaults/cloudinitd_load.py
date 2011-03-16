@@ -28,7 +28,7 @@ def load_for_destruction(p, c, m, run_name, cloudinitd_dbdir):
     return CloudInitD(cloudinitd_dbdir, db_name=run_name,
                       terminate=True, boot=False, ready=False,
                       continue_on_error=True,
-                      service_callback=service_callback, log=c.log)
+                      service_callback=service_callback) #, log=c.log)
 
 def load(p, c, m, run_name, cloudinitd_dbdir, silent=False, terminate=False, wholerun=False):
     """Load any EPU related instances from a local cloudinit.d launch with the same run name.

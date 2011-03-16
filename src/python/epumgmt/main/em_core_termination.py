@@ -30,7 +30,7 @@ def terminate(p, c, m, run_name):
     else:
 	cmd = provisioner.get_ssh_command()
 	# TODO: generalize
-    	cmd += " 'cd /home/cc/ioncore-python && sudo ./start-killer.sh'"
+    	cmd += " 'cd /home/cc/app && sudo ./start-killer.sh'"
         if not _run_one_cmd(c, cmd):
             raise UnexpectedError("Problem triggering worker termination via the provisioner node, "
                                       "you need to make sure these are terminated manually!")
