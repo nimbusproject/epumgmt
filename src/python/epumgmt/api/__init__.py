@@ -42,6 +42,9 @@ class RunVM:
         # cloudinit.d itself will differentiate between multiple IaaS systems.
         self.instanceid = None
 
+        # The EPU internal node ID of the instance
+        self.nodeid = None
+
         # Assumed that harness can ssh to this node
         self.hostname = None
 

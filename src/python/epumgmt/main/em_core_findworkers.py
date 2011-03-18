@@ -34,8 +34,10 @@ def vms_launched(p, c, m, run_name, eventname):
             vm = RunVM()
             if eventname == "new_node":
                 vm.instanceid = event.extra['iaas_id']
+                vm.instanceid = event.extra['node_id']
             elif eventname == "node_started":
                 vm.instanceid = event.extra['iaas_id']
+                vm.instanceid = event.extra['node_id']
             else:
                 raise IncompatibleEnvironment("eventname is illegal")
             vm.hostname = event.extra['public_ip']
