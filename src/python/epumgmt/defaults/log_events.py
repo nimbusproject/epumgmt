@@ -118,7 +118,7 @@ class LogEvents():
             jsonid = 'iaas_id'
         elif 'node_started' == event:
             filenames = self.provisionerlog_filenames
-            jsonid = 'node_id'
+            jsonid = 'iaas_id'
 
         eventTimes = {}
         if filenames:
