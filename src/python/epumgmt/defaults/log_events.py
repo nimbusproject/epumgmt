@@ -35,7 +35,7 @@ class LogEvents():
             baseDir = self.c.resolve_var_dir(baseDir)
         baseDir = os.path.join(baseDir, self.run_name)
         for root, dirs, files in os.walk(baseDir):
-            if 'sleeper_work_producer' in os.path.basename(root):
+            if 'work-producer' in os.path.basename(root):
                 if logName in files:
                     filenames.append(os.path.join(root, logName))
         self.workproducerlog_filenames = filenames
@@ -63,7 +63,7 @@ class LogEvents():
             baseDir = self.c.resolve_var_dir(baseDir)
         baseDir = os.path.join(baseDir, self.run_name)
         for root, dirs, files in os.walk(baseDir):
-            if 'logs' in os.path.basename(root):
+            if 'simple_worker' in os.path.basename(root):
                 if logName in files:
                     filenames.append(os.path.join(root, logName))
         self.workconsumerlog_filenames = filenames

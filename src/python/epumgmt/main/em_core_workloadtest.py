@@ -6,8 +6,8 @@ import urllib2
 import threading
 
 from epumgmt.defaults.log_events import LogEvents
-import epumgmt.api
-
+import epumgmt.main.em_core
+import epumgmt.main.em_core_load
 
 class WorkItem:
     def __init__(self, startsec, count, sleepsec=None, batchid=0):
@@ -75,28 +75,30 @@ class Workload:
                                 'definition file: %s.' % line)
 
     def _get_hostname(self, name):
-        # TODO: adjust for the removal of the status command, this will fail
-        actives = em_core_status.status(self.p, self.c, self.m, self.run_name)
+        vms = self.m.persistence.get_run_vms_or_none(self.run_name)
         host = ''
-        for active in actives:
-            if len(active) >= 4:
-                if name in active[1]:
-                    host = active[3]
+        for vm in vms:
+            if vm.service_type == name:
+                host = vm.hostname
         return host
 
-    def _find_workers_once(self):
+    def _find_workers(self):
         np = self.p
-        np.optdict['action'] = 'find-workers-once'
+        np.optdict['action'] = 'find-workers'
         nopts = _build_opts_from_dict(np.optdict)
-        eopts = epumgmt.api.EPUMgmtOpts(self.run_name, self.p.optdict['conf'], nopts)
-        epumgmt.api.epumgmt_run(eopts)
+        eopts = epumgmt.main.em_core.EPUMgmtOpts(self.run_name,
+                                                 self.p.optdict['conf'],
+                                                 nopts)
+        epumgmt.main.em_core.core(eopts)
 
     def _fetch_logs(self):
         np = self.p
         np.optdict['action'] = 'logfetch'
         nopts = _build_opts_from_dict(np.optdict)
-        eopts = epumgmt.api.EPUMgmtOpts(self.run_name, self.p.optdict['conf'], nopts)
-        epumgmt.api.epumgmt_run(eopts)
+        eopts = epumgmt.main.em_core.EPUMgmtOpts(self.run_name,
+                                                 self.p.optdict['conf'],
+                                                 nopts)
+        epumgmt.main.em_core.core(eopts)
 
     def _get_total_items(self):
         total = 0
@@ -118,7 +120,7 @@ class Workload:
                                      _kill_vms, \
                                      t_args)
             elif self.key == 'SUBMIT':
-                host = self._get_hostname('sleeper')
+                host = self._get_hostname('epu-sleepers')
                 t_args = [self.p, \
                           self.c, \
                           self.m, \
@@ -144,7 +146,7 @@ class Workload:
             log_events = LogEvents(self.p, self.c, self.m, self.run_name)
             total_jobs = self._get_total_items()
             while jobs_running:
-                self._find_workers_once()
+                self._find_workers()
                 self._fetch_logs()
                 count = log_events.get_event_count('job_end')
                 self.c.log.info('Waiting for %s jobs to finish.' % total_jobs)
@@ -169,8 +171,10 @@ def _kill_vms(p, c, m, run_name, startsec, killWorkload):
             np.optdict['action'] = 'fetchkill'
             np.optdict['killnum'] = str(item.count)
             nopts = _build_opts_from_dict(np.optdict)
-            eopts = epumgmt.api.EPUMgmtOpts(run_name, p.optdict['conf'], nopts)
-            epumgmt.api.epumgmt_run(eopts)
+            eopts = epumgmt.main.em_core.EPUMgmtOpts(run_name,
+                                                     p.optdict['conf'],
+                                                     nopts)
+            epumgmt.main.em_core.core(eopts)
 
 def _submit_tasks(p, c, m, run_name, host, startsec, taskWorkload):
     for item in taskWorkload:
@@ -179,7 +183,7 @@ def _submit_tasks(p, c, m, run_name, host, startsec, taskWorkload):
             c.log.info('Submitting task: %s', subStr)
 
             # hardcoded for now, ick -- is this in a config somewhere?
-            port = '8000'
+            port = '8001'
 
             testName = '%s-jobs' % run_name
             submitStr = 'http://%s:%s/%s/%s/%s/%s' % (host, \

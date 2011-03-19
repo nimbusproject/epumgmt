@@ -12,6 +12,7 @@ import em_core_findworkers
 import em_core_logfetch
 import em_core_persistence
 import em_core_termination
+import em_core_workloadtest
 
 
 # -----------------------------------------------------------------------------
@@ -143,17 +144,16 @@ def _core(action, p, c):
     #elif action == ACTIONS.FETCH_KILL:
     #    em_core_findworkers.find_once(p, c, modules, action, run_name)
     #    em_core_fetchkill.fetch_kill(p, c, modules, run_name)
-    #elif action == ACTIONS.EXECUTE_WORKLOAD_TEST:
-    #    em_core_workloadtest.execute_workload_test(p, c, modules, run_name)
-    #elif action == ACTIONS.GENERATE_GRAPH:
-    #    try:
-    #        import em_core_generategraph
-    #    except ImportError:
-    #        c.log.exception("")
-    #        raise IncompatibleEnvironment("Problem with graphing dependencies: do you have "
-    #        "matplotlib installed? (matplotlib is the source of the 'pylab' module)")
-    #    em_core_generategraph.generate_graph(p, c, modules, run_name)
-    #
+    elif action == ACTIONS.EXECUTE_WORKLOAD_TEST:
+        em_core_workloadtest.execute_workload_test(p, c, modules, run_name)
+    elif action == ACTIONS.GENERATE_GRAPH:
+        try:
+            import em_core_generategraph
+        except ImportError:
+            c.log.exception("")
+            raise IncompatibleEnvironment("Problem with graphing dependencies: do you have "
+            "matplotlib installed? (matplotlib is the source of the 'pylab' module)")
+        em_core_generategraph.generate_graph(p, c, modules, run_name)
     else:
         raise ProgrammingError("unhandled action %s" % action)
 

@@ -1,7 +1,10 @@
 from pylab import *
+import matplotlib
 import os
 
 from epumgmt.defaults.log_events import LogEvents
+
+props = matplotlib.font_manager.FontProperties(size=10)
 
 def _convert_datetime_to_seconds(dateTime):
     seconds = (dateTime.microseconds + \
@@ -129,6 +132,82 @@ def _get_running_vms_list(log_events, \
         returnlist.append(runningvms[key])
     return returnlist
 
+def _get_jobs_running_list(log_events,
+                           seconds,
+                           begin,
+                           job_begin_datetimes,
+                           job_end_datetimes):
+    jobs = {}
+    for second in seconds:
+        jobs[second] = 0
+
+    for key in job_begin_datetimes.keys():
+        diff = _get_datetime_diff_seconds(begin, job_begin_datetimes[key])
+        if (diff >= 0) and (diff <= max(seconds)):
+            second = diff
+            while second <= max(seconds):
+                jobs[second] += 1
+                second += 1
+        else:
+            log_events.c.log.error('job time does not appear to be ' + \
+                                   'valid: %s' % diff)
+
+    for key in job_end_datetimes.keys():
+        diff = _get_datetime_diff_seconds(begin, job_end_datetimes[key])
+        if (diff >= 0) and (diff <= max(seconds)):
+            second = diff
+            while second <= max(seconds):
+                jobs[second] -= 1
+                second += 1
+        else:
+            log_events.c.log.error('job time does not appear to be ' + \
+                                   'valid: %s' % diff)
+
+    returnlist = []
+    keys = jobs.keys()
+    keys.sort()
+    for key in keys:
+        returnlist.append(jobs[key])
+    return returnlist
+
+def _get_jobs_queued_list(log_events,
+                          seconds,
+                          begin,
+                          job_sent_datetimes,
+                          job_begin_datetimes):
+    jobs = {}
+    for second in seconds:
+        jobs[second] = 0
+
+    for key in job_sent_datetimes.keys():
+        diff = _get_datetime_diff_seconds(begin, job_sent_datetimes[key])
+        if (diff >= 0) and (diff <= max(seconds)):
+            second = diff
+            while second <= max(seconds):
+                jobs[second] += 1
+                second += 1
+        else:
+            log_events.c.log.error('job time does not appear to be ' + \
+                                   'valid: %s' % diff)
+
+    for key in job_begin_datetimes.keys():
+        diff = _get_datetime_diff_seconds(begin, job_begin_datetimes[key])
+        if (diff >= 0) and (diff <= max(seconds)):
+            second = diff
+            while second <= max(seconds):
+                jobs[second] -= 1
+                second += 1
+        else:
+            log_events.c.log.error('job time does not appear to be ' + \
+                                   'valid: %s' % diff)
+
+    returnlist = []
+    keys = jobs.keys()
+    keys.sort()
+    for key in keys:
+        returnlist.append(jobs[key])
+    return returnlist
+
 def _get_jobs_list(log_events, seconds, begin, job_datetimes):
     jobs = {}
     for second in seconds:
@@ -142,7 +221,7 @@ def _get_jobs_list(log_events, seconds, begin, job_datetimes):
                 jobs[second] += 1
                 second += 1
         else:
-            log_events.c.log.error('jobs time does not appear to be ' + \
+            log_events.c.log.error('job time does not appear to be ' + \
                                    'valid: %s' % diff)
 
     returnlist = []
@@ -215,10 +294,20 @@ def _generate_job_tts(log_events, run_name, graphtype='eps'):
         setp(h1[0], 'markerfacecolor', 'b')
         for line in h1[1]:
             setp(line, 'color', 'b')
-        ax.legend([h1[0]], ('Job TTS',), 'best', numpoints=1, shadow=True)
+        ax.legend([h1[0]],
+                  ('Job TTS',),
+                  'best',
+                  numpoints=1,
+                  shadow=True,
+                  prop=props)
     else:
         p1 = ax.plot(jobids, jobtts_list, 'o', color='b')
-        ax.legend((p1), ('Job TTS',), 'best', numpoints=1, shadow=True)
+        ax.legend((p1),
+                  ('Job TTS',),
+                  'best',
+                  numpoints=1,
+                  shadow=True,
+                  prop=props)
 
     fig.savefig(filename)
 
@@ -228,6 +317,7 @@ def _generate_stacked_vms(log_events, run_name, graphtype='eps'):
     node_started_datetimes = log_events.get_event_datetimes_dict('node_started') 
     new_node_datetimes = log_events.get_event_datetimes_dict('new_node') 
     fetch_killed_datetimes = log_events.get_event_datetimes_dict('fetch_killed') 
+    jobs_begin_datetimes = log_events.get_event_datetimes_dict('job_begin')
     jobs_completed_datetimes = log_events.get_event_datetimes_dict('job_end')
     jobs_sent_datetimes = log_events.get_event_datetimes_dict('job_sent')
 
@@ -253,6 +343,7 @@ def _generate_stacked_vms(log_events, run_name, graphtype='eps'):
                                              begin, \
                                              node_started_datetimes, \
                                              fetch_killed_datetimes)
+
     jobs_completed_list = _get_jobs_list(log_events, \
                                          seconds, \
                                          begin, \
@@ -261,14 +352,35 @@ def _generate_stacked_vms(log_events, run_name, graphtype='eps'):
                                     seconds, \
                                     begin, \
                                     jobs_sent_datetimes)
+    jobs_running_list = _get_jobs_running_list(log_events,
+                                               seconds,
+                                               begin,
+                                               jobs_begin_datetimes,
+                                               jobs_completed_datetimes)
+    jobs_queued_list = _get_jobs_queued_list(log_events,
+                                             seconds,
+                                             begin,
+                                             jobs_sent_datetimes,
+                                             jobs_begin_datetimes)
 
     # graph
     xmin = min(seconds)
     xmax = max(seconds)
     yminb = min(min(killed_vms_list), min(running_vms_list))
     ymaxb = max(max(killed_vms_list), max(running_vms_list)) 
-    ymint = min(min(jobs_completed_list), min(jobs_sent_list))
-    ymaxt = max(max(jobs_completed_list), max(jobs_sent_list))
+
+    ymint = min(min(jobs_completed_list),
+                min(jobs_sent_list),
+                min(jobs_queued_list))
+    ymaxt = max(max(jobs_completed_list),
+                max(jobs_sent_list),
+                max(jobs_running_list))
+
+    ymint_1 = min(jobs_running_list)
+    ymaxt_1 = max(jobs_running_list)
+
+    if ymaxt_1 >= (ymaxt - 10):
+        ymaxt_1 = ymaxt
 
     xstep = 100
     xvals = arange(xmin, xmax, xstep)
@@ -277,7 +389,7 @@ def _generate_stacked_vms(log_events, run_name, graphtype='eps'):
 
     clf()
 
-    fig.suptitle('VMs Running / Killed and Jobs Submitted / Completed', \
+    fig.suptitle('Jobs and Instances', \
                  verticalalignment='top', \
                  horizontalalignment='center')
 
@@ -294,24 +406,43 @@ def _generate_stacked_vms(log_events, run_name, graphtype='eps'):
                    killed_vms_list, \
                    label='Killed VMs', \
                    color='r')
-    axb.legend((pb1, pb2), ('Running VMs', 'Killed VMs'), 'best')
+    axb.legend((pb1, pb2), ('Running VMs', 'Killed VMs'), 'best', prop=props)
     axb.locator_params(axis='x', tight=True, nbins=xmax/xstep)
     xticks(xvals)
 
     # top graph
     axt = fig.add_subplot(2,1,1)
-    axt.set_ylabel('Jobs Submitted / Completed')
+    axt.set_ylabel('Submitted / Queued / Completed')
     axt.set_xlabel('Evaluation Second')
     axb.axis([xmin, xmax, ymint, ymaxt])
     pt1 = axt.plot(seconds, \
                    jobs_completed_list, \
                    label='Jobs Completed', \
-                   color='g')
+                   color='g',
+                   linestyle=':')
     pt2 = axt.plot(seconds, \
                    jobs_sent_list, \
                    label='Jobs Submitted', \
-                   color='b')
-    axt.legend((pt1, pt2), ('Jobs Completed', 'Jobs Submitted'), 'best')
+                   color='k')
+    pt3 = axt.plot(seconds,
+                   jobs_queued_list, 
+                   label='Jobs Queued',
+                   color='r',
+                   linestyle='--')
+    
+    axt_1 = axt.twinx()
+    axt_1.set_ylabel('Running')
+    axt_1.axis([xmin, xmax, ymint_1, ymaxt_1])
+    pt4 = axt_1.plot(seconds,
+                     jobs_running_list,
+                     label='Jobs Running',
+                     color='b',
+                     linestyle='-.')
+
+    axt.legend((pt1, pt2, pt3, pt4), ('Jobs Completed',
+                                 'Jobs Submitted',
+                                 'Jobs Queued',
+                                 'Jobs Running'), 'best', prop=props)
     axt.locator_params(axis='x', tight=True, nbins=xmax/xstep)
     xticks(xvals)
 

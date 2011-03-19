@@ -1,9 +1,9 @@
 class ACTIONS:
 
-    #EXECUTE_WORKLOAD_TEST = "execute-workload-test"
+    EXECUTE_WORKLOAD_TEST = "execute-workload-test"
     #FETCH_KILL = "fetchkill"
     FIND_WORKERS_ONCE = "find-workers"
-    #GENERATE_GRAPH = "generate-graph"
+    GENERATE_GRAPH = "generate-graph"
     KILLRUN = "killrun"
     LOAD = "load"
     LOGFETCH = "logfetch"
