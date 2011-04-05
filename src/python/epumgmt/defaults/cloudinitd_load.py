@@ -30,12 +30,14 @@ def load_for_destruction(p, c, m, run_name, cloudinitd_dbdir):
                       continue_on_error=True,
                       service_callback=service_callback) #, log=c.log)
 
-def load(p, c, m, run_name, cloudinitd_dbdir, silent=False, terminate=False, wholerun=False):
+def load(p, c, m, run_name, cloudinitd_dbdir, silent=False, terminate=False, wholerun=True):
     """Load any EPU related instances from a local cloudinit.d launch with the same run name.
     """
     
     try:
         cb = CloudInitD(cloudinitd_dbdir, db_name=run_name, terminate=terminate, boot=False, ready=False)
+        cb.start()
+        cb.block_until_complete()
     except APIUsageException, e:
         raise IncompatibleEnvironment("Problem loading records from cloudinit.d: %s" % str(e))
     svc_list = cb.get_all_services()

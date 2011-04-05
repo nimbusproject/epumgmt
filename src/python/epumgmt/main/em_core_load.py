@@ -14,6 +14,7 @@ def get_cloudinit(p, c, m, run_name):
 
 def load(p, c, m, run_name, silent=False):
     """Load any EPU related instances from a local cloudinit.d launch with the same run name.
+    If the wholerun argument is supplied, all services/instances in the run are loaded
     """
     cloudinitd_load.load(p, c, m, run_name, _find_dbdir(p), silent=silent, wholerun=_wholerun(p))
 
@@ -24,4 +25,4 @@ def _find_dbdir(p):
     return ci_path
 
 def _wholerun(p):
-    return p.get_arg_or_none(em_args.WHOLERUN)
+    return True

@@ -1,25 +1,34 @@
-import epumgmt.main.em_args as em_args
 from epumgmt.api.exceptions import *
 from epumgmt.api import RunVM
+from epumgmt.main import em_args
+from epumgmt.main.em_core_logfetch import FetchThread
 import cloudyvents.cyvents as cyvents
-
-import time
-try:
-    from threading import Thread
-except ImportError:
-    from dummy_threading import Thread
+from epumgmt.main import em_core_status
 
 THREADS_PER_BATCH = 20
 
-def fetch_kill(p, c, m, run_name):
+def fetch_kill(p, c, m, run_name, cloudinitd, controller_name=None):
+    """Get logs and then kill a worker.
+    If controller_name is not supplied to this function, it is expected to be in the cmdline args
+    """
+
+    if not controller_name:
+        controller_name = p.get_arg_or_none(em_args.CONTROLLER)
+    if not controller_name:
+        raise InvalidInput("fetch-kill requires a controller")
+
+    m.remote_svc_adapter.initialize(m, run_name, cloudinitd)
+    # Get the latest information, especially for IaaS status and controller correlation
+    em_core_status.find_latest_status(p, c, m, run_name, cloudinitd, findworkersfirst=False)
+
     killnum = _get_killnum(p)
-    tokill = []
     all_workers = _get_workers(p, c, m, run_name)
-    
-    # TODO: iaas filter-by-running is gone, compensate somehow
-    # filter out any workers that are terminating/terminated
-    #alive_workers = m.iaas.filter_by_running(all_workers)
-    alive_workers = all_workers
+
+    # filter out any workers that are from other controllers
+    controller_workers = m.remote_svc_adapter.filter_by_controller(all_workers, controller_name)
+
+    # now filter out any workers that are terminating/terminated
+    alive_workers = m.remote_svc_adapter.filter_by_running(controller_workers, include_pending=True)
 
     alivenum = len(alive_workers)
     if alivenum:
@@ -34,16 +43,30 @@ def fetch_kill(p, c, m, run_name):
         c.log.warn("You want to kill %d workers but the program only knows about %d running: proceeding to kill all possible" % (killnum, alivenum))
     else:
         tokill_list = alive_workers[:killnum]
-    
+
+    fetch_kill_byID(p, c, m, run_name, cloudinitd, tokill_list, get_workerstatus=False)
+
+def fetch_kill_byID(p, c, m, run_name, cloudinitd, tokill_list, get_workerstatus=True):
+    """Get logs and then kills a list of workers
+
+    tokill_list -- RunVM instances
+    """
+
+    m.remote_svc_adapter.initialize(m, run_name, cloudinitd)
+
+    if get_workerstatus:
+        # Get the latest information, especially for IaaS status and controller correlation
+        em_core_status.find_latest_status(p, c, m, run_name, cloudinitd, findworkersfirst=False)
+
     threads = []
     for one_kill in tokill_list:
-        threads.append(FetchKillThread(one_kill, c, m))
-    
+        scpcmd = m.runlogs.get_scp_command_str(c, one_kill, cloudinitd)
+        threads.append(FetchThread(one_kill, c, m, scpcmd))
+
     txt = "%d worker" % len(tokill_list)
     if len(tokill_list) != 1:
         txt += "s"
     c.log.info("Beginning to fetch and kill %s" % txt)
-    
 
     done = False
     idx = 0
@@ -66,51 +89,31 @@ def fetch_kill(p, c, m, run_name):
             msg = "** Issue with %s:\n" % thr.worker.instanceid
             msg += str(thr.error)
             c.log.error("\n\n%s\n" % msg)
-    
+
+    # terminate even if there was an error log fetching
+
+    # provisioner is given the nodeid, not instanceid
+    nodeid_list = []
+    for one_kill in tokill_list:
+        nodeid_list.append(one_kill.nodeid)
+
+    m.remote_svc_adapter.kill_workers(nodeid_list)
+
+    for one_kill in tokill_list:
+        nodeid_list.append(one_kill.nodeid)
+        extradict = {"iaas_id":one_kill.instanceid, "controller": one_kill.parent}
+        cyvents.event("epumgmt", "fetch_killed", c.log, extra=extradict)
+
     if error_count:
-        c.log.info("All fetched and killed with %d errors" % error_count)
+        c.log.info("All fetched and killed with %d fetch errors" % error_count)
     else:
         c.log.info("All fetched and killed")
 
     return error_count
         
-class FetchKillThread(Thread):
-    
-    def __init__ (self, worker, c, m):
-        Thread.__init__(self)
-        self.worker = worker
-        self.iid = worker.instanceid # convenience
-        self.c = c
-        self.m = m
-        self.error = None
-        
-    def run(self):
-        try:
-            #self.c.log.debug("fetching logs from '%s'" % self.iid)
-            self.m.runlogs.fetch_logs(self.worker, self.m)
-            self.c.log.info("Fetched logs from '%s'" % self.iid)
-        except Exception,e:
-            self.c.log.error("error retrieving logs from '%s'" % self.iid)
-            self.error = e
-        
-        time.sleep(0.1) # release control
-        
-        # terminate even if there was an error log fetching
-        try:
-            #self.c.log.debug("terminating '%s'" % self.iid)
-
-            # TODO: this will be via provisioner instead, will fail currently
-            self.m.iaas.terminate_ids([self.iid,])
-            self.c.log.info("Terminated '%s'" % self.iid)
-            extradict = {"iaas_id":self.iid}
-            cyvents.event("epumgmt", "fetch_killed", self.c.log, extra=extradict)
-        except Exception,e:
-            self.c.log.error("error terminating '%s'" % self.iid)
-            self.error = e
-    
 def _get_killnum(p):
     killnum = p.get_arg_or_none(em_args.KILLNUM)
-    if killnum == None:
+    if killnum is None:
         raise InvalidInput("This action requires %s integer > 0" % em_args.KILLNUM.long_syntax)
         
     try:
@@ -126,7 +129,7 @@ def _get_workers(p, c, m, run_name):
     run_vms = _get_runvms_required(m.persistence, run_name)
     vms = []
     for avm in run_vms:
-        # todo: 'unknown' is hardcoded right now
+        # todo: 'unknown' is hardcoded.  The 'parent' field provides controller info.
         if avm.service_type == "unknown" + RunVM.WORKER_SUFFIX:
             vms.append(avm)
     return vms

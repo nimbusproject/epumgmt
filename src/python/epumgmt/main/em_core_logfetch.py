@@ -1,11 +1,8 @@
 from epumgmt.api.exceptions import *
-from epumgmt.main.em_core_load import get_cloudinit, get_cloudinit
+from epumgmt.main.em_core_load import get_cloudinit
 
-try:
-    from threading import Thread
-except ImportError:
-    from dummy_threading import Thread
-    
+from threading import Thread
+
 THREADS_PER_BATCH = 20
 
 class FetchThread(Thread):
@@ -21,24 +18,20 @@ class FetchThread(Thread):
         
     def run(self):
         try:
-            #self.c.log.debug("fetching logs from '%s'" % self.iid)
             self.m.runlogs.fetch_logs(self.scpcmd)
             self.c.log.info("Fetched logs from '%s'" % self.iid)
         except Exception,e:
             self.c.log.error("error retrieving logs from '%s'" % self.iid)
             self.error = e
 
-def fetch_all(p, c, m, run_name):
+def fetch_all(p, c, m, run_name, cloudinitd):
     """Fetch log files from any VM instance that is part of the run
     that we know about.
-    
-    p,c,m are seen everywhere: parameters, common, modules 
     """
     if c.trace:
         c.log.debug("fetch_all()")
     
-    run_vms = _get_runvms_required(m, run_name)
-    cloudinitd = get_cloudinit(p, c, m, run_name)
+    run_vms = _get_runvms_required(c, m, run_name, cloudinitd)
 
     threads = []
     for vm in run_vms:
@@ -86,7 +79,7 @@ def fetch_by_vm_id(p, c, m, run_name, instanceid):
     """
     c.log.debug("fetch_by_vm_id()")
     
-    run_vms = _get_runvms_required(m, run_name)
+    run_vms = _get_runvms_required(c, m, run_name, None)
         
     vm = None
     for avm in run_vms:
@@ -113,14 +106,14 @@ def fetch_by_service_name(p, c, m, run_name, servicename):
     if c.trace:
         c.log.debug("fetch_by_service_name()")
     
-    run_vms = _get_runvms_required(m, run_name)
+    run_vms = _get_runvms_required(c, m, run_name, None)
     
     vms = []
     for avm in run_vms:
         if avm.service_type == servicename:
             vms.append(avm)
             
-    if len(vms) == 0:
+    if not len(vms):
         raise IncompatibleEnvironment("Cannot find any active VMs associated with run '%s' with the service type/name '%s'" % (run_name, servicename))
     
     for vm in vms:
@@ -128,13 +121,17 @@ def fetch_by_service_name(p, c, m, run_name, servicename):
         
 # -----------------------------------------------------------------
 
-def _get_runvms_required(m, run_name):
+def _get_runvms_required(c, m, run_name, cloudinitd):
     run_vms = m.persistence.get_run_vms_or_none(run_name)
     if not run_vms or len(run_vms) == 0:
         raise IncompatibleEnvironment("Cannot find any VMs associated with run '%s'" % run_name)
 
-    # TODO: now that filter-by-running is gone, find a good way to tackle nodes that are gone
-    #return m.iaas.filter_by_running(run_vms)
+    if cloudinitd:
+        m.remote_svc_adapter.initialize(m, run_name, cloudinitd)
+        if m.remote_svc_adapter.is_channel_open():
+            c.log.info("Getting status from the EPU controllers, to filter out non-running workers from log fetch")
+        else:
+            c.log.warn("Cannot get worker status: there is no channel open to the EPU controllers")
 
     return run_vms
 

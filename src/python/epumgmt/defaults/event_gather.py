@@ -66,9 +66,9 @@ class DefaultEventGather:
                 vm.events.append(event)
     
     def _all_events_in_dir(self, logdir):
+        self.c.log.debug("Getting events from '%s'" % logdir)
         events = []
         for fullpath in self.dirwalk(logdir):
-            self.c.log.debug("Looking in '%s'" % fullpath)
             events.extend(cyvents.events_from_file(fullpath))
         return events
 

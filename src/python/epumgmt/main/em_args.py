@@ -53,7 +53,22 @@ CLOUDINITD_DIR = ControlArg("cloudinitdir", "-C", metavar="PATH")
 a.append(CLOUDINITD_DIR)
 CLOUDINITD_DIR.help = "Path to the directory where cloudinit databases are kept.  default is ~/.cloudinit"
 
-WHOLERUN = ControlArg("wholerun", None, noval=True)
-a.append(WHOLERUN)
-WHOLERUN.help = "When loading information from a cloudinit.d launch, get the whole run.  Actions like logfetch will happen on these nodes, too."
+REPORT_INSTANCE = ControlArg("instance-report", None, metavar="COLUMNS")
+#a.append(REPORT_INSTANCE)
+REPORT_INSTANCE.help = "Used with '--action %s'. Batch mode for machine parsing instance status. Report selected columns from choice of the following separated by comma: service,instanceid,iaas_state,iaas_state_time,heartbeat_time,heartbeat_state" % ACTIONS.STATUS
 
+REPORT_SERVICE = ControlArg("service-report", None, metavar="COLUMNS")
+#a.append(REPORT_SERVICE)
+REPORT_SERVICE.help = "Used with '--action %s'. Batch mode for machine parsing service status. Report selected columns from choice of the following separated by comma: service,last_queuelen_size,last_queuelen_time,de_state,de_conf" % ACTIONS.STATUS
+
+STATUS_NOUPDATE = ControlArg("no-update", None)
+a.append(STATUS_NOUPDATE)
+STATUS_NOUPDATE.help = "Used with '--action %s'.  If used, %s does not try to find any new information." % (ACTIONS.STATUS, ACTIONS.STATUS)
+
+NEWN = ControlArg("newn", None)
+a.append(NEWN)
+NEWN.help = "Used with '--action %s'. Syntax is controller_name:N[,controller_name:N,...]" % ACTIONS.RECONFIGURE_N
+
+CONTROLLER = ControlArg("controller", None)
+a.append(CONTROLLER)
+CONTROLLER.help = "Some actions only work on a specific controller"

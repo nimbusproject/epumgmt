@@ -5,29 +5,28 @@ from epumgmt.api.exceptions import *
 
 PROVISIONER="provisioner"
 
-def find_once(p, c, m, action, run_name):
+def find_once(p, c, m, run_name):
     
     em_core_logfetch.fetch_by_service_name(p, c, m, run_name, PROVISIONER)
     em_core_eventgather.update_events(p, c, m, run_name)
 
     # order is important, first "new_node"
-    launched_vms = vms_launched(p, c, m, run_name, "new_node")
+    launched_vms = vms_launched(m, run_name, "new_node")
     for vm in launched_vms:
         if m.persistence.new_vm(run_name, vm):
             c.log.info("Found new worker: %s : %s"
                         % (vm.instanceid, vm.hostname))
-    new_nodes = launched_vms
 
     # then "node_started"
-    launched_vms = vms_launched(p, c, m, run_name, "node_started")
+    launched_vms = vms_launched(m, run_name, "node_started")
     for vm in launched_vms:
         m.persistence.new_vm(run_name, vm)
 
     allvms = m.persistence.get_run_vms_or_none(run_name)
     c.log.debug("Know of %d VMs in run '%s'" % (len(allvms), run_name))
 
-def vms_launched(p, c, m, run_name, eventname):
-    provisioner = _get_provisioner(p, c, m, run_name)
+def vms_launched(m, run_name, eventname):
+    provisioner = _get_provisioner(m, run_name)
     vms = []
     for event in provisioner.events:
         if event.name == eventname:
@@ -47,7 +46,7 @@ def vms_launched(p, c, m, run_name, eventname):
             vms.append(vm)
     return vms
 
-def _get_provisioner(p, c, m, run_name):
+def _get_provisioner(m, run_name):
     allvms = m.persistence.get_run_vms_or_none(run_name)
     provisioner = None
     for vm in allvms:

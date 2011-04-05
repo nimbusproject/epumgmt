@@ -27,10 +27,11 @@ from epumgmt.api.exceptions import InvalidConfig, ProgrammingError
 #from epumgmt.api import interfacesdict
 
 class Modules:
-    def __init__(self, event_gather, persistence, runlogs):
+    def __init__(self, event_gather, persistence, runlogs, remote_svc_adapter):
         self.event_gather = event_gather
         self.persistence = persistence
         self.runlogs = runlogs
+        self.remote_svc_adapter = remote_svc_adapter
 
 # -----------------------------------------------------------------------------
 # "DEPENDENCY INJECTION"

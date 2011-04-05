@@ -11,18 +11,18 @@ def get_default_ac():
     return ac
 
 def get_parameters(opts, ac=None):
-    if ac == None:
+    if ac is None:
         ac = get_default_ac()
     p_cls = get_class_by_keyword("Parameters", allconfigs=ac)
     p = p_cls(ac, opts)
     return (p, ac)
 
 def get_common(opts=None, p=None, ac=None):
-    if p == None and opts == None:
+    if p is None and opts is None:
         raise Exception("either opts of p must be specified")
-    if ac == None:
+    if ac is None:
         ac = get_default_ac()
-    if p == None:
+    if p is None:
         (p, ac) = get_parameters(opts, ac)
     c_cls = get_class_by_keyword("Common", allconfigs=ac)
     c = c_cls(p)
@@ -48,12 +48,11 @@ class RunVM:
         # Assumed that harness can ssh to this node
         self.hostname = None
 
-        # The haservice that caused this VM to be started.
-        # If this VM was heard about from intaking an EPU controller's log
-        # files (i.e., a worker VM for that EPU controller), then the value
-        # will be that haservice name plus the constant WORKER_SUFFIX (see
-        # above).
+        # The svc that caused this VM to be started.
         self.service_type = None
+
+        # If this node was launched by an EPU Controller, the controller service endpoint name
+        self.parent = None
 
         # Absolute path to the localhost directory of log files to look
         # for events that happened on this vm
@@ -65,3 +64,33 @@ class RunVM:
 
         # List of events that have parsed and recorded so far.
         self.events = []
+
+class WorkerInstanceState:
+    """Object to store worker instance information from an EPU Controller state query
+    """
+    def __init__(self):
+        self.nodeid = None
+        self.parent_controller = None
+        self.iaas_state = None # string, epu.states.*
+        self.iaas_state_time = -1 # seconds since epoch or -1
+        self.heartbeat_state = None # string, epu.epucontroller.health.NodeHealthState.*
+        self.heartbeat_time = -1 # seconds since epoch or -1
+
+class EPUControllerState:
+    """Object to store a new EPU Controller information capture
+    """
+
+    def __init__(self):
+        # Time when this set of data was fetched
+        self.capture_time = -1 # seconds since epoch or -1
+
+        # Actual controller service endpoint name
+        self.controller_name = None
+
+        self.de_state = None # stable engine or not - (a decision engine is not required to implement this)
+        self.de_conf_report = None # Configuration report - (a decision engine is not required to implement this)
+        self.last_queuelen_size = -1 # 0-N integer, or -1 if no report
+        self.last_queuelen_time = -1 # seconds since epoch or -1
+
+        # List of WorkerInstanceState
+        self.instances = []

@@ -58,29 +58,26 @@ class Persistence:
         # vm.events = CYvents
         # vm.instanceid = iaasid
         # runname
-        newone = self.cdb.add_cloudyvent_vm(run_name, vm.instanceid, vm.nodeid, vm.hostname, vm.service_type, vm.runlogdir, vm.vmlogdir)
+        newone = self.cdb.add_cloudyvent_vm(run_name, vm.instanceid, vm.nodeid, vm.hostname, vm.service_type, vm.parent, vm.runlogdir, vm.vmlogdir)
         for e in vm.events:
-            self.cdb.add_cloudyvent(run_name, vm.instanceid, vm.nodeid, vm.hostname, vm.service_type, vm.runlogdir, vm.vmlogdir, e)
+            self.cdb.add_cloudyvent(run_name, vm.instanceid, vm.nodeid, vm.hostname, vm.service_type, vm.parent, vm.runlogdir, vm.vmlogdir, e)
         self.cdb.commit()
         if newone:
             self.c.log.debug("New VM persisted: '%s'" % vm.instanceid)
-        else:
-            self.c.log.debug("Persistence has seen VM before: '%s'" % vm.instanceid)
         return newone
         
     def store_run_vms(self, run_name, run_vms):
         if not self.cdb:
             raise ProgrammingError("cannot persist anything without setup/validation")
-        for vm in run_vms:        
+        for vm in run_vms:
+            # This will updates some fields if needed, it's not actually "add" but "add only if new"
+            self.cdb.add_cloudyvent_vm(run_name, vm.instanceid, vm.nodeid, vm.hostname, vm.service_type, vm.parent, vm.runlogdir, vm.vmlogdir)
             for e in vm.events:
-                self.cdb.add_cloudyvent(run_name, vm.instanceid, vm.nodeid, vm.hostname, vm.service_type, vm.runlogdir, vm.vmlogdir, e)
+                self.cdb.add_cloudyvent(run_name, vm.instanceid, vm.nodeid, vm.hostname, vm.service_type, vm.parent, vm.runlogdir, vm.vmlogdir, e)
         self.cdb.commit()
 
     def get_run_vms_or_none(self, run_name):
-        """Get list of VMs for a run name or return None.
-        
-        If you mutate this list, you should lock first (we will switch
-        to SQLite at some point)."""
+        """Get list of VMs for a run name or return None"""
 
         if not self.cdb:
             raise ProgrammingError("cannot persist anything without setup/validation")
@@ -92,6 +89,7 @@ class Persistence:
             rvm.nodeid = cyvm.nodeid
             rvm.hostname = cyvm.hostname
             rvm.service_type = cyvm.service_type
+            rvm.parent = cyvm.parent
             rvm.runlogdir = cyvm.runlogdir
             rvm.vmlogdir = cyvm.vmlogdir
 

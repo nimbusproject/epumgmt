@@ -3,7 +3,6 @@ import os
 
 from epumgmt.api.exceptions import *
 import epumgmt.main.em_args as em_args
-from epumgmt.api.actions import ACTIONS
 
 import child
 
@@ -75,7 +74,7 @@ class DefaultRunlogs:
         
         newvm.vmlogdir = self.allvmslogdir
 
-    def get_scp_command_str(self, c, vm, cloudinitd):
+    def _scp_command_common(self, c, vm, cloudinitd):
         if not vm.hostname:
             c.log.warn("Cannot retrieve logs for '%s', hostname is unknown" % vm.instanceid)
             return None
@@ -87,8 +86,6 @@ class DefaultRunlogs:
             raise IncompatibleEnvironment("Problem finding the provisioner node in cloudinit.d, "
                                           "cannot fetch any worker logs without it: %s" % str(e))
 
-        source = vm.vmlogdir
-        dest = vm.runlogdir
         forcehost = None
         try:
             svc = get_cloudinitd_service(cloudinitd, vm.service_type)
@@ -97,7 +94,27 @@ class DefaultRunlogs:
                 c.log.warn("cloudinit.d is unaware of '%s' but it is not an EPU worker?" % vm.service_type)
             svc = provisioner
             forcehost = vm.hostname
+        return svc, forcehost
+
+    def get_scp_command_str(self, c, vm, cloudinitd):
+        common = self._scp_command_common(c, vm, cloudinitd)
+        if not common:
+            return None
+        svc = common[0]
+        forcehost = common[1]
+        source = vm.vmlogdir
+        dest = vm.runlogdir
         return svc.get_scp_command(source, dest, recursive=True, forcehost=forcehost)
+
+    def get_onefile_scp_command_str(self, c, vm, cloudinitd, logfilename):
+        common = self._scp_command_common(c, vm, cloudinitd)
+        if not common:
+            return None
+        svc = common[0]
+        forcehost = common[1]
+        source = os.path.join(vm.vmlogdir, logfilename)
+        dest = vm.runlogdir
+        return svc.get_scp_command(source, dest, recursive=False, forcehost=forcehost)
         
     def fetch_logs(self, scpcmd):
         if not self.validated:
@@ -113,7 +130,7 @@ class DefaultRunlogs:
             self.c.log.error("TIMED OUT: '%s'" % cmd)
             return False
 
-        if retcode == 0:
+        if not retcode:
             self.c.log.debug("command succeeded: '%s'" % cmd)
             return True
         else:

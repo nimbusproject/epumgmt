@@ -1,5 +1,6 @@
 import logging
 import string
+import em_core_fetchkill
 
 from epumgmt.api.exceptions import *
 from epumgmt.api.actions import ACTIONS
@@ -11,6 +12,8 @@ import em_core_eventgather
 import em_core_findworkers
 import em_core_logfetch
 import em_core_persistence
+import em_core_reconfigure
+import em_core_status
 import em_core_termination
 import em_core_workloadtest
 
@@ -94,6 +97,9 @@ def _core(action, p, c):
 
     runlogs_cls = c.get_class_by_keyword("Runlogs")
     runlogs = runlogs_cls(p, c)
+
+    remote_svc_adapter_cls = c.get_class_by_keyword("RemoteSvcAdapter")
+    remote_svc_adapter = remote_svc_adapter_cls(p, c)
     
     
     # -------------------------------------------------------------------------
@@ -110,9 +116,14 @@ def _core(action, p, c):
     event_gather.validate()
     persistence.validate()
     runlogs.validate()
+    remote_svc_adapter.validate()
     
-    modules = Modules(event_gather, persistence, runlogs)
+    modules = Modules(event_gather, persistence, runlogs, remote_svc_adapter)
     
+    # Always load from cloudinit.d initially
+    c.log.debug("Loading the launch plan for '%s'" % run_name)
+    cloudinitd = em_core_load.get_cloudinit(p, c, modules, run_name)
+
     # -------------------------------------------------------------------------
     # BRANCH on action
     # -------------------------------------------------------------------------
@@ -122,28 +133,26 @@ def _core(action, p, c):
     else:
         c.log.info("Performing '%s' for '%s'" % (action, run_name))
 
-    em_core_load.load(p, c, modules, run_name)
-
     if action == ACTIONS.LOAD:
         c.log.info("Load only, done.")
     elif action == ACTIONS.UPDATE_EVENTS:
         em_core_eventgather.update_events(p, c, modules, run_name)
     elif action == ACTIONS.KILLRUN:
         try:
-            em_core_findworkers.find_once(p, c, modules, action, run_name)
-            em_core_logfetch.fetch_all(p, c, modules, run_name)
+            em_core_findworkers.find_once(p, c, modules, run_name)
+            em_core_logfetch.fetch_all(p, c, modules, run_name, cloudinitd)
         except KeyboardInterrupt:
             raise
-        except:
+        except Exception:
             c.log.exception("Fetch failed, moving on to terminate anyhow")
-        em_core_termination.terminate(p, c, modules, run_name)
+        em_core_termination.terminate(p, c, modules, run_name, cloudinitd)
     elif action == ACTIONS.LOGFETCH:
-        em_core_logfetch.fetch_all(p, c, modules, run_name)
+        em_core_logfetch.fetch_all(p, c, modules, run_name, cloudinitd)
     elif action == ACTIONS.FIND_WORKERS_ONCE:
-        em_core_findworkers.find_once(p, c, modules, action, run_name)
-    #elif action == ACTIONS.FETCH_KILL:
-    #    em_core_findworkers.find_once(p, c, modules, action, run_name)
-    #    em_core_fetchkill.fetch_kill(p, c, modules, run_name)
+        em_core_findworkers.find_once(p, c, modules, run_name)
+    elif action == ACTIONS.FETCH_KILL:
+        em_core_findworkers.find_once(p, c, modules, run_name)
+        em_core_fetchkill.fetch_kill(p, c, modules, run_name, cloudinitd)
     elif action == ACTIONS.EXECUTE_WORKLOAD_TEST:
         em_core_workloadtest.execute_workload_test(p, c, modules, run_name)
     elif action == ACTIONS.GENERATE_GRAPH:
@@ -154,6 +163,22 @@ def _core(action, p, c):
             raise IncompatibleEnvironment("Problem with graphing dependencies: do you have "
             "matplotlib installed? (matplotlib is the source of the 'pylab' module)")
         em_core_generategraph.generate_graph(p, c, modules, run_name)
+    elif action == ACTIONS.RECONFIGURE_N:
+        em_core_reconfigure.reconfigure_n(p, c, modules, run_name, cloudinitd)
+    elif action == ACTIONS.STATUS:
+
+        # These parsable reports are not ready yet
+        instance_report = p.get_arg_or_none(em_args.REPORT_INSTANCE)
+        service_report = p.get_arg_or_none(em_args.REPORT_SERVICE)
+        if instance_report and service_report:
+            both = em_args.REPORT_INSTANCE.long_syntax + " and " + em_args.REPORT_SERVICE.long_syntax
+            raise InvalidInput("You may only choose one status report option at a time, you choose both %s" % both)
+        if instance_report:
+            pass
+        elif service_report:
+            pass
+        else:
+            em_core_status.pretty_status(p, c, modules, run_name, cloudinitd)
     else:
         raise ProgrammingError("unhandled action %s" % action)
 
@@ -201,22 +226,22 @@ command line option parsed structure.
                 ca = control_args[k]
                 ca.value = cmd_opts.__dict__[k]
 
-        if self.conf == None:
+        if self.conf is None:
             msg = "The conf_file argument is required"
             raise InvalidInput(msg)
-        if self.name == None:
+        if self.name is None:
             msg = "The name argument is required"
             raise InvalidInput(msg)
 
     def __setattr__(self, name, value):
         if name not in control_args:
-            raise InvalidInput("No such option %s" % (name))
+            raise InvalidInput("No such option %s" % name)
         ca = control_args[name]
         ca.value = value
 
     def __getattr__(self, name):
         if name not in control_args:
-            raise InvalidInput("No such option %s" % (name))
+            raise InvalidInput("No such option %s" % name)
         ca = control_args[name]
         return ca.value
 
@@ -239,15 +264,21 @@ class EPUMgmtAction(object):
         runlogs_cls = self.c.get_class_by_keyword("Runlogs")
         runlogs = runlogs_cls(self.p, self.c)
 
+        remote_svc_adapter_cls = self.c.get_class_by_keyword("RemoteSvcAdapter")
+        remote_svc_adapter = remote_svc_adapter_cls(self.p, self.c)
+
         event_gather.validate()
         persistence.validate()
         runlogs.validate()
+        remote_svc_adapter.validate()
 
-        self.m = Modules(event_gather, persistence, runlogs)
+        self.m = Modules(event_gather, persistence, runlogs, remote_svc_adapter)
 
     def set_logfile(self, fname):
 
         self.c.log = logging.getLogger("epu_test_logger")
+
+        # TODO: fname
 
     def load(self, runname):
         return em_core_load.load(self.p, self.c, self.m, runname)
@@ -255,15 +286,15 @@ class EPUMgmtAction(object):
     def update(self, runname):
         return em_core_eventgather.update_events(self.p, self.c, self.m, runname)
 
-    def kill(self, runname):
+    def kill(self, runname, cloudinitd):
         try:
-            em_core_findworkers.find_once(self.p, self.c, self.m, ACTIONS.KILLRUN, runname)
-            em_core_logfetch.fetch_all(self.p, self.c, self.m, runname)
+            em_core_findworkers.find_once(self.p, self.c, self.m, runname)
+            em_core_logfetch.fetch_all(self.p, self.c, self.m, runname, cloudinitd)
         except KeyboardInterrupt:
             raise
-        except:
+        except Exception:
             self.c.log.exception("Fetch failed, moving on to terminate anyhow")
-        return em_core_termination.terminate(self.p, self.c, self.m, runname)
+        return em_core_termination.terminate(self.p, self.c, self.m, runname, cloudinitd)
 
     #def fetch_kill(self, runname):
     # em_core_findworkers.find(self.p, self.c, self.m, ACTIONS.FETCH_KILL, runname, once=True)
