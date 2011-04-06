@@ -241,7 +241,6 @@ class DefaultRemoteSvcAdapter:
                 if not latest:
                     latest = ev
                 elif (ev.timestamp - latest.timestamp) > d:
-                    self.c.log.debug("%s is after %s" % (ev.timestamp, latest.timestamp))
                     latest = ev
         if not latest:
             return None

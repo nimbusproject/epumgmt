@@ -28,7 +28,7 @@ def fetch_kill(p, c, m, run_name, cloudinitd, controller_name=None):
     controller_workers = m.remote_svc_adapter.filter_by_controller(all_workers, controller_name)
 
     # now filter out any workers that are terminating/terminated
-    alive_workers = m.remote_svc_adapter.filter_by_running(controller_workers, include_pending=True)
+    alive_workers = m.remote_svc_adapter.filter_by_running(controller_workers)
 
     alivenum = len(alive_workers)
     if alivenum:
@@ -100,7 +100,6 @@ def fetch_kill_byID(p, c, m, run_name, cloudinitd, tokill_list, get_workerstatus
     m.remote_svc_adapter.kill_workers(nodeid_list)
 
     for one_kill in tokill_list:
-        nodeid_list.append(one_kill.nodeid)
         extradict = {"iaas_id":one_kill.instanceid, "controller": one_kill.parent}
         cyvents.event("epumgmt", "fetch_killed", c.log, extra=extradict)
 
