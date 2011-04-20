@@ -61,7 +61,7 @@ REPORT_SERVICE = ControlArg("service-report", None, metavar="COLUMNS")
 #a.append(REPORT_SERVICE)
 REPORT_SERVICE.help = "Used with '--action %s'. Batch mode for machine parsing service status. Report selected columns from choice of the following separated by comma: service,last_queuelen_size,last_queuelen_time,de_state,de_conf" % ACTIONS.STATUS
 
-STATUS_NOUPDATE = ControlArg("no-update", None)
+STATUS_NOUPDATE = ControlArg("no-update", None, noval=True)
 a.append(STATUS_NOUPDATE)
 STATUS_NOUPDATE.help = "Used with '--action %s'.  If used, %s does not try to find any new information." % (ACTIONS.STATUS, ACTIONS.STATUS)
 

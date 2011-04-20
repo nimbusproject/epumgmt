@@ -80,7 +80,7 @@ class DefaultRemoteSvcAdapter:
         try:
             self._get_broker_host()
         except Exception:
-            self.c.log.exception("Problem locating 'rabbit'")
+            self.c.log.exception("Problem locating broker hostname")
             return False
         try:
             self._get_exchange_scope()

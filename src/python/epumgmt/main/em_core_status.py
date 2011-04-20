@@ -23,7 +23,7 @@ def find_latest_status(p, c, m, run_name, cloudinitd, findworkersfirst=True):
     if not allvms or len(allvms) == 0:
         raise IncompatibleEnvironment("Cannot find any VMs associated with run '%s'" % run_name)
 
-    _find_latest_turtle_status(c, m, run_name, cloudinitd, allvms)
+    #_find_latest_turtle_status(c, m, run_name, cloudinitd, allvms)
     _find_latest_worker_status(c, m, run_name, cloudinitd, allvms)
 
     return allvms
@@ -42,20 +42,17 @@ def pretty_status(p, c, m, run_name, cloudinitd):
 
     if no_update:
         c.log.debug("The %s flag is suppressing status update" % em_args.STATUS_NOUPDATE.long_syntax)
+        allvms = m.persistence.get_run_vms_or_none(run_name)
     else:
         c.log.info("Getting the latest status information")
-        find_latest_status(p, c, m, run_name, cloudinitd)
+        allvms = find_latest_status(p, c, m, run_name, cloudinitd)
+
+    c.log.info("\n%s" % _report(allvms))
+
 
 # ----------------------------------------------------------------------------------------------------
 # IMPL
 # ----------------------------------------------------------------------------------------------------
-
-def _print_workers(c, m, allvms):
-    return
-
-
-def _print_services(c, m, allvms):
-    pass
 
 def _find_latest_worker_status(c, m, run_name, cloudinitd, allvms):
     """Update what can be found for any nodes launched via EPU controllers
@@ -222,19 +219,6 @@ def _get_vm_with_instanceid(instanceid, allvms):
             return vm
     return None
 
-def _find_latest_turtle_status(c, m, run_name, cloudinitd, allvms):
-    """Update what can be updated for any nodes in the "bottom turtle" layer, i.e., launched via the launch plan.
-    """
-    
-    return # Waiting on cloudinitd API
-
-    # The launch plan service list was already obtained by way of the cloudinit_load.load() call.
-    # Here, we look for any non-worker and attempt to get the iaas status
-
-    #vms = _filter_out_workers(allvms)
-    #for vm in vms:
-    #    svc = cloudinitd.get_service(vm.service_type)
-
 def _filter_out_workers(allvms):
 
     # We are currently in a transition state, the WORKER_SUFFIX idea is being obsoleted
@@ -242,11 +226,128 @@ def _filter_out_workers(allvms):
 
     nonworkers = []
     for vm in allvms:
-        if vm.parent_epu_controller:
-            # If parent_epu_controller is listed, it must be a worker
+        if vm.parent:
             continue
         elif vm.service_type.endswith(RunVM.WORKER_SUFFIX):
             # For now, to be backwards compatible, WORKER_SUFFIX suffix signals a worker
             continue
         nonworkers.append(vm)
     return nonworkers
+
+def _filter_out_services(allvms):
+
+    # We are currently in a transition state, the WORKER_SUFFIX idea is being obsoleted
+    # by a direct "parent_epu_controller" instance variable in RunVM
+
+    workers = []
+    for vm in allvms:
+        if vm.parent:
+            workers.append(vm)
+        elif vm.service_type.endswith(RunVM.WORKER_SUFFIX):
+            # For now, to be backwards compatible, WORKER_SUFFIX suffix signals a worker
+            workers.append(vm)
+    return workers
+
+def _find_state_from_events(vm):
+
+    if not vm:
+        return None
+    if not vm.events:
+        return None
+    latest = None
+    for ev in vm.events:
+        if ev.name == "iaas_state":
+            if latest:
+                if latest.timestamp < ev.timestamp:
+                    latest = ev
+            else:
+                latest = ev
+
+    if not latest:
+        return None
+    return latest.extra["state"]
+
+# ----------------------------------------------------------------------------------------------------
+# REPORT
+# ----------------------------------------------------------------------------------------------------
+
+def _report(allvms):
+    txt = "\n------------\nBase System:\n------------\n\n"
+    default_typetxt = "(unknown)"
+    default_hostname = "(unknown)"
+    
+    services = _filter_out_workers(allvms)
+    widest_service = _widest_type(services)
+    if len(default_typetxt) > widest_service:
+        widest_service = len(default_typetxt)
+    default_typetxt = _pad_txt(default_typetxt, widest_service)
+    
+    for vm in services:
+        typetxt = default_typetxt
+        hostname = default_hostname
+        if vm.service_type:
+            typetxt = _pad_txt(vm.service_type, widest_service)
+        if vm.hostname:
+            hostname = vm.hostname
+        vm_info = (typetxt, vm.instanceid, hostname)
+        txt += "%s | %s | %s\n" % vm_info
+
+    txt += "\n--------\nWorkers:\n--------\n\n"
+
+    workers = _filter_out_services(allvms)
+    
+    default_status = "(unknown)"
+    default_controller = "(unknown controller)"
+    by_controller = {} # key: controller, value: list of vm_info tuples for it
+    
+    for vm in workers:
+
+        hostname = default_hostname
+        if vm.hostname:
+            hostname = vm.hostname
+
+        status = _find_state_from_events(vm)
+        if not status:
+            status = default_status
+
+        controller = default_controller
+        if vm.parent:
+            controller = vm.parent
+            
+        vm_info = (status, vm.instanceid, hostname)
+        if by_controller.has_key(controller):
+            by_controller[controller].append(vm_info)
+        else:
+            by_controller[controller] = [vm_info]
+
+    widest_status = len(default_status)
+    for vm_info_list in by_controller.values():
+        for vm_info in vm_info_list:
+            if len(vm_info[0]) > widest_status:
+                widest_status = len(vm_info[0])
+
+    for controller in by_controller.keys():
+        txt += "%s:\n" % controller
+        for vm_info in by_controller[controller]:
+            status = _pad_txt(vm_info[0], widest_status)
+            txt += "  %s | %s | %s\n" % (status, vm_info[1], vm_info[2])
+        txt += "\n\n"
+
+    return txt
+
+def _widest_type(run_vms):
+    widest = 0
+    for vm in run_vms:
+        if vm.service_type:
+            if len(vm.service_type) > widest:
+                widest = len(vm.service_type)
+    return widest
+
+def _pad_txt(txt, widest):
+    if len(txt) >= widest:
+        return txt
+    difference = widest - len(txt)
+    while difference:
+        txt += " "
+        difference -= 1
+    return txt
