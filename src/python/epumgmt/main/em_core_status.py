@@ -267,6 +267,37 @@ def _find_state_from_events(vm):
         return None
     return latest.extra["state"]
 
+def _get_vm_with_controller(controller, vm_list):
+    for vm in vm_list:
+        for ev in vm.events:
+            if ev.source == controller:
+                return vm
+    return None
+
+def _latest_controller_state(controller, vm):
+    if not vm:
+        return None
+    if not vm.events:
+        return None
+    latest_destate = None
+    for ev in vm.events:
+        if ev.name == "de_state":
+            if latest_destate:
+                if latest_destate.timestamp < ev.timestamp:
+                    latest_destate = ev
+            else:
+                latest_destate = ev
+    latest_qlen = None
+    for ev in vm.events:
+        if ev.name == "last_queuelen_size":
+            if latest_qlen:
+                if latest_qlen.timestamp < ev.timestamp:
+                    latest_qlen = ev
+            else:
+                latest_qlen = ev
+        
+    return latest_destate.extra["de_state"], latest_qlen.extra["last_queuelen_size"]
+
 # ----------------------------------------------------------------------------------------------------
 # REPORT
 # ----------------------------------------------------------------------------------------------------
@@ -328,10 +359,22 @@ def _report(allvms):
 
     for controller in by_controller.keys():
         txt += "%s:\n" % controller
+
+        vm = _get_vm_with_controller(controller, services)
+        if vm:
+            latest_destate, latest_qlen = _latest_controller_state(controller, vm)
+            if latest_destate:
+                txt += "  EPU state: %s" % latest_destate
+            else:
+                txt += "  EPU state: unknown"
+            if latest_qlen is not None:
+                txt += ", Queue length: %s" % latest_qlen
+
+        txt += "\n  Workers:\n"
         for vm_info in by_controller[controller]:
             status = _pad_txt(vm_info[0], widest_status)
-            txt += "  %s | %s | %s\n" % (status, vm_info[1], vm_info[2])
-        txt += "\n\n"
+            txt += "    %s | %s | %s\n" % (status, vm_info[1], vm_info[2])
+        txt += "\n"
 
     return txt
 
