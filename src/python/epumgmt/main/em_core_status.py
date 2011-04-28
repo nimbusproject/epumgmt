@@ -295,8 +295,16 @@ def _latest_controller_state(controller, vm):
                     latest_qlen = ev
             else:
                 latest_qlen = ev
-        
-    return latest_destate.extra["de_state"], latest_qlen.extra["last_queuelen_size"]
+
+    ret_state = latest_destate
+    if latest_destate:
+        ret_state = latest_destate.extra["state"]
+
+    ret_qlen = latest_qlen
+    if latest_qlen:
+        ret_qlen = latest_qlen.extra["last_queuelen_size"]
+
+    return ret_state, ret_qlen
 
 # ----------------------------------------------------------------------------------------------------
 # REPORT
