@@ -21,14 +21,11 @@ class DefaultRemoteSvcAdapter:
         self.m = None
         self.run_name = None
         self.controller_prefix = None
-        self.exchange_scope_key = None
-        self.exchange_scope = None
         self.cloudinitd = None
         self.homedir = None
         self.envfile = None
 
         # These may or may not be present at a given time
-        self.broker_host = None
         self.provisioner = None
 
     def validate(self):
@@ -62,10 +59,6 @@ class DefaultRemoteSvcAdapter:
         if not self.envfile:
             raise InvalidConfig("Missing configuration: [svcadapter] -> envfile")
         
-        self.exchange_scope_key = self.p.get_conf_or_none("svcadapter", "exchange_scope_key")
-        if not self.exchange_scope_key:
-            raise InvalidConfig("Missing configuration: [svcadapter] -> exchange_scope_key")
-        
         self.initialized = True
 
     def is_channel_open(self):
@@ -76,16 +69,6 @@ class DefaultRemoteSvcAdapter:
             self._get_provisioner()
         except Exception:
             self.c.log.exception("Problem locating 'provisioner'")
-            return False
-        try:
-            self._get_broker_host()
-        except Exception:
-            self.c.log.exception("Problem locating broker hostname")
-            return False
-        try:
-            self._get_exchange_scope()
-        except Exception:
-            self.c.log.exception("Problem locating exchange_scope key '%s'" % self.exchange_scope_key)
             return False
         return True
 
@@ -287,45 +270,11 @@ class DefaultRemoteSvcAdapter:
                 raise IncompatibleEnvironment("Cannot locate provisioner")
         return self.provisioner
 
-    def _get_broker_host(self):
-        """Return broker hostname
-
-        Raises an Exception if it is not found.
-        """
-        if not self.provisioner:
-            raise IncompatibleEnvironment("Cannot locate broker hostname without provisioner")
-        if not self.broker_host:
-            try:
-                self.broker_host = self.provisioner.get_attr_from_bag("broker_ip_address")
-            except Exception:
-                self.c.log.exception("Cannot locate broker_ip_address:")
-                raise
-            if not self.broker_host:
-                raise IncompatibleEnvironment("Cannot locate broker_ip_address")
-        return self.broker_host
-
-    def _get_exchange_scope(self):
-        """Return exchange_scope
-
-        Raises an Exception if it is not found.
-        """
-        if not self.provisioner:
-            raise IncompatibleEnvironment("Cannot locate exchange scope without provisioner")
-        if not self.exchange_scope:
-            try:
-                self.exchange_scope = self.provisioner.get_attr_from_bag(self.exchange_scope_key)
-            except Exception:
-                self.c.log.exception("Cannot determine exchange scope:")
-                raise
-            if not self.exchange_scope:
-                raise IncompatibleEnvironment("Cannot locate exchange scope")
-        return self.exchange_scope
-
     def _get_epu_script_cmd(self, script, extras=None):
         """ This tight coupling is one of the main reasons the current backdoor to the system is not best solution"""
 
         cmd = "'cd %s && sudo ./scripts/run_under_env.sh %s " % (self.homedir, self.envfile)
-        cmd += "./scripts/%s %s %s" % (script, self.exchange_scope, self.broker_host)
+        cmd += "./scripts/%s messaging.conf" % script
         if extras:
             for extra in extras:
                 cmd += " %s" % extra.strip()
