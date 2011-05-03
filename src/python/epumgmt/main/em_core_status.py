@@ -298,11 +298,13 @@ def _latest_controller_state(controller, vm):
 
     ret_state = latest_destate
     if latest_destate:
-        ret_state = latest_destate.extra["state"]
+        if latest_destate.extra.has_key("de_state"):
+            ret_state = latest_destate.extra["de_state"]
 
     ret_qlen = latest_qlen
     if latest_qlen:
-        ret_qlen = latest_qlen.extra["last_queuelen_size"]
+        if latest_qlen.extra.has_key("last_queuelen_size"):
+            ret_qlen = latest_qlen.extra["last_queuelen_size"]
 
     return ret_state, ret_qlen
 
