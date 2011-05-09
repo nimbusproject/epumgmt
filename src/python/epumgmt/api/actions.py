@@ -10,6 +10,7 @@ class ACTIONS:
     RECONFIGURE_N = "reconfigure-n"
     STATUS = "status"
     UPDATE_EVENTS = "update-events"
+    TORQUE_LOGFETCH = "torque-logfetch"
 
     def all_actions(self):
         """Return the values of all Python members of this class whose

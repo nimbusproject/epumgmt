@@ -49,6 +49,10 @@ WORKLOAD_FILE = ControlArg("workloadfilename", "-f", metavar="WORKLOAD_FILE")
 a.append(WORKLOAD_FILE)
 WORKLOAD_FILE.help = "For the execute-workload-test action, file name of workload definition file."
 
+WORKLOAD_TYPE = ControlArg("workloadtype", "-w", metavar="WORKLOAD_TYPE")
+a.append(WORKLOAD_TYPE)
+WORKLOAD_TYPE.help = "For the execute-workload-test and generate-graph actions: amqp or torque"
+
 CLOUDINITD_DIR = ControlArg("cloudinitdir", "-C", metavar="PATH")
 a.append(CLOUDINITD_DIR)
 CLOUDINITD_DIR.help = "Path to the directory where cloudinit databases are kept.  default is ~/.cloudinit"
