@@ -2,7 +2,7 @@ from pylab import *
 import matplotlib
 import os
 
-from epumgmt.defaults.log_events import LogEvents
+from epumgmt.defaults.log_events import AmqpEvents, TorqueEvents, NodeEvents
 
 props = matplotlib.font_manager.FontProperties(size=10)
 
@@ -254,7 +254,7 @@ def _get_jobtts_list(log_events, job_begin_datetimes, job_sent_datetimes):
 # not done:
 #    - "contextualization begins"
 #    - "node request recognized"
-def _generate_job_tts(log_events, run_name, graphtype='eps'):
+def _generate_job_tts(log_events, node_events, run_name, graphtype='eps'):
     filename = _get_unique_graph_filename('job-tts', run_name, graphtype)
 
     job_begin_datetimes = log_events.get_event_datetimes_dict('job_begin')
@@ -311,38 +311,41 @@ def _generate_job_tts(log_events, run_name, graphtype='eps'):
 
     fig.savefig(filename)
 
-def _generate_stacked_vms(log_events, run_name, graphtype='eps'):
+def _generate_stacked_vms(workloadtype, log_events, node_events, run_name, graphtype='eps'):
     filename = _get_unique_graph_filename('stacked-vms', run_name, graphtype)
 
-    node_started_datetimes = log_events.get_event_datetimes_dict('node_started') 
-    new_node_datetimes = log_events.get_event_datetimes_dict('new_node') 
-    fetch_killed_datetimes = log_events.get_event_datetimes_dict('fetch_killed') 
+    node_started_datetimes = node_events.get_event_datetimes_dict('node_started') 
+    new_node_datetimes = node_events.get_event_datetimes_dict('new_node') 
+    if workloadtype == 'torque':
+        node_killed_datetimes = node_events.get_event_datetimes_dict('terminated_node')
+    else:
+        node_killed_datetimes = node_events.get_event_datetimes_dict('fetch_killed') 
     jobs_begin_datetimes = log_events.get_event_datetimes_dict('job_begin')
     jobs_completed_datetimes = log_events.get_event_datetimes_dict('job_end')
     jobs_sent_datetimes = log_events.get_event_datetimes_dict('job_sent')
 
     begin = _get_eval_begin_datetime(node_started_datetimes, \
-                                     fetch_killed_datetimes, \
+                                     node_killed_datetimes, \
                                      new_node_datetimes, \
                                      jobs_completed_datetimes, \
                                      jobs_sent_datetimes)
     end = _get_eval_end_datetime(node_started_datetimes, \
-                                 fetch_killed_datetimes, \
+                                 node_killed_datetimes, \
                                  new_node_datetimes, \
                                  jobs_completed_datetimes, \
                                  jobs_sent_datetimes)
 
     seconds = _get_eval_seconds_list(begin, end)
 
-    killed_vms_list = _get_killed_vms_list(log_events, \
+    killed_vms_list = _get_killed_vms_list(node_events, \
                                            seconds, \
                                            begin, \
-                                           fetch_killed_datetimes)
-    running_vms_list = _get_running_vms_list(log_events, \
+                                           node_killed_datetimes)
+    running_vms_list = _get_running_vms_list(node_events, \
                                              seconds, \
                                              begin, \
                                              node_started_datetimes, \
-                                             fetch_killed_datetimes)
+                                             node_killed_datetimes)
 
     jobs_completed_list = _get_jobs_list(log_events, \
                                          seconds, \
@@ -451,13 +454,21 @@ def _generate_stacked_vms(log_events, run_name, graphtype='eps'):
 def generate_graph(p, c, m, run_name):
     graphname = p.get_arg_or_none('graphname')
     graphtype = p.get_arg_or_none('graphtype')
+    workloadtype = p.get_arg_or_none('workloadtype').lower()
+    if not workloadtype:
+        c.log.error('Expecting workloadtype to be specified.')
+        return
 
-    log_events = LogEvents(p, c, m, run_name)
+    node_events = NodeEvents(p, c, m, run_name)
+    if workloadtype == 'torque':
+        log_events = TorqueEvents(p, c, m, run_name)
+    else:
+        log_events = AmqpEvents(p, c, m, run_name)
 
     if 'stacked-vms' == graphname:
-        _generate_stacked_vms(log_events, run_name, graphtype)
+        _generate_stacked_vms(workloadtype, log_events, node_events, run_name, graphtype)
     elif 'job-tts' == graphname:
-        _generate_job_tts(log_events, run_name, graphtype)
+        _generate_job_tts(log_events, node_events, run_name, graphtype)
     else:
         c.log.error('Unrecognized graph name, must be stacked-vms ' + \
                     'or job-tts')

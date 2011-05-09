@@ -4,10 +4,118 @@ import time
 import json
 import urllib2
 import threading
+import tempfile
 
-from epumgmt.defaults.log_events import LogEvents
+from epumgmt.defaults.log_events import AmqpEvents, TorqueEvents
 import epumgmt.main.em_core
 import epumgmt.main.em_core_load
+import epumgmt.defaults.child
+
+
+class Torque:
+    def __init__(self, p, c, m, run_name, cloudinitd):
+        self.p = p
+        self.c = c
+        self.m = m
+        self.run_name = run_name
+        self.svc = cloudinitd.get_service("rabbit")
+
+    def _execute_cmd(self, cmd):
+        self.c.log.debug("command = '%s'" % cmd)
+        timeout = 30.0 # seconds
+        (k, rc, out, err) = epumgmt.defaults.child.child(cmd, timeout=timeout)
+
+        if k:
+            self.c.log.error("TIMED OUT: '%s'" % cmd)
+            return False
+
+        if not rc:
+            self.c.log.debug("command succeeded: '%s'" % cmd)
+            return True
+        else:
+            errmsg = "problem running command, "
+            if rc < 0:
+                errmsg += "killed by signal:"
+            if rc > 0:
+                errmsg += "exited non-zero:"
+            errmsg += "'%s' ::: return code" % cmd
+            errmsg += ": %d ::: error:\n%s\noutput:\n%s" % (rc, out, err)
+
+            # these commands will commonly fail
+            if self.c.trace:
+                self.c.log.debug(errmsg)
+            return False
+
+    def _copy_file(self, filename):
+        basename = os.path.basename(filename)
+        cmd = self.svc.get_scp_command(filename, "/tmp", upload=True)
+        if self._execute_cmd(cmd):
+            ssh_cmd = self.svc.get_ssh_command()
+            # scp command uses a different user then ssh and permissions set u+rw
+            fix_cmd = "sudo chmod ugo+r /tmp/%s" % basename
+            cmd = "%s '%s'" % (ssh_cmd, fix_cmd)
+            return self._execute_cmd(cmd)
+        return False
+
+    def _qsub_job(self, basename):
+        ssh_cmd = self.svc.get_ssh_command()
+        # hardcoded torque version
+        submit_cmd = "/opt/torque-2.5.5/bin/qsub /tmp/%s" % basename
+        cmd = "%s '%s'" % (ssh_cmd, submit_cmd)
+        return self._execute_cmd(cmd)
+
+    def submit(self, job):
+        tf = tempfile.NamedTemporaryFile(delete=False)
+        tf.write("sleep %s\n" % job.sleepsec)
+        tf.close()
+
+        if not self._copy_file(tf.name):
+            self.c.log.error("Failed to copy job file, skipping submission")
+        else:
+            basename = os.path.basename(tf.name)
+            for count in range(job.count):
+                if not self._qsub_job(basename):
+                    self.c.log.error("Failed to submit job")
+                else:
+                    self.c.log.debug("Job submitted successfully")
+
+        try:
+            os.remove(tf.name)
+            self.c.log.debug("Remove temporary file: %s" % tf.name)
+        except:
+            self.c.log.error("Could not remove temporary file: %s" % tf.name)
+
+
+class AMQP:
+    def __init__(self, p, c, m, run_name, host, port):
+        self.p = p
+        self.c = c
+        self.m = m
+        self.run_name = run_name
+        self.host = host
+        self.port = port
+        self.submit_str = 'http://%s:%s/%s/%s/%s/%s'
+
+    def submit(self, job):
+        testName = '%s-jobs' % self.run_name
+        submitStr = self.submit_str % (self.host, \
+                                       self.port, \
+                                       testName, \
+                                       job.batchid, \
+                                       job.count, \
+                                       job.sleepsec)
+        self.c.log.debug('submit: %s', submitStr)
+
+        retry = 3
+        while retry > 0:
+            try:
+                urllib2.urlopen(submitStr, timeout=5)
+                retry = 0
+            except Exception as e:
+                self.c.log.error('Failed to submit task at %s' % job.startsec)
+                self.c.log.error('Exception: %s' % e)
+                retry -= 1
+
 
 class WorkItem:
     def __init__(self, startsec, count, sleepsec=None, batchid=0):
@@ -18,7 +126,7 @@ class WorkItem:
 
 
 class Workload:
-    def __init__(self, key, workloadfilename, p, c, m, run_name):
+    def __init__(self, key, p, c, m, run_name, workloadfilename, workloadtype):
         self.items = []
         self.threads = []
         self.key = key
@@ -26,6 +134,14 @@ class Workload:
         self.c = c
         self.m = m
         self.run_name = run_name
+        self.workload_type = workloadtype
+        self.cloudinitd = epumgmt.main.em_core_load.get_cloudinit(p, c, m, run_name)
+        # hardcoded for now, ick -- is this in a config somewhere?
+        self.port = '8001'
+        if self.workload_type == 'torque':
+            self.host = self._get_hostname('rabbit')
+        else:
+            self.host = self._get_hostname('epu-sleepers')
 
         if workloadfilename:
             workloadfilename = os.path.expanduser(workloadfilename)
@@ -91,6 +207,15 @@ class Workload:
                                                  nopts)
         epumgmt.main.em_core.core(eopts)
 
+    def _fetch_torque_logs(self):
+        np = self.p
+        np.optdict['action'] = 'torque-logfetch'
+        nopts = _build_opts_from_dict(np.optdict)
+        eopts = epumgmt.main.em_core.EPUMgmtOpts(self.run_name,
+                                                 self.p.optdict['conf'],
+                                                 nopts)
+        epumgmt.main.em_core.core(eopts)
+
     def _fetch_logs(self):
         np = self.p
         np.optdict['action'] = 'logfetch'
@@ -120,13 +245,17 @@ class Workload:
                                      _kill_vms, \
                                      t_args)
             elif self.key == 'SUBMIT':
-                host = self._get_hostname('epu-sleepers')
                 t_args = [self.p, \
                           self.c, \
                           self.m, \
                           self.run_name, \
-                          host, \
+                          self.workload_type, \
+                          self.host, \
+                          self.port, \
+                          self.cloudinitd, \
                           item.startsec, \
+                          item.sleepsec, \
+                          item.count, \
                           self.items]
                 t = threading.Timer(item.startsec, \
                                      _submit_tasks, \
@@ -138,17 +267,31 @@ class Workload:
                 self.c.log.error('Encountered problem starting Timer ' + \
                                  'thread: %s' % e)
 
+    def _num_amqp_jobs_done(self):
+        self._find_workers()
+        self._fetch_logs()
+        log_events = AmqpEvents(self.p, self.c, self.m, self.run_name)
+        count = log_events.get_event_count('job_end')
+        return count
+
+    def _num_torque_jobs_done(self):
+        self._fetch_torque_logs()
+        torque_events = TorqueEvents(self.p, self.c, self.m, self.run_name)
+        count = torque_events.get_event_count('job_end')
+        return count
+
     def wait(self):
         for thread in self.threads:
             thread.join()
         if self.key == 'SUBMIT':
             jobs_running = True
-            log_events = LogEvents(self.p, self.c, self.m, self.run_name)
             total_jobs = self._get_total_items()
             while jobs_running:
-                self._find_workers()
-                self._fetch_logs()
-                count = log_events.get_event_count('job_end')
+                count = 0
+                if self.workload_type == 'torque':
+                    count = self._num_torque_jobs_done()
+                else:
+                    count = self._num_amqp_jobs_done()
                 self.c.log.info('Waiting for %s jobs to finish.' % total_jobs)
                 self.c.log.info('Currently %s jobs have completed.' % count)
                 if count >= total_jobs:
@@ -176,43 +319,57 @@ def _kill_vms(p, c, m, run_name, startsec, killWorkload):
                                                      nopts)
             epumgmt.main.em_core.core(eopts)
 
-def _submit_tasks(p, c, m, run_name, host, startsec, taskWorkload):
+def _submit_tasks(p, \
+                  c, \
+                  m, \
+                  run_name, \
+                  workload_type, \
+                  host, \
+                  port, \
+                  cloudinitd, \
+                  startsec, \
+                  sleepsec, \
+                  count, \
+                  taskWorkload):
+    if workload_type == 'torque':
+        jobsystem = Torque(p, c, m, run_name, cloudinitd)
+    elif workload_type == 'amqp':
+        jobsystem = AMQP(p, c, m, run_name, host, port)
+
     for item in taskWorkload:
-        if item.startsec == startsec:
+        if (item.startsec == startsec) and \
+           (item.sleepsec == sleepsec) and \
+           (item.count == count):
             subStr = '%s %s %s' % (item.startsec, item.count, item.sleepsec)
             c.log.info('Submitting task: %s', subStr)
-
-            # hardcoded for now, ick -- is this in a config somewhere?
-            port = '8001'
-
-            testName = '%s-jobs' % run_name
-            submitStr = 'http://%s:%s/%s/%s/%s/%s' % (host, \
-                                                      port, \
-                                                      testName, \
-                                                      item.batchid, \
-                                                      item.count, \
-                                                      item.sleepsec)
-            c.log.debug('submit: %s', submitStr)
-
-            retry = 3
-            while retry > 0:
-                try:
-                    urllib2.urlopen(submitStr, timeout=5)
-                    retry = 0
-                except Exception as e:
-                    c.log.error('Failed to submit task at %s' % item.startsec)
-                    c.log.error('Exception: %s' % e)
-                    retry -= 1
+            jobsystem.submit(item)
 
 # Execute the workload test. This assumes that the VMs have been launched
 # and are in the appropriate "stable" state (i.e. they're ready for the
 # test to begin).
 def execute_workload_test(p, c, m, run_name):
     workloadfilename = p.get_arg_or_none('workloadfilename')
+    workloadtype = p.get_arg_or_none('workloadtype').lower()
+
+    if (workloadtype != 'torque') and (workloadtype != 'amqp'):
+        c.log.error('Workload type must be torque or amqp')
+        return
 
     c.log.info('Initializing workloads')
-    killWorkload = Workload('KILL', workloadfilename, p, c, m, run_name)
-    taskWorkload = Workload('SUBMIT', workloadfilename, p, c, m, run_name)
+    killWorkload = Workload('KILL', \
+                            p, \
+                            c, \
+                            m, \
+                            run_name, \
+                            workloadfilename, \
+                            workloadtype)
+    taskWorkload = Workload('SUBMIT', \
+                            p, \
+                            c, \
+                            m, \
+                            run_name, \
+                            workloadfilename, \
+                            workloadtype)
 
     c.log.info('Executing workloads')
     killWorkload.execute()

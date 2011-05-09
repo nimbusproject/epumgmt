@@ -16,6 +16,7 @@ import em_core_reconfigure
 import em_core_status
 import em_core_termination
 import em_core_workloadtest
+import em_core_torquelogfetch
 
 
 # -----------------------------------------------------------------------------
@@ -157,6 +158,8 @@ def _core(action, p, c):
         em_core_fetchkill.fetch_kill(p, c, modules, run_name, cloudinitd)
     elif action == ACTIONS.EXECUTE_WORKLOAD_TEST:
         em_core_workloadtest.execute_workload_test(p, c, modules, run_name)
+    elif action == ACTIONS.TORQUE_LOGFETCH:
+        em_core_torquelogfetch.fetch_logs(p, c, modules, run_name)
     elif action == ACTIONS.GENERATE_GRAPH:
         try:
             import em_core_generategraph
