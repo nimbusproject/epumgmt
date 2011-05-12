@@ -55,8 +55,8 @@ class DefaultRunlogs:
             raise ProgrammingError("operation called without necessary validation")
             
         if not newvm.instanceid:
-            raise ProgrammingError("Cannot determine VM instance ID")
-            
+            return # Do this until we can distinguish services run on previously launched VMs
+
         thisvm_runlog_dir = os.path.join(self.thisrundir, newvm.instanceid)
             
         if newvm.runlogdir:
