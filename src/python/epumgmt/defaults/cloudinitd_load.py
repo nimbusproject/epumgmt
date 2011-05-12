@@ -1,3 +1,4 @@
+from random import random
 from epumgmt.api import RunVM
 from epumgmt.api.exceptions import *
 import cloudinitd
@@ -80,6 +81,16 @@ def load(p, c, m, run_name, cloudinitd_dbdir, silent=False, terminate=False, who
 def _load_host(p, c, m, run_name, instanceid, hostname, servicename):
     """Load a VM instance from cloudinit information
     """
+
+    # Account for
+    if not instanceid:
+        known_id = m.persistence.find_instanceid_byservice(run_name, servicename)
+        if known_id:
+            instanceid = known_id
+        else:
+            instanceid = "x-%d" % (int(random() * 100000000))
+            if m.persistence.check_new_instanceid(instanceid):
+                raise Exception("instance ID collision")
 
     vm = RunVM()
     vm.instanceid = instanceid
