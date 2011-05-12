@@ -1,5 +1,6 @@
 from epumgmt.defaults.cloudinitd_load import get_cloudinitd_service
 import os
+import random
 
 from epumgmt.api.exceptions import *
 import epumgmt.main.em_args as em_args
@@ -55,8 +56,8 @@ class DefaultRunlogs:
             raise ProgrammingError("operation called without necessary validation")
             
         if not newvm.instanceid:
-            raise ProgrammingError("Cannot determine VM instance ID")
-            
+            raise ProgrammingError("no instanceid")
+
         thisvm_runlog_dir = os.path.join(self.thisrundir, newvm.instanceid)
             
         if newvm.runlogdir:

@@ -352,7 +352,7 @@ class DefaultRemoteSvcAdapter:
                 iaas_state_time = info['instances'][nodeid]['iaas_state_time']
                 wis.iaas_state_time = int(iaas_state_time)
 
-                wis.hearbeat_state = info['instances'][nodeid]['hearbeat_state']
+                wis.hearbeat_state = info['instances'][nodeid]['heartbeat_state']
                 heartbeat_time = info['instances'][nodeid]['heartbeat_time']
                 wis.heartbeat_time = int(heartbeat_time)
 
