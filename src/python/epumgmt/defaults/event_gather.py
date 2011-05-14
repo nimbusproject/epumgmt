@@ -47,21 +47,27 @@ class DefaultEventGather:
             return
         all_events = self._all_events_in_dir(vm.runlogdir)
         for event in all_events:
-            new = True
-            for curevent in vm.events:
-                if event.key == curevent.key:
-                    seen = "seen event before, skipping (%s)" % event.key
-                    #self.c.log.debug(seen)
-                    new = False
-                    break
-            if new:
-                event_txt = "New event: %s" % event.key
-                event_txt += "\n    source: %s, " % event.source
-                event_txt += "name: %s, " % event.name
-                event_txt += "timestamp: %s" % event.timestamp
-                event_txt += "\n    extra: %s" % event.extra
-                self.c.log.debug(event_txt)
-                vm.events.append(event)
+            skip = False
+            if (event.name == 'job_sent') or \
+               (event.name == 'job_begin') or \
+               (event.name == 'job_end'):
+                skip = True
+            if not skip:
+                new = True
+                for curevent in vm.events:
+                    if event.key == curevent.key:
+                        seen = "seen event before, skipping (%s)" % event.key
+                        #self.c.log.debug(seen)
+                        new = False
+                        break
+                if new:
+                    event_txt = "New event: %s" % event.key
+                    event_txt += "\n    source: %s, " % event.source
+                    event_txt += "name: %s, " % event.name
+                    event_txt += "timestamp: %s" % event.timestamp
+                    event_txt += "\n    extra: %s" % event.extra
+                    self.c.log.debug(event_txt)
+                    vm.events.append(event)
     
     def _all_events_in_dir(self, logdir):
         self.c.log.debug("Getting events from '%s'" % logdir)
