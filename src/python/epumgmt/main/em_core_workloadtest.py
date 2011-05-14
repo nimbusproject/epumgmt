@@ -1,8 +1,10 @@
 from optparse import Values
+
 import os
 import time
 import json
 import urllib2
+import datetime
 import threading
 import tempfile
 
@@ -10,6 +12,52 @@ from epumgmt.defaults.log_events import AmqpEvents, TorqueEvents
 import epumgmt.main.em_core
 import epumgmt.main.em_core_load
 import epumgmt.defaults.child
+
+
+# just used for logging events for starting / terminating the EPU controller
+class EPUController:
+    def __init__(self, p, c, m, run_name):
+        self.p = p
+        self.c = c
+        self.m = m
+        self.run_name = run_name
+
+        runlogdir = self.p.get_conf_or_none("events", "runlogdir")
+        if not runlogdir:
+            raise InvalidConfig("There is no runlogdir configuration")
+        if not os.path.isabs(runlogdir):
+            runlogdir = self.c.resolve_var_dir(runlogdir)
+
+        tld = os.path.join(runlogdir, run_name)
+        self.controllerlogdir = os.path.join(tld, "epucontrollerkill_logs")
+
+        if not os.path.exists(self.controllerlogdir):
+            self.c.log.debug("Creating directory: %s" % self.controllerlogdir)
+            os.mkdir(self.controllerlogdir)
+
+        self.controllerlog = os.path.join(self.controllerlogdir, 'controllerkill.log')
+
+    def _log_event(self, event):
+        lf = open(self.controllerlog, 'a')
+        lf.write(event)
+        lf.write('\n')
+        lf.close()
+
+    def _get_log_time(self):
+        now = datetime.datetime.utcnow()
+        return str(now)
+
+    def start(self, num=1):
+        start_time = self._get_log_time()
+        for i in range(num):
+            event = 'EPU_CONTROLLER_START %s' % start_time
+            self._log_event(event)
+
+    def terminate(self, num=1):
+        end_time = self._get_log_time()
+        for i in range(num):
+            event = 'EPU_CONTROLLER_TERMINATE %s' % end_time
+            self._log_event(event)
 
 
 class Torque:
@@ -81,7 +129,7 @@ class Torque:
 
         try:
             os.remove(tf.name)
-            self.c.log.debug("Remove temporary file: %s" % tf.name)
+            self.c.log.debug("Removed temporary file: %s" % tf.name)
         except:
             self.c.log.error("Could not remove temporary file: %s" % tf.name)
 
@@ -109,7 +157,7 @@ class AMQP:
         retry = 3
         while retry > 0:
             try:
-                urllib2.urlopen(submitStr, timeout=5)
+                urllib2.urlopen(submitStr, timeout=180)
                 retry = 0
             except Exception as e:
                 self.c.log.error('Failed to submit task at %s' % job.startsec)
@@ -126,7 +174,15 @@ class WorkItem:
 
 
 class Workload:
-    def __init__(self, key, p, c, m, run_name, workloadfilename, workloadtype):
+    def __init__(self, \
+                 key, \
+                 p, \
+                 c, \
+                 m, \
+                 run_name, \
+                 workloadfilename, \
+                 workloadtype, \
+                 epucontroller=None):
         self.items = []
         self.threads = []
         self.key = key
@@ -136,6 +192,7 @@ class Workload:
         self.run_name = run_name
         self.workload_type = workloadtype
         self.cloudinitd = epumgmt.main.em_core_load.get_cloudinit(p, c, m, run_name)
+        self.epucontroller = epucontroller
         # hardcoded for now, ick -- is this in a config somewhere?
         self.port = '8001'
         if self.workload_type == 'torque':
@@ -244,6 +301,17 @@ class Workload:
                 t = threading.Timer(item.startsec, \
                                      _kill_vms, \
                                      t_args)
+            elif self.key == 'KILL_CONTROLLER':
+                t_args = [self.p, \
+                          self.c, \
+                          self.m, \
+                          self.run_name, \
+                          item.startsec, \
+                          self.cloudinitd, \
+                          self.epucontroller]
+                t = threading.Timer(item.startsec, \
+                                     _kill_controller, \
+                                     t_args)
             elif self.key == 'SUBMIT':
                 t_args = [self.p, \
                           self.c, \
@@ -306,6 +374,35 @@ def _build_opts_from_dict(val):
         opts.__dict__[key] = val[key]
     return opts
 
+def _kill_controller(p, c, m, run_name, startsec, cloudinitd, epucontroller):
+    c.log.info("Killing controller (at evaluation second %s)" % startsec)
+    svc = cloudinitd.get_service('epu-sleepers')
+    svc.shutdown()
+    epucontroller.terminate()
+    cmd = 'cloudinitd repair %s' % run_name
+    c.log.debug("command = '%s'" % cmd)
+    timeout = 600.0 # seconds
+    (k, rc, out, err) = epumgmt.defaults.child.child(cmd, timeout=timeout)
+
+    if k:
+        c.log.error("TIMED OUT: '%s'" % cmd)
+
+    if not rc:
+        c.log.debug("command succeeded: '%s'" % cmd)
+        epucontroller.start()
+    else:
+        errmsg = "problem running command, "
+        if rc < 0:
+            errmsg += "killed by signal:"
+        if rc > 0:
+            errmsg += "exited non-zero:"
+        errmsg += "'%s' ::: return code" % cmd
+        errmsg += ": %d ::: error:\n%s\noutput:\n%s" % (rc, out, err)
+
+        # these commands will commonly fail
+        if c.trace:
+            self.c.log.debug(errmsg)
+
 def _kill_vms(p, c, m, run_name, startsec, killWorkload):
     for item in killWorkload:
         if item.startsec == startsec:
@@ -356,6 +453,9 @@ def execute_workload_test(p, c, m, run_name):
         return
 
     c.log.info('Initializing workloads')
+    epucontroller = EPUController(p, c, m, run_name)
+    epucontroller.start()
+
     killWorkload = Workload('KILL', \
                             p, \
                             c, \
@@ -370,15 +470,27 @@ def execute_workload_test(p, c, m, run_name):
                             run_name, \
                             workloadfilename, \
                             workloadtype)
+    killControllerWorkload = Workload('KILL_CONTROLLER', \
+                                      p, \
+                                      c, \
+                                      m, \
+                                      run_name, \
+                                      workloadfilename, \
+                                      workloadtype, \
+                                      epucontroller)
 
     c.log.info('Executing workloads')
     killWorkload.execute()
     taskWorkload.execute()
+    killControllerWorkload.execute()
 
     # We deem the workload to be complete when all Timer threads have
     # finished and we observe "completed" events for all of the tasks
     # that were submitted.
     c.log.info('Waiting for the kill and task workloads to complete.')
+
+    killControllerWorkload.wait()
+    c.log.info('Kill controller workload is complete.')
 
     killWorkload.wait()
     c.log.info('Kill workload is complete.')
