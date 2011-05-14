@@ -1,0 +1,79 @@
+Using epumgmt for running EPU workload evaluations
+
+There are three main components to running EPU workload evaluations. First,
+cloudinit.d is used to launch and configure the EPU. Second,
+epumgmt/bin/generate-workload-definition.py is used to create the an
+epumgmt-understandable workload format file. And finally, epumgmt is used
+to execute the workload and graph the results.
+
+Discussion of cloudinit.d is beyond the scope of this README.
+
+
+To generate a workload definition file for epumgmt you should use the
+generate-workload-definition.py script provided in ./bin/. This command will
+allow you to specify when during the evaluation you want to kill a controller,
+worker instances, or submit work. (All of the options are explained by
+running './bin/generate-workload-definition.py -h'.)
+
+    For example, this command:
+
+        $ ./bin/generate-workload-definition.py --kill-controller=60,120,300
+          --kill-seconds=60,120 --kill-counts=1,12 --submit-seconds=0,120 
+          --submit-counts=5,5 --submit-sleep=300,600
+
+    will generate this on standard out (you should redirect to a file if you
+    want to create a workload definition file to execute with epumgmt):
+
+          KILL_CONTROLLER 60 1
+          KILL_CONTROLLER 120 1
+          KILL_CONTROLLER 300 1
+          KILL 60 1
+          KILL 120 12
+          SUBMIT 0 5 300 0
+          SUBMIT 120 5 600 5
+
+    This workload attempts to submit 5 jobs at the very beginning of the test
+    (second 0) that sleep for 300 seconds. It then submits another 5 jobs 120
+    seconds into the evaluation. These jobs run for 600 seconds. This workload
+    also attempts to kill 1 worker VM 60 seconds into the evaluation and 12 VMs
+    120 seconds into the evaluation. Finally, it kills a controller at 60, 120,
+    and 300 seconds into the evaluation.
+
+
+Once you have generated a workload definition file with
+generate-workload-definition.py, you can then use this file with epumgmt to 
+execute the workload (and graph the results).
+
+Assuming we launched a plan with cloudinit.d with the name "testrun" and
+generated a workload definition file (simliar to above) with the name
+"workload.def" then to execute the workload with the EPU launched by
+cloudinit.d you'd simply run the following command:
+
+./bin/epumgmt.sh -a execute-workload-test -n testrun -f workload.def -w torque
+
+You can also specify amqp as the workload type (-w).
+
+Once this completes you should then fetch all logs with the following commands:
+
+./bin/epumgmt.sh -a logfetch -n testrun
+./bin/epumgmt.sh -a torque-logfetch -n testrun
+
+Obviously you can skip torque-logfetch if you've only run an amqp workload.
+These steps should actually already been done for you by execute-workload-test,
+however, it isn't a bad idea to follow up a run with these commands just to
+make sure you have all of the logs you need.
+
+Once this is complete you can simply generate a graph with:
+
+./bin/epumgmt.sh -a generate-graph -n testrun -r stacked-vms -t png -w torque
+
+There numerous other graphs (-r) that you can specify: job-tts, job-rate, 
+node-info, and controller. You can also specify eps instead of png for the
+graph type (-t).
+
+After examining your results, don't forget to kill the run:
+
+./bin/epumgmt.sh -a killrun -n testrun
+
+Also, you should probably check the cloud (e.g. EC2) that you're using and make
+sure you didn't leave any zombie instances running.
