@@ -49,6 +49,9 @@ def parse_options():
                       'may be a comma separated list, however, ' + \
                       'spaces are not allowed. The length of the list ' + \
                       'must match the list provided for --kill-seconds.')
+    parser.add_option('--kill-controller', dest='killController', \
+                      help='Seconds to wait before killing a ' + \
+                      'This may be a comma separated list.')
     parser.add_option('--submit-seconds', dest='submitSeconds', \
                       help='Seconds to wait before submitting tasks. This ' + \
                       'may be a comma separated list, however, ' + \
@@ -77,12 +80,19 @@ def parse_options():
 
 def write_workload(killSeconds, \
                    killCounts, \
+                   killController, \
                    submitSeconds, \
                    submitCounts, \
                    submitSleep, \
                    firstBatchID):
+    controllerLine = 'KILL_CONTROLLER %s 1\n'
     killLine = 'KILL %s %s\n'
     submitLine = 'SUBMIT %s %s %s %s\n'
+    if killController != None:
+        cList = killController.split(',')
+        listLen = len(cList)
+        for i in range(listLen):
+            sys.stdout.write(controllerLine % cList[i])
     if killSeconds != None and killCounts != None:
         ksList = killSeconds.split(',')
         kcList = killCounts.split(',')
@@ -113,6 +123,7 @@ def main():
         return 1
     write_workload(options.killSeconds, \
                    options.killCounts, \
+                   options.killController, \
                    options.submitSeconds, \
                    options.submitCounts, \
                    options.submitSleep, \
