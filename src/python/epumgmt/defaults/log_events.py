@@ -7,6 +7,86 @@ import os
 UTC_OFFSET = 7
 
 # Events:
+#  EPU_CONTROLLER_START
+#  EPU_CONTROLLER_TERMINATE
+class ControllerEvents:
+    def __init__(self, p, c, m, run_name):
+        self.p = p
+        self.c = c
+        self.m = m
+        self.run_name = run_name
+
+    def _set_controllerlog_filenames(self):
+        filenames = []
+        runlogdir = self.p.get_conf_or_none("events", "runlogdir")
+        if not runlogdir:
+            raise InvalidConfig("There is no runlogdir configuration")
+        if not os.path.isabs(runlogdir):
+            runlogdir = self.c.resolve_var_dir(runlogdir)
+        tld = os.path.join(runlogdir, self.run_name)
+        controllerlogdir = os.path.join(tld, "epucontrollerkill_logs")
+        logs = os.listdir(controllerlogdir)
+        for log in logs:
+            filenames.append(os.path.join(controllerlogdir, log))
+        self.c.log.debug("Setting controller log filenames: %s" % filenames)
+        self.controllerlog_filenames = filenames
+
+    def _update_log_filenames(self):
+        self.c.log.debug('Gathering controller kill log filenames')
+        self.controllerlog_filenames = None
+        self._set_controllerlog_filenames()
+
+    def get_event_count(self, event):
+        events = self.get_event_datetimes_dict(event)
+        return len(events.keys())
+
+    def _create_datetime(self, date_str, time_str):
+        splitdate = date_str.split('-')
+        splittime = time_str.split(':')
+        month = int(splitdate[1].strip())
+        day = int(splitdate[2].strip())
+        year = int(splitdate[0].strip())
+        hour = int(splittime[0].strip())
+        minute = int(splittime[1].strip())
+        second = int(splittime[2].strip().split('.')[0].strip())
+        microsecond = int(splittime[2].strip().split('.')[1].strip())
+        dateTime = datetime.datetime(year, \
+                                     month, \
+                                     day, \
+                                     hour, \
+                                     minute, \
+                                     second, \
+                                     microsecond)
+        return dateTime
+
+    def get_event_datetimes_list(self, orig_event):
+        self._update_log_filenames()
+        # all of these events will be in the server_log files
+        filenames = self.controllerlog_filenames
+        event = orig_event
+
+        eventTimes = []
+        if filenames:
+            for filename in filenames:
+                try:
+                    eventFile = open(filename, 'r')
+                    try:
+                        for line in eventFile:
+                            if event in line:
+                                splitline = line.split()
+                                lineevent = splitline[0]
+                                date_str = splitline[1].strip()
+                                time_str = splitline[2].strip()
+                                eventTime = self._create_datetime(date_str, time_str)
+                                eventTimes.append(eventTime)
+                    finally:
+                        eventFile.close()
+                except IOError:
+                    self.c.log.error('Failed to open and read from file: ' + \
+                                     '%s' % filename)
+        return eventTimes
+
+# Events:
 #  job_sent: Job Queued
 #  job_begin: Job Run
 #  job_end: Exit_status
@@ -33,7 +113,7 @@ class TorqueEvents:
         self.serverlog_filenames = filenames
 
     def _update_log_filenames(self):
-        self.c.log.debug('Gathering log filenames')
+        self.c.log.debug('Gathering torque log filenames')
         self.serverlog_filenames = None
         self._set_serverlog_filenames()
 
@@ -147,7 +227,7 @@ class NodeEvents:
         self.vmkilllog_filenames = filenames
 
     def _update_log_filenames(self):
-        self.c.log.debug('Gathering log filenames')
+        self.c.log.debug('Gathering node log filenames')
 
         self.provisionerlog_filenames = None
         self.vmkilllog_filenames = None
@@ -164,19 +244,22 @@ class NodeEvents:
         # may have arrived since we last ran this
         self._update_log_filenames()
         filenames = []
-        jsonid = ''
+
+        if 'launch_ctx_done' == event:
+            jsonid = 'node_ids'
+        else:
+            jsonid = ''
+
         if 'fetch_killed' == event:
             filenames = self.vmkilllog_filenames
-            jsonid = 'node_id'
         elif 'new_node' == event:
             filenames = self.provisionerlog_filenames
-            jsonid = 'node_id'
         elif 'terminated_node' == event:
             filenames = self.provisionerlog_filenames
-            jsonid = 'node_id'
         elif 'node_started' == event:
             filenames = self.provisionerlog_filenames
-            jsonid = 'node_id'
+        elif 'launch_ctx_done' == event:
+            filenames = self.provisionerlog_filenames
         else:
             self.c.log.error("Unrecognized event: %s" % event)
             return {}
@@ -189,12 +272,20 @@ class NodeEvents:
                     try:
                         for line in eventFile:
                             if event in line:
+                                if not jsonid:
+                                    if 'iaas_id' in line:
+                                        jsonid = 'iaas_id'
+                                    else:
+                                        jsonid = 'node_id'
                                 splitline = line.rpartition('JSON:')[2]
                                 splitline.strip()
                                 jsonEvent = json.loads(splitline)
                                 timestamp = jsonEvent['timestamp']
                                 eventTime = self._create_datetime(timestamp)
-                                k = jsonEvent['extra'][jsonid]
+                                if event == 'launch_ctx_done':
+                                    k = jsonEvent['extra'][jsonid][0]
+                                else:
+                                    k = jsonEvent['extra'][jsonid]
                                 eventTimes[k] = eventTime
                     finally:
                         eventFile.close()
@@ -253,7 +344,7 @@ class AmqpEvents:
         self.workconsumerlog_filenames = filenames
 
     def _update_log_filenames(self):
-        self.c.log.debug('Gathering log filenames')
+        self.c.log.debug('Gathering amqp log filenames')
 
         self.workproducerlog_filenames = None
         self.workconsumerlog_filenames = None
