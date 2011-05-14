@@ -39,7 +39,7 @@ NAME.help = "Unique run name for logs and management.  Can use across multiple i
 
 GRAPH_NAME = ControlArg("graphname", "-r", metavar="GRAPH_NAME")
 a.append(GRAPH_NAME)
-GRAPH_NAME.help = "For the generate-graph action, name of graph to generate: stacked-vms or job-tts."
+GRAPH_NAME.help = "For the generate-graph action, name of graph to generate: stacked-vms, job-tts, job-rate, node-info, or controller."
 
 GRAPH_TYPE = ControlArg("graphtype", "-t", metavar="GRAPH_TYPE")
 a.append(GRAPH_TYPE)
