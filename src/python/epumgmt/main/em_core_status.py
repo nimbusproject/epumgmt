@@ -300,6 +300,8 @@ def _latest_controller_state(controller, vm):
     if latest_destate:
         if latest_destate.extra.has_key("de_state"):
             ret_state = latest_destate.extra["de_state"]
+        if latest_destate.extra.has_key("state"):
+            ret_state = latest_destate.extra["state"]
 
     ret_qlen = latest_qlen
     if latest_qlen:
