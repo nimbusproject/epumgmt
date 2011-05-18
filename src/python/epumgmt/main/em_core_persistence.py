@@ -82,7 +82,6 @@ class Persistence:
         if not self.cdb:
             raise ProgrammingError("cannot persist anything without setup/validation")
         cyvm_a = self.cdb.get_vms_by_type(run_name, servicename)
-        print cyvm_a
         if len(cyvm_a) > 1:
             raise ProgrammingError("cannot handle non-unique service names here")
         if len(cyvm_a):
