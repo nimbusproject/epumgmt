@@ -80,7 +80,7 @@ class DefaultRemoteSvcAdapter:
             raise IncompatibleEnvironment("Cannot kill without an open channel to the services")
 
         cmd = self._get_provisioner().get_ssh_command()
-        cmd += " " + self._get_epu_script_cmd("epu-killer")
+        cmd += " " + self._get_epu_script_cmd_provisioner("epu-killer")
         return self._run_one_cmd(cmd)
 
     def kill_workers(self, node_id_list):
@@ -95,7 +95,7 @@ class DefaultRemoteSvcAdapter:
         if not len(node_id_list):
             raise Exception("Empty node ID list")
         cmd = self._get_provisioner().get_ssh_command()
-        cmd += ' ' + self._get_epu_script_cmd("epu-killer", extras=node_id_list)
+        cmd += ' ' + self._get_epu_script_cmd_provisioner("epu-killer", extras=node_id_list)
         return self._run_one_cmd(cmd)
 
     def reconfigure_n(self, controller, newn):
@@ -110,7 +110,7 @@ class DefaultRemoteSvcAdapter:
 
         extra_args = [controller, newn]
         cmd = self._get_provisioner().get_ssh_command()
-        cmd += ' ' + self._get_epu_script_cmd("epu-reconfigure-n", extras=extra_args)
+        cmd += ' ' + self._get_epu_script_cmd_provisioner("epu-reconfigure-n", extras=extra_args)
         return self._run_one_cmd(cmd)
 
     def worker_state(self, controllers, provisioner_vm):
@@ -136,12 +136,15 @@ class DefaultRemoteSvcAdapter:
             raise InvalidInput("Empty controllers service name list")
 
         filename = "epu-worker-state-%s" % str(uuid.uuid4())
-        remote_filename = "%s/logs/%s" % (self.homedir, filename)
+
+        (abs_homedir, abs_envfile) = \
+            self._get_pathconfs("provisioner", self._get_provisioner().get_scp_username())
+        remote_filename = "%s/logs/%s" % (abs_homedir, filename)
 
         extra_args = [remote_filename]
         extra_args.extend(controllers)
         cmd = self._get_provisioner().get_ssh_command()
-        cmd += ' ' + self._get_epu_script_cmd("epu-state", extras=extra_args)
+        cmd += ' ' + self._get_epu_script_cmd_provisioner("epu-state", extras=extra_args)
         if not self._run_one_cmd(cmd):
             raise UnexpectedError("Could not run state query")
 
@@ -270,15 +273,27 @@ class DefaultRemoteSvcAdapter:
                 raise IncompatibleEnvironment("Cannot locate provisioner")
         return self.provisioner
 
-    def _get_epu_script_cmd(self, script, extras=None):
+    def _get_epu_script_cmd(self, script, abs_homedir, abs_envfile, extras=None):
         """ This tight coupling is one of the main reasons the current backdoor to the system is not best solution"""
 
-        cmd = "'cd %s && sudo ./scripts/run_under_env.sh %s " % (self.homedir, self.envfile)
+        cmd = "'cd %s && sudo ./scripts/run_under_env.sh %s " % (abs_homedir, abs_envfile)
         cmd += "./scripts/%s messaging.conf" % script
         if extras:
             for extra in extras:
                 cmd += " %s" % extra.strip()
         return "%s'" % cmd
+
+    def _get_epu_script_cmd_provisioner(self, script, extras=None):
+        """ This tight coupling is one of the main reasons the current backdoor to the system is not best solution"""
+
+        (abs_homedir, abs_envfile) = \
+            self._get_pathconfs("provisioner", self._get_provisioner().get_scp_username())
+        return self._get_epu_script_cmd(script, abs_homedir, abs_envfile, extras=extras)
+
+    def _get_pathconfs(self, source, username):
+        abs_homedir = self._reconcile_relative_conf(self.homedir, username, source)
+        abs_envfile = self._reconcile_relative_conf(self.envfile, username, source)
+        return abs_homedir, abs_envfile
 
     def  _run_one_cmd(self, cmd):
         self.c.log.debug("command = '%s'" % cmd)
@@ -357,3 +372,22 @@ class DefaultRemoteSvcAdapter:
                 wis.heartbeat_time = int(heartbeat_time)
 
         return controller_state_map
+
+    def _reconcile_relative_conf(self, configured_path, username, source):
+        """Return absolute path to "home directory + conf" when the svcadapter configurations are relative.
+
+        If absolute path, just return that.
+
+        e.g. if "homedir" is "xyx", this will reconcile it to "/home/someuser/xyz" where "someuser" is
+        the SCP user for this particular service.  We cannot use "~" because the ssh is user is different.
+
+        If/when the svc_adapter talks to the components directly, this will not be an issue.
+        """
+
+        if os.path.isabs(configured_path):
+            return configured_path
+
+        if not username:
+            raise IncompatibleEnvironment("The EPU path components are configured with a relative path \
+but there is no scp username in the '%s' service" % source)
+        return "/home/%s/%s" % (username, configured_path)
