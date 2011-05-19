@@ -847,10 +847,11 @@ def _generate_controller(workloadtype, \
 def generate_graph(p, c, m, run_name):
     graphname = p.get_arg_or_none('graphname')
     graphtype = p.get_arg_or_none('graphtype')
-    workloadtype = p.get_arg_or_none('workloadtype').lower()
+    workloadtype = p.get_arg_or_none('workloadtype')
     if not workloadtype:
         c.log.error('Expecting workloadtype to be specified.')
         return
+    workloadtype = workloadtype.lower()
 
     node_events = NodeEvents(p, c, m, run_name)
     controller_events = ControllerEvents(p, c, m, run_name)
