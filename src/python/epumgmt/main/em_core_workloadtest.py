@@ -107,8 +107,7 @@ class Torque:
 
     def _qsub_job(self, basename):
         ssh_cmd = self.svc.get_ssh_command()
-        # hardcoded torque version
-        submit_cmd = "/opt/torque-2.5.5/bin/qsub /tmp/%s" % basename
+        submit_cmd = "qsub /tmp/%s" % basename
         cmd = "%s '%s'" % (ssh_cmd, submit_cmd)
         return self._execute_cmd(cmd)
 
