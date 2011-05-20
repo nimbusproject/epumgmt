@@ -5,9 +5,30 @@ import matplotlib
 import json
 import os
 
+from epumgmt.api.exceptions import *
 from epumgmt.defaults.log_events import AmqpEvents, TorqueEvents, NodeEvents, ControllerEvents
 
 props = matplotlib.font_manager.FontProperties(size=10)
+
+def validate(p):
+    """Validate input for our graph type
+
+       raises InvalidInput on bad input
+    """
+
+    graphname = p.get_arg_or_none('graphname')
+    if not graphname:
+        raise InvalidInput("You must specify a --graphname for the 'generate-graph' action")
+
+    graphtype = p.get_arg_or_none('graphtype')
+    if not graphtype:
+        raise InvalidInput("You must specify a --graphtype for the 'generate-graph' action")
+
+    workloadtype = p.get_arg_or_none('workloadtype')
+    if not workloadtype:
+        raise InvalidInput("You must specify a --workloadtype for the 'generate-graph' action")
+
+
 
 def _convert_datetime_to_seconds(dateTime):
     seconds = (dateTime.microseconds + \
@@ -845,12 +866,12 @@ def _generate_controller(workloadtype, \
     fig.savefig(filename)
 
 def generate_graph(p, c, m, run_name):
+
+    validate(p)
+
     graphname = p.get_arg_or_none('graphname')
     graphtype = p.get_arg_or_none('graphtype')
     workloadtype = p.get_arg_or_none('workloadtype')
-    if not workloadtype:
-        c.log.error('Expecting workloadtype to be specified.')
-        return
     workloadtype = workloadtype.lower()
 
     node_events = NodeEvents(p, c, m, run_name)
@@ -876,5 +897,5 @@ def generate_graph(p, c, m, run_name):
                              run_name, \
                              graphtype)
     else:
-        c.log.error('Unrecognized graph name, must be stacked-vms, ' + \
-                    'job-tts, job-rate, node-info, or controller.')
+        raise InvalidInput('Unrecognized graph name, must be stacked-vms, ' + \
+                           'job-tts, job-rate, node-info, or controller.')
