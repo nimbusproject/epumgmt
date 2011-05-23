@@ -65,6 +65,10 @@ STATUS_NOUPDATE = ControlArg("no-update", None, noval=True)
 a.append(STATUS_NOUPDATE)
 STATUS_NOUPDATE.help = "Used with '--action %s'.  If used, %s does not try to find any new information." % (ACTIONS.STATUS, ACTIONS.STATUS)
 
+KILLRUN_NOFETCH = ControlArg("no-fetch", None, noval=True)
+a.append(KILLRUN_NOFETCH)
+KILLRUN_NOFETCH.help = "Used with '--action %s'.  If used, %s does not try to find any new information or get any logs." % (ACTIONS.KILLRUN, ACTIONS.KILLRUN)
+
 NEWN = ControlArg("newn", None)
 a.append(NEWN)
 NEWN.help = "Used with '--action %s'. Syntax is controller_name:N[,controller_name:N,...]" % ACTIONS.RECONFIGURE_N

@@ -138,9 +138,11 @@ def _core(action, p, c):
     elif action == ACTIONS.UPDATE_EVENTS:
         em_core_eventgather.update_events(p, c, modules, run_name)
     elif action == ACTIONS.KILLRUN:
+        no_fetch = p.get_arg_or_none(em_args.KILLRUN_NOFETCH)
         try:
-            em_core_findworkers.find_once(p, c, modules, run_name)
-            em_core_logfetch.fetch_all(p, c, modules, run_name, cloudinitd)
+            if not no_fetch:
+                em_core_findworkers.find_once(p, c, modules, run_name)
+                em_core_logfetch.fetch_all(p, c, modules, run_name, cloudinitd)
         except KeyboardInterrupt:
             raise
         except Exception:
