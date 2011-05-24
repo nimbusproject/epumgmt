@@ -15,7 +15,7 @@ class TorqueLogs:
         # hardcoded, though it is the default location
         self.server_log_dirs = ['/var/spool/torque/server_logs/']
         self.cloudinitd = epumgmt.main.em_core_load.get_cloudinit(p, c, m, run_name)
-        self.svc = self.cloudinitd.get_service("rabbit")
+        self.svc = self.cloudinitd.get_service("basenode")
 
         runlogdir = p.get_conf_or_none("events", "runlogdir")
         if not runlogdir:
