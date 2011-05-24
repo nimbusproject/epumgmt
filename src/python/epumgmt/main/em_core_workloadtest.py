@@ -66,7 +66,7 @@ class Torque:
         self.c = c
         self.m = m
         self.run_name = run_name
-        self.svc = cloudinitd.get_service("rabbit")
+        self.svc = cloudinitd.get_service("basenode")
 
     def _execute_cmd(self, cmd):
         self.c.log.debug("command = '%s'" % cmd)
@@ -195,7 +195,7 @@ class Workload:
         # hardcoded for now, ick -- is this in a config somewhere?
         self.port = '8001'
         if self.workload_type == 'torque':
-            self.host = self._get_hostname('rabbit')
+            self.host = self._get_hostname('basenode')
         else:
             self.host = self._get_hostname('epu-sleepers')
 
