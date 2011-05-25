@@ -1,10 +1,6 @@
 import os
 from ConfigParser import NoOptionError, NoSectionError
 
-#See api/TODO.txt
-#import zope.interface
-#import epumgmt.api.objects
-
 import epumgmt.main.em_args as em_args
 from epumgmt.main import ControlArg 
 
@@ -13,9 +9,6 @@ from epumgmt.main import ControlArg
 # -----------------------------------------------------------------------------
 
 class DefaultParameters:
-    
-    #See api/TODO.txt
-    #zope.interface.implements(workspacecontrol.api.objects.IParameters)
     
     def __init__(self, allconfigs, opts):
         self.optdict = _create_optdict(opts)
@@ -98,4 +91,3 @@ def _get_one_attr(opts, name):
         return val
     except:
         return None
-    

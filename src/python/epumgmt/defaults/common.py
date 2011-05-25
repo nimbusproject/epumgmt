@@ -2,10 +2,6 @@ import logging
 import os
 import time
 
-# See epumgmt/api/TODO.txt
-#import zope.interface
-#import epumgmt.api.objects
-
 from epumgmt.api.exceptions import *
 import epumgmt.main.em_args as em_args
 
@@ -21,9 +17,6 @@ _logleveldict = {0:logging.DEBUG,
                  4:logging.ERROR}
 
 class DefaultCommon:
-    
-    #See api/TODO.txt
-    #zope.interface.implements(epumgmt.api.objects.ICommon)
     
     def __init__(self, p):
         self.p = p

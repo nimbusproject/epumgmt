@@ -41,17 +41,6 @@ def get_class_by_keyword(keyword, allconfigs=None, implstr=None):
     if not implstr and not allconfigs:
         raise ProgrammingError("get_class_by_keyword() needs one or the other: 'allconfigs' or 'implstr'")
     
-    # See api/TODO.txt
-    ## find the "fully qualified name" of the interface
-    #if not interfacesdict.has_key(keyword):
-    #    raise ProgrammingError("Unknown interface: '%s'" % keyword)
-    
-    # See api/TODO.txt
-    ## get interface class so we can test the implementation class against it
-    #i = get_class(interfacesdict[keyword])
-    #if not i:
-    #    raise ProgrammingError("Cannot load interface for '%s'" % keyword)
-    
     # get the configured implementation class
     if not implstr:
         implstr = allconfigs.get("emimpls", keyword)
@@ -59,11 +48,6 @@ def get_class_by_keyword(keyword, allconfigs=None, implstr=None):
     if not c:
         raise InvalidConfig("Cannot find implementation class: '%s'" % implstr)
       
-    # See api/TODO.txt
-    ## test impl class, assumes it is a zope.interface instance
-    #if not i.implementedBy(c):
-    #    raise ProgrammingError("Implementation '%s' does NOT implement the interface '%s'" % (c, i))
-        
     return c
 
 # See: http://stackoverflow.com/questions/
