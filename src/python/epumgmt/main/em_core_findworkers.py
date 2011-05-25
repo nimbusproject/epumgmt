@@ -2,6 +2,7 @@ import em_core_eventgather
 import em_core_logfetch
 from epumgmt.api import RunVM
 from epumgmt.api.exceptions import *
+from epumgmt.defaults import is_piggybacked
 
 PROVISIONER="provisioner"
 
@@ -22,8 +23,13 @@ def find_once(p, c, m, run_name):
     for vm in launched_vms:
         m.persistence.new_vm(run_name, vm)
 
-    allvms = m.persistence.get_run_vms_or_none(run_name)
-    c.log.debug("Know of %d VMs in run '%s'" % (len(allvms), run_name))
+    allsvcs = m.persistence.get_run_vms_or_none(run_name)
+    vm_num = 0
+    for svc in allsvcs:
+        if not is_piggybacked(svc):
+            vm_num += 1
+
+    c.log.debug("Know of %d services on %d VMs in run '%s'" % (len(allsvcs), vm_num, run_name))
 
 def vms_launched(m, run_name, eventname):
     provisioner = _get_provisioner(m, run_name)

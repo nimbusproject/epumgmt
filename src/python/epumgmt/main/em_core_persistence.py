@@ -1,3 +1,4 @@
+from epumgmt.defaults import is_piggybacked
 import os
 import urlparse
 from epumgmt.api import RunVM
@@ -63,7 +64,10 @@ class Persistence:
             self.cdb.add_cloudyvent(run_name, vm.instanceid, vm.nodeid, vm.hostname, vm.service_type, vm.parent, vm.runlogdir, vm.vmlogdir, e)
         self.cdb.commit()
         if newone:
-            self.c.log.debug("New VM persisted: '%s'" % vm.instanceid)
+            kind = "VM"
+            if is_piggybacked(vm.instanceid):
+                kind = "piggybacked service"
+            self.c.log.debug("New %s persisted: '%s'" % (kind, vm.instanceid))
         return newone
         
     def store_run_vms(self, run_name, run_vms):

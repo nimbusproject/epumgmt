@@ -42,10 +42,8 @@ class DefaultEventGather:
         persistence.store_run_vms(run_name, run_vms)
         
     def _fill_one(self, vm):
-        # Reaching point where DB would be nice...
-        
         if not vm.runlogdir:
-            self.c.log.warn("VM has no runlogdir, so cannot parse events: %s" % vm.runlogdir)
+            self.c.log.warn("Svc/VM has no runlogdir, so cannot parse events: %s" % vm.runlogdir)
             return
         all_events = self._all_events_in_dir(vm.runlogdir)
         for event in all_events:

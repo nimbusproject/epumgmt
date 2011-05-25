@@ -1,6 +1,5 @@
 from epumgmt.defaults.cloudinitd_load import get_cloudinitd_service
 import os
-import random
 
 from epumgmt.api.exceptions import *
 import epumgmt.main.em_args as em_args
@@ -62,7 +61,7 @@ class DefaultRunlogs:
             
         if newvm.runlogdir:
             if newvm.runlogdir != thisvm_runlog_dir:
-                self.c.log.warn("The runlog directory for the VM was recorded but it is not what we would expect (%s != %s)" % (newvm.runlogdir, thisvm_runlog_dir))
+                self.c.log.warn("The runlog directory for the Svc/VM was recorded but it is not what we would expect (%s != %s)" % (newvm.runlogdir, thisvm_runlog_dir))
         elif not os.path.exists(thisvm_runlog_dir):
             os.mkdir(thisvm_runlog_dir)
             newvm.runlogdir = thisvm_runlog_dir

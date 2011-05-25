@@ -83,14 +83,16 @@ def _load_host(p, c, m, run_name, instanceid, hostname, servicename):
     """
 
     # Account for
+    piggybacked = ""
     if not instanceid:
         known_id = m.persistence.find_instanceid_byservice(run_name, servicename)
         if known_id:
             instanceid = known_id
         else:
-            instanceid = "x-%d" % (int(random() * 100000000))
+            instanceid = "P-%d" % (int(random() * 100000000))
             if m.persistence.check_new_instanceid(instanceid):
                 raise Exception("instance ID collision")
+            piggybacked = "piggybacked on "
 
     vm = RunVM()
     vm.instanceid = instanceid
@@ -99,6 +101,6 @@ def _load_host(p, c, m, run_name, instanceid, hostname, servicename):
 
     m.runlogs.new_vm(vm)
     if m.persistence.new_vm(run_name, vm):
-        c.log.info("New EPU related service detected: '%s'.  Instance ID is '%s', host '%s'" % (servicename, vm.instanceid, vm.hostname))
+        c.log.info("New EPU related service detected: '%s'. %shost '%s', ID is '%s'" % (servicename, piggybacked, vm.hostname, vm.instanceid))
 
     return vm
