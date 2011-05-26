@@ -279,7 +279,12 @@ class NodeEvents:
                                         jsonid = 'node_id'
                                 splitline = line.rpartition('JSON:')[2]
                                 splitline.strip()
-                                jsonEvent = json.loads(splitline)
+                                try:
+                                    jsonEvent = json.loads(splitline)
+                                except:
+                                    emsg = "Problem parsing JSON: '%s'"
+                                    self.c.log.exception(emsg % splitline)
+                                    continue
                                 timestamp = jsonEvent['timestamp']
                                 eventTime = self._create_datetime(timestamp)
                                 if event == 'launch_ctx_done':
