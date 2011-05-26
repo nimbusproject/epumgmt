@@ -40,7 +40,7 @@ def fetch_all(p, c, m, run_name, cloudinitd):
             continue
         threads.append(FetchThread(vm, c, m, scpcmd))
     
-    txt = "%d VM" % len(run_vms)
+    txt = "%d service" % len(run_vms)
     if len(run_vms) != 1:
         txt += "s"
     c.log.info("Beginning to logfetch %s" % txt)
@@ -67,10 +67,12 @@ def fetch_all(p, c, m, run_name, cloudinitd):
             msg += str(thr.error)
             c.log.error("\n\n%s\n" % msg)
     
-    if error_count:
-        c.log.info("All fetched with %d errors" % error_count)
+    if error_count > 1:
+        c.log.info("All fetched with %d errors (%s)" % (error_count, txt))
+    elif error_count == 1:
+        c.log.info("All fetched with 1 error (%s)" % txt)
     else:
-        c.log.info("All fetched")
+        c.log.info("All fetched (%s)" % txt)
 
 def fetch_by_vm_id(p, c, m, run_name, instanceid):
     """Fetch log files from the VM instance in this run with a particular ID
