@@ -99,6 +99,8 @@ class RunThread(Thread):
         """
         
         Thread.__init__(self)
+        if not cmd:
+            raise Exception("No command")
         self.cmd = cmd
         self.exit = None
         self.stdout = None

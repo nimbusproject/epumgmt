@@ -127,12 +127,10 @@ class DefaultRunlogs:
         (killed, retcode, stdout, stderr) = child.child(cmd, timeout=timeout)
 
         if killed:
-            self.c.log.error("TIMED OUT: '%s'" % cmd)
-            return False
+            raise Exception("TIMED OUT: '%s'" % cmd)
 
         if not retcode:
             self.c.log.debug("command succeeded: '%s'" % cmd)
-            return True
         else:
             errmsg = "problem running command, "
             if retcode < 0:
@@ -145,4 +143,4 @@ class DefaultRunlogs:
             # these commands will commonly fail
             if self.c.trace:
                 self.c.log.debug(errmsg)
-            return False
+            raise Exception(stderr)
