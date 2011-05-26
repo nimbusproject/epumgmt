@@ -128,11 +128,13 @@ def _get_running_vms_list(log_events, \
     for second in seconds:
         runningvms[second] = 0
 
+    max_seconds = max(seconds)
+
     for key in start_datetimes.keys():
         diff = _get_datetime_diff_seconds(begin, start_datetimes[key])
-        if (diff >= 0) and (diff <= max(seconds)):
+        if (diff >= 0) and (diff <= max_seconds):
             second = diff
-            while second <= max(seconds):
+            while second <= max_seconds:
                 runningvms[second] += 1
                 second += 1
         else:
@@ -140,9 +142,9 @@ def _get_running_vms_list(log_events, \
                                    'valid: %s' % diff)
     for key in killed_datetimes.keys(): 
         diff = _get_datetime_diff_seconds(begin, killed_datetimes[key])
-        if (diff >= 0) and (diff <= max(seconds)):
+        if (diff >= 0) and (diff <= max_seconds):
             second = diff
-            while second <= max(seconds):
+            while second <= max_seconds:
                 runningvms[second] -= 1
                 second += 1
         else:
@@ -165,11 +167,13 @@ def _get_jobs_running_list(log_events,
     for second in seconds:
         jobs[second] = 0
 
+    max_seconds = max(seconds)
+
     for key in job_begin_datetimes.keys():
         diff = _get_datetime_diff_seconds(begin, job_begin_datetimes[key])
-        if (diff >= 0) and (diff <= max(seconds)):
+        if (diff >= 0) and (diff <= max_seconds):
             second = diff
-            while second <= max(seconds):
+            while second <= max_seconds:
                 jobs[second] += 1
                 second += 1
         else:
@@ -178,9 +182,9 @@ def _get_jobs_running_list(log_events,
 
     for key in job_end_datetimes.keys():
         diff = _get_datetime_diff_seconds(begin, job_end_datetimes[key])
-        if (diff >= 0) and (diff <= max(seconds)):
+        if (diff >= 0) and (diff <= max_seconds):
             second = diff
-            while second <= max(seconds):
+            while second <= max_seconds:
                 jobs[second] -= 1
                 second += 1
         else:
@@ -202,9 +206,11 @@ def _get_jobs_completed_rate_list(log_events,
     for second in seconds:
         jobs[second] = 0
 
+    max_seconds = max(seconds)
+
     for key in job_end_datetimes.keys():
         diff = _get_datetime_diff_seconds(begin, job_end_datetimes[key])
-        if (diff >= 0) and (diff <= max(seconds)):
+        if (diff >= 0) and (diff <= max_seconds):
             second = diff
             jobs[second] += 1
         else:
@@ -227,11 +233,13 @@ def _get_jobs_queued_list(log_events,
     for second in seconds:
         jobs[second] = 0
 
+    max_seconds = max(seconds)
+
     for key in job_sent_datetimes.keys():
         diff = _get_datetime_diff_seconds(begin, job_sent_datetimes[key])
-        if (diff >= 0) and (diff <= max(seconds)):
+        if (diff >= 0) and (diff <= max_seconds):
             second = diff
-            while second <= max(seconds):
+            while second <= max_seconds:
                 jobs[second] += 1
                 second += 1
         else:
@@ -240,9 +248,9 @@ def _get_jobs_queued_list(log_events,
 
     for key in job_begin_datetimes.keys():
         diff = _get_datetime_diff_seconds(begin, job_begin_datetimes[key])
-        if (diff >= 0) and (diff <= max(seconds)):
+        if (diff >= 0) and (diff <= max_seconds):
             second = diff
-            while second <= max(seconds):
+            while second <= max_seconds:
                 jobs[second] -= 1
                 second += 1
         else:
@@ -261,11 +269,13 @@ def _get_jobs_list(log_events, seconds, begin, job_datetimes):
     for second in seconds:
         jobs[second] = 0
 
+    max_seconds = max(seconds)
+
     for key in job_datetimes.keys():
         diff = _get_datetime_diff_seconds(begin, job_datetimes[key])
-        if (diff >= 0) and (diff <= max(seconds)):
+        if (diff >= 0) and (diff <= max_seconds):
             second = diff
-            while second <= max(seconds):
+            while second <= max_seconds:
                 jobs[second] += 1
                 second += 1
         else:
@@ -304,9 +314,11 @@ def _get_killed_controller_list(seconds, begin, killed_datetimes):
     for second in seconds:
         vms[second] = 0
 
+    max_seconds = max(seconds)
+
     for event_time in killed_datetimes: 
         diff = _get_datetime_diff_seconds(begin, event_time)
-        if (diff >= 0) and (diff <= max(seconds)):
+        if (diff >= 0) and (diff <= max_seconds):
             second = diff
             vms[second] += 1
 
@@ -337,21 +349,23 @@ def _get_running_controller_list(seconds, begin, running_datetimes, killed_datet
     for second in seconds:
         vms[second] = 0
 
+    max_seconds = max(seconds)
+
     for event_time in running_datetimes:
         diff = _get_datetime_diff_seconds(begin, event_time)
         if diff < 0:
             diff = 0
-        if (diff >= 0) and (diff <= max(seconds)):
+        if (diff >= 0) and (diff <= max_seconds):
             second = diff
-            while second <= max(seconds):
+            while second <= max_seconds:
                 vms[second] += 1
                 second += 1
 
     for event_time in killed_datetimes: 
         diff = _get_datetime_diff_seconds(begin, event_time)
-        if (diff >= 0) and (diff <= max(seconds)):
+        if (diff >= 0) and (diff <= max_seconds):
             second = diff
-            while second <= max(seconds):
+            while second <= max_seconds:
                 vms[second] -= 1
                 second += 1
 
@@ -370,6 +384,8 @@ def _get_job_rate_from_file(log_events, node_events, begin, seconds):
     for second in seconds:
         jobs[second] = 0
 
+    max_seconds = max(seconds)
+
     event = 'job_end'
     if filenames:
         for filename in filenames:
@@ -384,7 +400,7 @@ def _get_job_rate_from_file(log_events, node_events, begin, seconds):
                             timestamp = jsonEvent['timestamp']
                             eventTime = log_events._create_datetime(timestamp)
                             diff = _get_datetime_diff_seconds(begin, eventTime)
-                            if (diff >= 0) and (diff <= max(seconds)):
+                            if (diff >= 0) and (diff <= max_seconds):
                                 second = diff
                                 jobs[second] += 1
                             else:
