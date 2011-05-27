@@ -375,7 +375,8 @@ def _build_opts_from_dict(val):
 
 def _kill_controller(p, c, m, run_name, startsec, cloudinitd, epucontroller):
     c.log.info("Killing controller (at evaluation second %s)" % startsec)
-    svc = cloudinitd.get_service('epu-sleepers')
+    # TODO: fix this hardcoded service name
+    svc = cloudinitd.get_service('epu-onesleeper')
     svc.shutdown()
     epucontroller.terminate()
     cmd = 'cloudinitd repair %s' % run_name
