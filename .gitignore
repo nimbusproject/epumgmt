@@ -5,3 +5,4 @@ var/epumgmt/confs_used/*
 var/epumgmt/persistence/*lock
 var/epumgmt/persistence/*list
 var/epumgmt/persistence/epumgmt.db
+*.coverage
