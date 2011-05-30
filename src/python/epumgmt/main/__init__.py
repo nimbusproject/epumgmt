@@ -44,8 +44,10 @@ def get_class_by_keyword(keyword, allconfigs=None, implstr=None):
     # get the configured implementation class
     if not implstr:
         implstr = allconfigs.get("emimpls", keyword)
-    c = get_class(implstr)
-    if not c:
+
+    try:
+        c = get_class(implstr)
+    except ImportError:
         raise InvalidConfig("Cannot find implementation class: '%s'" % implstr)
       
     return c
