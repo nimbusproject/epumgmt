@@ -1,10 +1,14 @@
 Testing/development
 ===================
 
-# Sample, only works from topdir:
+To run epumgmt tests, run:
 
-$ source src/env.sh
-$ nosetests --nologcapture -x -v -w src/python/epumgmt/main
+$ ./src/run-tests.sh
+
+If you want more fine grained control, you can change to the src/python directory
+and run something like:
+
+$ nosetests --with-coverage --cover-package=epumgmt.main.em_core_status
 
 During (test driven) development this can be conveniently combined with:
 
