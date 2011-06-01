@@ -274,7 +274,7 @@ def _get_vm_with_controller(controller, vm_list):
                 return vm
     return None
 
-def _latest_controller_state(controller, vm):
+def _latest_controller_state(vm):
     if not vm:
         return None, None
     if not vm.events:
@@ -374,7 +374,7 @@ def _report(allvms):
 
         vm = _get_vm_with_controller(controller, services)
         if vm:
-            latest_destate, latest_qlen = _latest_controller_state(controller, vm)
+            latest_destate, latest_qlen = _latest_controller_state(vm)
             if latest_destate:
                 txt += "  EPU state: %s" % latest_destate
             else:
