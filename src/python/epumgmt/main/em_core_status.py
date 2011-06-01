@@ -276,9 +276,9 @@ def _get_vm_with_controller(controller, vm_list):
 
 def _latest_controller_state(controller, vm):
     if not vm:
-        return None
+        return None, None
     if not vm.events:
-        return None
+        return None, None
     latest_destate = None
     for ev in vm.events:
         if ev.name == "de_state":
