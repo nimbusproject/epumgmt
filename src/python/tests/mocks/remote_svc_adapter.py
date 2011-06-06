@@ -1,3 +1,5 @@
+from state import WorkerInstanceState, EPUControllerState
+
 
 class FakeRemoteSvcAdapter:
 
@@ -5,7 +7,10 @@ class FakeRemoteSvcAdapter:
 
         self.open_channel = False
         self.allow_initialize = True
-        self.controller_map = controller_map
+        self.allow_controller_map = True
+        self.fake_controller_map = {}
+        self.fake_instances = []
+        self.fake_worker_state = {}
 
     def initialize(self, m, run_name, cloudinitd):
         if self.allow_initialize:
@@ -13,3 +18,14 @@ class FakeRemoteSvcAdapter:
 
     def is_channel_open(self):
         return self.open_channel
+
+    def controller_map(self, vms):
+
+        if not self.allow_controller_map:
+            return {}
+
+        return self.fake_controller_map
+
+    def worker_state(self, controllers, provisioner_vm):
+
+        return self.fake_worker_state

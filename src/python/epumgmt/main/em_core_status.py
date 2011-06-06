@@ -77,41 +77,39 @@ def _find_latest_worker_status(c, m, run_name, cloudinitd, allvms):
     for instanceid in controller_map.keys():
         controllers.extend(controller_map[instanceid])
 
-    provisioner_vm = None
-    for vm in allvms:
-        if vm.service_type == "provisioner":
-            provisioner_vm = vm
-            break
+    provisioner_vm = _get_provisioner_vm(allvms)
     if not provisioner_vm:
         # This is an exception because it should be there especially if is_channel_open() passed above
         raise ProgrammingError("Cannot update worker status without provisioner channel into the system")
 
     controller_state_map = m.remote_svc_adapter.worker_state(controllers, provisioner_vm)
 
-    # Generate "iaas_state" and "heartbeat_state" cloudyvents.  Discover worker 'parent' in the process.
-    for controller in controllers:
-        state = controller_state_map[controller]
-        for wis in state.instances:
-            vm = _get_vm_with_nodeid(wis.nodeid, allvms)
-            if not vm:
-                # Can't make a RunVM yet for this, unfortunately
-                c.log.warn("Controller '%s' knows about worker we have no IaaS id for yet: %s" % (controller, wis.nodeid))
-                continue
-            
-            newparent = False
-            if not vm.parent:
-                vm.parent = controller
-                newparent = True
-            elif vm.parent != controller:
-                raise ProgrammingError("Previous RunVM had a different parent "
-                        "'%s', new status query indicates parent is '%s'" % (vm.parent, controller))
 
-            newevent = _get_events_from_wis(wis, vm, controller, trace, c)
-            
-            if newevent or newparent:
-                m.persistence.store_run_vms(run_name, [vm])
+    _update_worker_parents(c, m, run_name, controllers, controller_state_map, allvms)
+    _update_worker_states(c, m, run_name, controllers, controller_state_map, allvms)
+    _update_controller_states(c, m, run_name, controller_map, controller_state_map, allvms)
 
-    # Generate "de_state", "de_conf_report", and "last_queuelen_size" cloudyvents.
+
+
+def _get_provisioner_vm(allvms):
+    """returns a vm with a "provisioner" service_type 
+    """
+
+    provisioner_vm = None
+    for vm in allvms:
+        if vm.service_type == "provisioner":
+            provisioner_vm = vm
+            break
+
+    return provisioner_vm
+
+def _update_controller_states(c, m, run_name, controller_map, controller_state_map, allvms):
+    """Generate "de_state", "de_conf_report", and "last_queuelen_size" cloudyvents.
+    """
+
+    trace = False
+
+    c.log.debug("controller_state_map: %s" % controller_state_map)
     for instanceid in controller_map.keys():
         vm = _get_vm_with_instanceid(instanceid, allvms)
         if not vm:
@@ -127,6 +125,50 @@ def _find_latest_worker_status(c, m, run_name, cloudinitd, allvms):
 
         if any_newevent:
             m.persistence.store_run_vms(run_name, [vm])
+
+
+def _update_worker_parents(c, m, run_name, controllers, controller_state_map, allvms):
+    """Update the parent attribute for each worker vm
+    """
+
+    for controller in controllers:
+        state = controller_state_map[controller]
+        for wis in state.instances:
+            vm = _get_vm_with_nodeid(wis.nodeid, allvms)
+            if not vm:
+                # Can't make a RunVM yet for this, unfortunately
+                c.log.warn("Controller '%s' knows about worker we have no IaaS id for yet: %s" % (controller, wis.nodeid))
+                continue
+
+            newparent = False
+            if not vm.parent:
+                vm.parent = controller
+                newparent = True
+            elif vm.parent != controller:
+                raise ProgrammingError("Previous RunVM had a different parent "
+                        "'%s', new status query indicates parent is '%s'" % (vm.parent, controller))
+
+            if newparent:
+                m.persistence.store_run_vms(run_name, [vm])
+
+def _update_worker_states(c, m, run_name, controllers, controller_state_map, allvms):
+    """Generate "iaas_state" and "heartbeat_state" cloudyvents. 
+    """
+
+    trace = False
+
+    for controller in controllers:
+        state = controller_state_map[controller]
+        for wis in state.instances:
+            vm = _get_vm_with_nodeid(wis.nodeid, allvms)
+            if not vm:
+                # Can't make a RunVM yet for this, unfortunately
+                c.log.warn("Controller '%s' knows about worker we have no IaaS id for yet: %s" % (controller, wis.nodeid))
+                continue
+
+            newevent = _get_events_from_wis(wis, vm, controller, trace, c)
+            if newevent:
+                m.persistence.store_run_vms(run_name, [vm])
 
 
 def _get_events_from_wis(wis, vm, controller, trace, c):

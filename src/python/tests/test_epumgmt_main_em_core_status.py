@@ -274,9 +274,11 @@ class TestStatus:
 
     def test_find_latest_worker_status(self):
         from epumgmt.main.em_core_status import _find_latest_worker_status
+        from epumgmt.api.exceptions import ProgrammingError
         from mocks.common import FakeCommon
         from mocks.modules import FakeModules
         from mocks.remote_svc_adapter import FakeRemoteSvcAdapter
+        from mocks.state import EPUControllerState, WorkerInstanceState
 
         svc_adapter = FakeRemoteSvcAdapter()
         modules = FakeModules(remote_svc_adapter=svc_adapter)
@@ -292,8 +294,250 @@ class TestStatus:
         warning = warnings[0]
         warning_msg = warning[1]
         assert warning_msg.find("no channel open") != -1
-        
+
+
+        # reset log transcript
+        common.log.transcript = []
+
         svc_adapter.allow_initialize = True
+        svc_adapter.allow_controller_map = False
         _find_latest_worker_status(common, modules, "", None, [])
 
+        warnings = [warning for warning in common.log.transcript if warning[0] == "WARNING"]
+        assert len(warnings) == 1
+        warning = warnings[0]
+        warning_msg = warning[1]
+        assert warning_msg.find("no controllers are configured") != -1
 
+
+        common.log.transcript = []
+        svc_adapter.allow_controller_map = True       
+
+
+        allvms = []
+
+        empty_instance_0 = "P-77686559"
+        empty_vm_0 = epumgmt.api.RunVM()
+        empty_vm_0.instanceid = empty_instance_0
+        empty_vm_0.nodeid = "1234"
+        allvms.append(empty_vm_0)
+
+        empty_instance_1 = "P-88033864"
+        empty_vm_1 = epumgmt.api.RunVM()
+        empty_vm_1.instanceid = empty_instance_1
+        empty_vm_1.nodeid = "2345"
+        allvms.append(empty_vm_1)
+
+        empty_instance_2 = "i-6f54ea01"
+        empty_vm_2 = epumgmt.api.RunVM()
+        empty_vm_2.instanceid = empty_instance_2
+        empty_vm_2.nodeid = "3456"
+        allvms.append(empty_vm_2)
+
+        controller_instance = "P-32182444"
+        controller_name = 'epu_controller_sleeper1'
+        controller_vm = epumgmt.api.RunVM()
+        controller_vm.instanceid = controller_instance
+        allvms.append(controller_vm)
+
+        svc_adapter.fake_controller_map = {empty_instance_0: [],
+                                           empty_instance_1: [],
+                                           empty_instance_2: [],
+                                           controller_instance: [controller_name]}
+
+
+        # Test for failure when no provisioner is available
+        try:
+            _find_latest_worker_status(common, modules, "", None, [])
+        except ProgrammingError:
+            raised_programming_error = True
+        assert raised_programming_error
+
+
+        provisioner = epumgmt.api.RunVM()
+        provisioner_service_type = "provisioner"
+        provisioner.service_type = provisioner_service_type
+        allvms.append(provisioner)
+
+        controller_state = EPUControllerState()
+
+        empty_wis_0 = WorkerInstanceState(instanceid=empty_instance_0, nodeid=empty_vm_0.nodeid)
+        controller_state.instances.append(empty_wis_0)
+        empty_wis_1 = WorkerInstanceState(instanceid=empty_instance_1, nodeid=empty_vm_1.nodeid)
+        controller_state.instances.append(empty_wis_1)
+        empty_wis_2 = WorkerInstanceState(instanceid=empty_instance_2, nodeid=empty_vm_2.nodeid)
+        controller_state.instances.append(empty_wis_2)
+
+        svc_adapter.fake_worker_state = {'epu_controller_sleeper1': controller_state}
+
+        _find_latest_worker_status(common, modules, "", None, allvms)
+
+        # make sure at least one vm added to persistence
+        assert len(modules.persistence.vm_store) > 0
+        for persisted_vm in modules.persistence.vm_store:
+            assert persisted_vm.parent == controller_name
+
+
+    def test_update_worker_parents(self):
+        from epumgmt.main.em_core_status import _update_worker_parents
+        from epumgmt.api.exceptions import ProgrammingError
+        from mocks.common import FakeCommon
+        from mocks.modules import FakeModules
+        from mocks.state import EPUControllerState, WorkerInstanceState
+
+
+        controllers = []
+        controller_state_map = {}
+        allvms = []
+
+        common = FakeCommon()
+        modules = FakeModules()
+
+        run_name = "test_run"
+
+        controller_0 = "epu_controller_sleeper1"
+        controllers.append(controller_0)
+
+        controller_0_state = EPUControllerState()
+
+        worker_0 = WorkerInstanceState()
+        worker_0_nodeid = "x-qwertyuiop"
+        worker_0.nodeid = worker_0_nodeid
+
+        worker_0_vm = epumgmt.api.RunVM()
+        worker_0_vm.nodeid = worker_0_nodeid
+
+        controller_0_state.instances.append(worker_0)
+        controller_state_map[controller_0] = controller_0_state
+
+        # Test when there's WorkerInstance that doesn't appear in the list of VMs
+        _update_worker_parents(common, modules, run_name, controllers, controller_state_map, allvms)
+        warnings = [warning for warning in common.log.transcript if warning[0] == "WARNING"]
+        assert len(warnings) > 0
+        _, log_message = warnings[0]
+        assert log_message.find("knows about worker we have no IaaS id for yet") != -1
+
+
+        # Test the normal case
+        allvms.append(worker_0_vm)
+        _update_worker_parents(common, modules, run_name, controllers, controller_state_map, allvms)
+
+        assert worker_0_vm.parent == controller_0
+        assert modules.persistence.vm_store[0] == worker_0_vm
+
+
+        # Test when the VM's parent isn't the controller that owns it
+        worker_0_vm.parent = "some_other_controller"
+        try:
+            _update_worker_parents(common, modules, run_name, controllers, controller_state_map, allvms)
+        except ProgrammingError:
+            programming_error_raised = True
+
+        assert programming_error_raised
+
+
+    def test_update_worker_states(self):
+        from epumgmt.main.em_core_status import _update_worker_states
+        from epumgmt.api.exceptions import ProgrammingError
+        from mocks.common import FakeCommon
+        from mocks.modules import FakeModules
+        from mocks.state import EPUControllerState, WorkerInstanceState
+
+        controllers = []
+        controller_state_map = {}
+        allvms = []
+
+        common = FakeCommon()
+        modules = FakeModules()
+        
+        run_name = "test_run"
+
+        controller_0 = "epu_controller_sleeper1"
+        controllers.append(controller_0)
+
+        controller_0_state = EPUControllerState()
+
+        worker_0 = WorkerInstanceState()
+        worker_0_nodeid = "x-qwertyuiop"
+        worker_0.nodeid = worker_0_nodeid
+        worker_0.iaas_state = "running"
+        worker_0.iaas_state_time = 1307136434
+
+        worker_0_vm = epumgmt.api.RunVM()
+        worker_0_vm.nodeid = worker_0_nodeid
+
+        controller_0_state.instances.append(worker_0)
+        controller_state_map[controller_0] = controller_0_state
+
+
+        # Test when there's WorkerInstance that doesn't appear in the list of VMs
+        _update_worker_states(common, modules, run_name, controllers, controller_state_map, allvms)
+        warnings = [warning for warning in common.log.transcript if warning[0] == "WARNING"]
+        assert len(warnings) > 0
+        _, log_message = warnings[0]
+        assert log_message.find("knows about worker we have no IaaS id for yet") != -1
+
+
+        allvms.append(worker_0_vm)
+
+        # Test standard case where the worker has one new event. 
+        _update_worker_states(common, modules, run_name, controllers, controller_state_map, allvms)
+
+        assert modules.persistence.vm_store[0] == worker_0_vm
+        assert len(worker_0_vm.events) == 1
+
+
+    def test_update_controller_states(self):
+        from epumgmt.main.em_core_status import _update_controller_states
+        from epumgmt.api.exceptions import ProgrammingError
+        from mocks.common import FakeCommon
+        from mocks.modules import FakeModules
+        from mocks.state import EPUControllerState, WorkerInstanceState
+
+        controller_state_map = {}
+        controller_map = {}
+        allvms = []
+
+        common = FakeCommon()
+        modules = FakeModules()
+
+        run_name = "test-run"
+
+        empty_0_instanceid = "P-xxxxxxx"
+        empty_0_vm = epumgmt.api.RunVM()
+        empty_0_vm.instanceid = empty_0_instanceid
+        empty_1_instanceid = "P-yyyyyyy"
+        empty_1_vm = epumgmt.api.RunVM()
+        empty_1_vm.instanceid = empty_1_instanceid
+
+        controller_0 = "epu_controller_sleeper1"
+        controller_0_instanceid = "i-treetree"
+        controller_0_vm = epumgmt.api.RunVM()
+        controller_0_vm.instanceid = controller_0_instanceid
+
+        controller_map[empty_0_instanceid] = []
+        controller_map[empty_1_instanceid] = []
+        controller_map[controller_0_instanceid] = [controller_0]
+
+        # Test for vms being present in controller_map, but not allvms
+        try:
+            _update_controller_states(common, modules, run_name, controller_map, controller_state_map, allvms)
+        except ProgrammingError:
+            raised_programming_error = True
+
+        assert raised_programming_error
+
+        allvms.append(empty_0_vm)
+        allvms.append(empty_1_vm)
+        allvms.append(controller_0_vm)
+
+        controller_0_state = EPUControllerState()
+        controller_0_state.de_state = "state"
+        controller_0_state.capture_time = 42424242
+
+        controller_state_map[controller_0] = controller_0_state
+
+        _update_controller_states(common, modules, run_name, controller_map, controller_state_map, allvms)
+
+        assert modules.persistence.vm_store[0] == controller_0_vm
+        assert len(controller_0_vm.events) == 1
