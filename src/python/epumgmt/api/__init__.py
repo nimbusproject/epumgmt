@@ -65,6 +65,18 @@ class RunVM:
         # List of events that have parsed and recorded so far.
         self.events = []
 
+    def __repr__(self):
+        repr = "RunVM: "
+        repr += "instanceid: %s " % self.instanceid
+        repr += "nodeid: %s " % self.nodeid
+        repr += "hostname : %s " % self.hostname
+        repr += "service_type: %s " % self.service_type
+        repr += "parent: %s " % self.parent
+        repr += "runlogdir: %s " % self.runlogdir
+        repr += "vmlogdir: %s " % self.vmlogdir
+        repr += "events: %s " % self.events
+        return repr
+
 class WorkerInstanceState:
     """Object to store worker instance information from an EPU Controller state query
     """
@@ -94,3 +106,15 @@ class EPUControllerState:
 
         # List of WorkerInstanceState
         self.instances = []
+
+    def __repr__(self):
+        repr = "EPUControllerState: "
+        repr += "capture_time: '%s' " % self.capture_time
+        repr += "controller_name: '%s' " % self.controller_name
+        repr += "de_state: '%s' " % self.de_state
+        repr += "de_conf_report: '%s' " % self.de_conf_report
+        repr += "last_queuelen_size: '%s' " % self.last_queuelen_size
+        repr += "last_queuelen_time: '%s' " % self.last_queuelen_time
+        repr += "instances: '%s' " % self.instances
+
+        return repr
