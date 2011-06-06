@@ -117,7 +117,8 @@ def _update_controller_states(c, m, run_name, controller_map, controller_state_m
     for instanceid in controller_map.keys():
         vm = _get_vm_with_instanceid(instanceid, allvms)
         if not vm:
-            raise ProgrammingError("instanceid in RunVMs that is not in controller_map?")
+            msg = "instanceid '%s' is in your controller_map, but not your list of VMs?" % instanceid
+            raise ProgrammingError(msg)
 
         any_newevent = False
         controllers = controller_map[instanceid]
