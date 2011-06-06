@@ -11,6 +11,7 @@ class FakeRemoteSvcAdapter:
         self.fake_controller_map = {}
         self.fake_instances = []
         self.fake_worker_state = {}
+        self.worker_state_raises = None
 
     def initialize(self, m, run_name, cloudinitd):
         if self.allow_initialize:
@@ -27,5 +28,8 @@ class FakeRemoteSvcAdapter:
         return self.fake_controller_map
 
     def worker_state(self, controllers, provisioner_vm):
+
+        if self.worker_state_raises:
+            raise self.worker_state_raises
 
         return self.fake_worker_state

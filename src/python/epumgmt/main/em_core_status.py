@@ -19,6 +19,8 @@ def find_latest_status(p, c, m, run_name, cloudinitd, findworkersfirst=True):
             em_core_findworkers.find_once(p, c, m, run_name)
         except IncompatibleEnvironment,e:
             c.log.error("Problem finding new workers: %s" % str(e))
+        except Exception,e:
+            c.log.error("Problem finding new workers: %s" % str(e))
     allvms = m.persistence.get_run_vms_or_none(run_name)
     if not allvms or len(allvms) == 0:
         raise IncompatibleEnvironment("Cannot find any VMs associated with run '%s'" % run_name)
@@ -82,8 +84,11 @@ def _find_latest_worker_status(c, m, run_name, cloudinitd, allvms):
         # This is an exception because it should be there especially if is_channel_open() passed above
         raise ProgrammingError("Cannot update worker status without provisioner channel into the system")
 
-    controller_state_map = m.remote_svc_adapter.worker_state(controllers, provisioner_vm)
-
+    try:
+        controller_state_map = m.remote_svc_adapter.worker_state(controllers, provisioner_vm)
+    except Exception,e:
+        c.log.warn("Unable to get worker state for controllers: %s" % controllers)
+        return
 
     _update_worker_parents(c, m, run_name, controllers, controller_state_map, allvms)
     _update_worker_states(c, m, run_name, controllers, controller_state_map, allvms)

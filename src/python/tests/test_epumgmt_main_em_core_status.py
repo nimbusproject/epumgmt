@@ -377,6 +377,35 @@ class TestStatus:
         for persisted_vm in modules.persistence.vm_store:
             assert persisted_vm.parent == controller_name
 
+    def test_find_state_from_events_not_yet_started(self):
+        """Test for problems when status is called before epu is booted
+        """
+        from epumgmt.main.em_core_status import _find_latest_worker_status
+        from mocks.common import FakeCommon
+        from mocks.modules import FakeModules
+        from mocks.remote_svc_adapter import FakeRemoteSvcAdapter
+
+        svc_adapter = FakeRemoteSvcAdapter()
+        modules = FakeModules(remote_svc_adapter=svc_adapter)
+        common = FakeCommon()
+        allvms = []
+
+        provisioner = epumgmt.api.RunVM()
+        provisioner.instanceid = "i-fsdfdsfds"
+        provisioner_service_type = "provisioner"
+        provisioner.service_type = provisioner_service_type
+        allvms.append(provisioner)
+
+        svc_adapter.fake_controller_map = {provisioner.instanceid: [provisioner]}
+
+        worker_state_exception = Exception("Something broke!")
+        svc_adapter.worker_state_raises = worker_state_exception
+        _find_latest_worker_status(common, modules, "", None, allvms)
+
+        warnings = [warning for warning in common.log.transcript if warning[0] == "WARNING"]
+        _, last_warning = warnings[-1]
+        assert last_warning.find("Unable to get worker state for controllers") != -1
+
 
     def test_update_worker_parents(self):
         from epumgmt.main.em_core_status import _update_worker_parents
