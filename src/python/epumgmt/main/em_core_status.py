@@ -118,7 +118,13 @@ def _update_controller_states(c, m, run_name, controller_map, controller_state_m
         any_newevent = False
         controllers = controller_map[instanceid]
         for controller in controllers:
-            state = controller_state_map[controller]
+            try:
+                state = controller_state_map[controller]
+            except KeyError:
+                msg = "'%s' in list of controllers, but no state available. " % controller
+                msg += "Maybe a query failed?"
+                c.log.warn(msg)
+                continue
             newevent = _get_events_from_controller_state(state, vm, controller, trace, c)
             if newevent:
                 any_newevent = True
@@ -132,7 +138,13 @@ def _update_worker_parents(c, m, run_name, controllers, controller_state_map, al
     """
 
     for controller in controllers:
-        state = controller_state_map[controller]
+        try:
+            state = controller_state_map[controller]
+        except KeyError:
+            msg = "'%s' in list of controllers, but no state available. " % controller
+            msg += "Maybe a query failed?"
+            c.log.warn(msg)
+            continue
         for wis in state.instances:
             vm = _get_vm_with_nodeid(wis.nodeid, allvms)
             if not vm:
@@ -158,7 +170,14 @@ def _update_worker_states(c, m, run_name, controllers, controller_state_map, all
     trace = False
 
     for controller in controllers:
-        state = controller_state_map[controller]
+        try:
+            state = controller_state_map[controller]
+        except KeyError:
+            msg = "'%s' in list of controllers, but no state available. " % controller
+            msg += "Maybe a query failed?"
+            c.log.warn(msg)
+            continue
+
         for wis in state.instances:
             vm = _get_vm_with_nodeid(wis.nodeid, allvms)
             if not vm:

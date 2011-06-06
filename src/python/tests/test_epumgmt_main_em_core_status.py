@@ -435,6 +435,14 @@ class TestStatus:
 
         assert programming_error_raised
 
+        # Test for controllers being present in the controller_map, but not the
+        # controller state map
+        common.log.transcript = []
+        _update_worker_parents(common, modules, run_name, controllers, {}, allvms)
+        warnings = [warning for warning in common.log.transcript if warning[0] == "WARNING"]
+        _, warning = warnings[-1]
+        assert warning.find("in list of controllers, but no state available.") != -1
+
 
     def test_update_worker_states(self):
         from epumgmt.main.em_core_status import _update_worker_states
@@ -485,6 +493,14 @@ class TestStatus:
 
         assert modules.persistence.vm_store[0] == worker_0_vm
         assert len(worker_0_vm.events) == 1
+
+        # Test for controllers being present in the controller_map, but not the
+        # controller state map
+        common.log.transcript = []
+        _update_worker_states(common, modules, run_name, controllers, {}, allvms)
+        warnings = [warning for warning in common.log.transcript if warning[0] == "WARNING"]
+        _, warning = warnings[-1]
+        assert warning.find("in list of controllers, but no state available.") != -1
 
 
     def test_update_controller_states(self):
@@ -541,3 +557,11 @@ class TestStatus:
 
         assert modules.persistence.vm_store[0] == controller_0_vm
         assert len(controller_0_vm.events) == 1
+
+        # Test for controllers being present in the controller_map, but not the
+        # controller state map
+        common.log.transcript = []
+        _update_controller_states(common, modules, run_name, controller_map, {}, allvms)
+        warnings = [warning for warning in common.log.transcript if warning[0] == "WARNING"]
+        _, warning = warnings[-1]
+        assert warning.find("in list of controllers, but no state available.") != -1
