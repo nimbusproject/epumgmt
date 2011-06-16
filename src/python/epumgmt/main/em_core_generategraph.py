@@ -46,6 +46,8 @@ def _get_first_datetime(datetimes):
         return
     firsttime = datetimes[datetimes.keys()[0]]
     for key in datetimes.keys():
+        if not key:
+            continue
         if datetimes[key] < firsttime:
             firsttime = datetimes[key]
     return firsttime
@@ -66,8 +68,16 @@ def _get_eval_seconds_list(begin, end):
 def _get_eval_begin_datetime(*args):
     if len(args) <= 0:
         return
-    firsttime = _get_first_datetime(args[0])
+
+    firsttime = None
     for arg in args:
+        if not arg:
+            continue
+        firsttime = _get_first_datetime(arg)
+        break
+    for arg in args:
+        if not arg:
+            continue
         for key in arg.keys():
             if firsttime > arg[key]:
                 firsttime = arg[key]
@@ -76,7 +86,16 @@ def _get_eval_begin_datetime(*args):
 def _get_eval_end_datetime(*args):
     if len(args) <= 0:
         return
-    lasttime = _get_last_datetime(args[0])
+
+    lasttime = None
+    for arg in args:
+        if not arg:
+            continue
+        lasttime = _get_last_datetime(arg)
+
+    if not lasttime:
+        return None
+
     for arg in args:
         for key in arg.keys():
             if lasttime < arg[key]:
