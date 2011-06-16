@@ -9,6 +9,7 @@ import threading
 import tempfile
 
 from epumgmt.defaults.log_events import AmqpEvents, TorqueEvents
+from epumgmt.main.em_core_load import get_cloudinit_for_destruction
 import epumgmt.main.em_core
 import epumgmt.main.em_core_load
 import epumgmt.defaults.child
@@ -195,9 +196,9 @@ class Workload:
         # hardcoded for now, ick -- is this in a config somewhere?
         self.port = '8001'
         if self.workload_type == 'torque':
-            self.host = self._get_hostname('basenode')
+            self.host = self._get_hostname('epu-onesleeper')
         else:
-            self.host = self._get_hostname('epu-sleepers')
+            self.host = self._get_hostname('epu-onesleeper')
 
         if workloadfilename:
             workloadfilename = os.path.expanduser(workloadfilename)
@@ -376,7 +377,8 @@ def _build_opts_from_dict(val):
 def _kill_controller(p, c, m, run_name, startsec, cloudinitd, epucontroller):
     c.log.info("Killing controller (at evaluation second %s)" % startsec)
     # TODO: fix this hardcoded service name
-    svc = cloudinitd.get_service('epu-onesleeper')
+    cloudinitd_terminate = get_cloudinit_for_destruction(p, c, m, run_name)
+    svc = cloudinitd_terminate.get_service('epu-onesleeper')
     svc.shutdown()
     epucontroller.terminate()
     cmd = 'cloudinitd repair %s' % run_name
