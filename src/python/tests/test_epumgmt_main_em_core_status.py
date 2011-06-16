@@ -173,7 +173,6 @@ class TestStatus:
         self.controller.events.append(extra_event)
 
         state, _ = _latest_controller_state(self.controller)
-        print state
         assert state == extra_state
 
 
