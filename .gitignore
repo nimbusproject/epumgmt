@@ -1,3 +1,5 @@
+*.png
+*.def
 *.pyc
 var/epumgmt/logs/ec*
 var/epumgmt/runlogs/*
