@@ -1,5 +1,7 @@
 from epumgmt.api.exceptions import *
 from epumgmt.main.em_core_load import get_cloudinit
+import epumgmt.defaults.epustates as epustates
+from em_core_status import _find_state_from_events as find_state_from_events
 
 from threading import Thread
 
@@ -134,6 +136,8 @@ def _get_runvms_required(c, m, run_name, cloudinitd):
             c.log.info("Getting status from the EPU controllers, to filter out non-running workers from log fetch")
         else:
             c.log.warn("Cannot get worker status: there is no channel open to the EPU controllers")
+
+    run_vms = filter(lambda x: find_state_from_events(x) != epustates.TERMINATED, run_vms)
 
     return run_vms
 
