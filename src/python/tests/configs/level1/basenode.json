@@ -1,0 +1,77 @@
+{
+  "cassandra":{
+    "authenticator":"org.apache.cassandra.auth.SimpleAuthenticator",
+    "users":{"${cassandra_username}":"${cassandra_password}"},
+    "rpc_address":"0.0.0.0"
+  },
+  "rabbitmq":{
+    "vhosts":["/"],
+    "users":{
+      "${rabbitmq_username}":{
+        "password":"${rabbitmq_password}",
+        "permissions":{"/":{"conf":".*", "write":".*", "read":".*"}}
+      }
+    }
+  },
+  "ioncontainers": {
+    "queuestat-container": [
+      {
+        "name": "epu-queuestat", 
+        "args": { }, 
+        "config": {
+          "epu.ionproc.queuestat":{"interval_seconds": "3.0"}
+        },
+        "version": "0.1"
+      }
+    ]
+  },
+  "local_app_confs":{
+    "epu.cassandra":{
+      "hostname":"localhost",
+      "port":9160,
+      "username":"${cassandra_username}",
+      "password":"${cassandra_password}",
+      "keyspace":"${exchange_scope}"
+    }
+  },
+  "universal_app_confs":{
+    "broker_host_list":"127.0.0.1",
+    "sysname":"${exchange_scope}"
+  },
+  "virtualenv": {
+    "path" : "/home/basenode/app-venv"
+  },
+  "pythoncc":{
+    "broker":"127.0.0.1",
+    "sysname":"${exchange_scope}",
+    "broker_heartbeat":"5",
+    "broker_username":"${rabbitmq_username}",
+    "broker_password":"${rabbitmq_password}",
+    "log_level":"${ion_log_level}"
+  },
+  "appretrieve":{
+    "retrieve_method":"${epu_retrieve_method}",
+    "archive_url":"${package_repo}/${epu_archive_name}",
+    "git_repo":"${epu_git_repo}",
+    "git_branch":"${epu_git_branch}",
+    "git_commit":"${epu_git_commit}"
+  },
+  "appinstall":{
+    "install_method":"py_venv_setup",
+    "package_repo":"${package_repo}"
+  },
+  "apprun":{
+    "run_method":"supervised"
+  },
+  "dtdata":{
+    "retrieve_method":"git",
+    "archive_url":"http://ooici.net/releases/dt-data-0.1.tar.gz",
+    "git_repo":"https://github.com/oldpatricka/dt-data.git",
+    "git_branch":"master",
+    "git_commit":"HEAD",
+    "chef_debug_level":"debug"
+  },
+  "username":"basenode",
+  "groupname":"users",
+  "recipes":["user", "rabbitmq", "rabbitmq_cookie", "cassandra", "r1app"]
+}

@@ -373,8 +373,9 @@ class TestStatus:
 
         # make sure at least one vm added to persistence
         assert len(modules.persistence.vm_store) > 0
-        for persisted_vm in modules.persistence.vm_store:
-            assert persisted_vm.parent == controller_name
+        for run_name in modules.persistence.vm_store.keys():
+            for persisted_vm in modules.persistence.vm_store[run_name]:
+                assert persisted_vm.parent == controller_name
 
     def test_find_state_from_events_not_yet_started(self):
         """Test for problems when status is called before epu is booted
@@ -451,7 +452,7 @@ class TestStatus:
         _update_worker_parents(common, modules, run_name, controllers, controller_state_map, allvms)
 
         assert worker_0_vm.parent == controller_0
-        assert modules.persistence.vm_store[0] == worker_0_vm
+        assert modules.persistence.vm_store[run_name][0] == worker_0_vm
 
 
         # Test when the VM's parent isn't the controller that owns it
@@ -519,7 +520,7 @@ class TestStatus:
         # Test standard case where the worker has one new event. 
         _update_worker_states(common, modules, run_name, controllers, controller_state_map, allvms)
 
-        assert modules.persistence.vm_store[0] == worker_0_vm
+        assert modules.persistence.vm_store[run_name][0] == worker_0_vm
         assert len(worker_0_vm.events) == 1
 
         # Test for controllers being present in the controller_map, but not the
@@ -583,7 +584,7 @@ class TestStatus:
 
         _update_controller_states(common, modules, run_name, controller_map, controller_state_map, allvms)
 
-        assert modules.persistence.vm_store[0] == controller_0_vm
+        assert modules.persistence.vm_store[run_name][0] == controller_0_vm
         assert len(controller_0_vm.events) == 1
 
         # Test for controllers being present in the controller_map, but not the

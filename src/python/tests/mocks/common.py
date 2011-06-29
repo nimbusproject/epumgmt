@@ -25,3 +25,4 @@ class FakeCommon():
     def __init__(self):
 
         self.log = FakeLog()
+        self.trace = False
