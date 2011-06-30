@@ -13,14 +13,6 @@ def test_parse():
     assert opts.action == test_action
 
 
-    # Test action with arbitrary hyphens
-    test_action = "fake"
-    cmd = "%s ---%s" % (fake_command, test_action)
-    opts, _ = parse(cmd.split())
-
-    assert opts.action == test_action
-
-
     # Test action with some options
     test_action = "fake"
     test_name = "testy"
