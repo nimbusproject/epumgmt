@@ -2,7 +2,11 @@ import os
 from epumgmt.main import get_class_by_keyword, get_all_configs
 
 def get_default_config():
-    conf_file=os.path.join(os.environ['EPUMGMT_HOME'], "etc/epumgmt/main.conf")
+    try:
+        prefix = os.environ['EPUMGMT_HOME']
+    except KeyError:
+        prefix = os.path.expanduser("~/.epumgmt")
+    conf_file=os.path.join(prefix, "etc/main.conf")
     return conf_file
 
 def get_default_ac():

@@ -1,6 +1,9 @@
 *.png
 *.def
 *.pyc
+build
+dist
+*.egg-info
 var/epumgmt/logs/ec*
 var/epumgmt/runlogs/*
 var/epumgmt/confs_used/*

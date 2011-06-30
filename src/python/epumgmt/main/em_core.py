@@ -2,6 +2,7 @@ import logging
 import string
 import em_core_fetchkill
 
+from epumgmt.api import get_default_config
 from epumgmt.api.exceptions import *
 from epumgmt.api.actions import ACTIONS
 from epumgmt.main import get_class_by_keyword, get_all_configs
@@ -48,9 +49,11 @@ def core(opts, dbgmsgs=None):
         
     # in the default deployment, this is added by the .sh script wrapper 
     if not opts.conf:
-        raise InvalidInput("The path to the 'main.conf' file is required, see --help.")
+        config = get_default_config()
+    else:
+        config = opts.conf
         
-    ac = get_all_configs(opts.conf)
+    ac = get_all_configs(config)
     
     p_cls = get_class_by_keyword("Parameters", allconfigs=ac)
     p = p_cls(ac, opts)
@@ -248,7 +251,12 @@ command line option parsed structure.
 class EPUMgmtAction(object):
 
     def __init__(self, opts):
-        ac = get_all_configs(opts.conf)
+        if opts.conf:
+            config = opts.conf
+        else:
+            config = None
+
+        ac = get_all_configs(config)
 
         p_cls = get_class_by_keyword("Parameters", allconfigs=ac)
         self.p = p_cls(ac, opts)

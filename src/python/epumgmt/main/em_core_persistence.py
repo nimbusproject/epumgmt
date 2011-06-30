@@ -38,6 +38,12 @@ class Persistence:
                 raise InvalidConfig("Not a directory: %s" % pdir)
         
             dbconf = os.path.join(pdir, dbconf)
+
+        # Touch file to ensure that it exists
+        try:
+            open(dbconf, "a").close()
+        except:
+            self.c.log.error("Couldn't touch persistencedb '%s'." % dbconf)
         
         sqlitedbconf = "sqlite:///" + dbconf
         self.c.log.info("Database configuration (deduced): %s" % sqlitedbconf)
