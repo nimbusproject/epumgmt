@@ -1,5 +1,6 @@
 from em_core import core, EPUMgmtOpts
 import sys
+import os
 import traceback
 
 import em_deprecated
@@ -8,21 +9,16 @@ from epumgmt.api.exceptions import *
 from epumgmt.api import *
 import remote_debug
 
-def main(argv=None):
+def main(argv=sys.argv):
     if os.name != 'posix':
         print >>sys.stderr, "Only runs on POSIX systems."
         return 3
 
     # Enabled by a constant in the remote_debug module.
     remote_debug.connect_debugger_if_enabled()
-    
-    parser = em_optparse.parsersetup()
 
-    if argv:
-        (opts, args) = parser.parse_args(argv[1:])
-    else:
-        (opts, args) = parser.parse_args()
-       
+    (opts, args) = em_optparse.parse(argv[1:])
+
     epu = EPUMgmtOpts(cmd_opts=opts)
  
     try:

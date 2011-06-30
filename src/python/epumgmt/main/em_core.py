@@ -17,6 +17,7 @@ import em_core_status
 import em_core_termination
 import em_core_workloadtest
 import em_core_torquelogfetch
+import em_optparse
 
 
 # -----------------------------------------------------------------------------
@@ -40,7 +41,7 @@ def core(opts, dbgmsgs=None):
     
     # -------------------------------------------------------------------------
     # SETUP Parameters
-    #import epumgmt.defaults -------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     
     if not opts:
         raise InvalidInput("No arguments")
@@ -62,7 +63,8 @@ def core(opts, dbgmsgs=None):
     
     given_action = p.get_arg_or_none(em_args.ACTION)
     if not given_action:
-        msg = "The %s argument is required, see -h" % em_args.ACTION.long_syntax
+        em_optparse.print_help()
+        msg = "You must specify an action as one of your arguments"
         raise InvalidInput(msg)
         
     action = validate_action(given_action)
@@ -107,20 +109,20 @@ def _core(action, p, c):
     # VALIDATE
     # -------------------------------------------------------------------------
     
-    # At least currently, this is required for all actions.
     run_name = p.get_arg_or_none(em_args.NAME)
     if not run_name:
-        raise InvalidInput("The %s action requires run_name, see -h" % action)
+        raise InvalidInput("The %s action requires the --name argument." % action)
     
+    # Validate and load cloudinitd for all actions
     c.log.info("Validating '%s' action for '%s'" % (action, run_name))
-    
+
     event_gather.validate()
     persistence.validate()
     runlogs.validate()
     remote_svc_adapter.validate()
-    
+
     modules = Modules(event_gather, persistence, runlogs, remote_svc_adapter)
-    
+
     # Always load from cloudinit.d initially
     c.log.debug("Loading the launch plan for '%s'" % run_name)
     cloudinitd = em_core_load.get_cloudinit(p, c, modules, run_name)
@@ -197,10 +199,11 @@ def validate_action(action):
     action = string.lower(action)
     if not action:
         raise InvalidInput("action is missing/empty")
-                          
+
     if action not in ACTIONS().all_actions():
+        em_optparse.print_help()
         raise InvalidInput("Unknown action: '%s'" % action)
-        
+
     return action
 
 
@@ -224,19 +227,11 @@ command line option parsed structure.
 """
         # create a dictionary of command line options.
         self.conf = conf_file
-        self.name = name
 
         if cmd_opts:
             for k in control_args:
                 ca = control_args[k]
                 ca.value = cmd_opts.__dict__[k]
-
-        if self.conf is None:
-            msg = "The conf_file argument is required"
-            raise InvalidInput(msg)
-        if self.name is None:
-            msg = "The name argument is required"
-            raise InvalidInput(msg)
 
     def __setattr__(self, name, value):
         if name not in control_args:

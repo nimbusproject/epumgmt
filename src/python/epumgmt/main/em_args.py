@@ -1,5 +1,6 @@
 from epumgmt.api.actions import ACTIONS
 from epumgmt.main import ControlArg
+import optparse
 
 a = []
 ALL_EC_ARGS_LIST = a
@@ -14,12 +15,9 @@ ALL_EC_ARGS_LIST = a
 # 
 ################################################################################
 
-actionlist = str(ACTIONS().all_actions())
-actionlist = actionlist[1:] # remove '['
-actionlist = actionlist[:-1] # remove ']'
 ACTION = ControlArg("action", "-a")
+ACTION.help = optparse.SUPPRESS_HELP
 a.append(ACTION)
-ACTION.help = "Action for the program to take: %s" % actionlist
 
 CONF = ControlArg("conf", "-c", metavar="PATH")
 a.append(CONF)

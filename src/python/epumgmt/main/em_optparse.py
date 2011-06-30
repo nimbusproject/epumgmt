@@ -3,6 +3,7 @@
 
 import optparse
 import em_args
+from epumgmt.api.actions import ACTIONS
 
 # Not using yet
 EC_VERSION = "X.Y"
@@ -41,12 +42,13 @@ def parsersetup():
     """Return configured command-line parser."""
 
     ver="Nimbus EPU Management %s - http://www.nimbusproject.org" % EC_VERSION
-    usage="see help (-h)."
+    usage="epumgmt action [Arguments]"
     parser = optparse.OptionParser(version=ver, usage=usage)
 
     # ---------------------------------------
     
     # Might be helpful to have more groups in the future.
+    actions = ACTIONS().all_actions()
     deprecated_args = []
     other_args = []
     
@@ -58,19 +60,27 @@ def parsersetup():
             
             
     # ---------------------------------------
-            
-    grouptxt1 = "  Arguments"
-    grouptxt2 = "  Deprecated"
+    actions_title =    "  Actions"
+    arguments_title =  "  Arguments"
+    deprecated_title = "  Deprecated"
     # For each one, use twice length of the longest one:
-    groupline = (len(2*grouptxt2)-1) * "-"
+    groupline = (len(2*deprecated_title)-1) * "-"
+
+
+    # Actions
+    actions_description = ", ".join(ACTIONS().all_actions())
+    group = optparse.OptionGroup(parser, actions_title, actions_description)
+    parser.add_option_group(group)
+
     
-    # 1 - other_args
-    group = optparse.OptionGroup(parser, grouptxt1, groupline)
+    # Arguments
+    group = optparse.OptionGroup(parser, arguments_title, groupline)
     for arg in other_args:
         _add_option(group, arg)
     parser.add_option_group(group)
+
     
-    # 3 - deprecated_args
+    # Deprecated Arguments
     if len(deprecated_args) > 0:
         group = optparse.OptionGroup(parser, grouptxt2, groupline)
         for arg in deprecated_args:
@@ -78,4 +88,33 @@ def parsersetup():
         parser.add_option_group(group)
     
     return parser
-    
+
+def parse(argv):
+    """parse arguments from the command line
+
+    The last positional argument will be considered the action.
+    """
+
+    if not argv:
+        return None, None
+    parser = parsersetup()
+    opts, args = parser.parse_args(argv)
+    try:
+        opts.action = args.pop()
+    except IndexError:
+        # No action specified
+        pass
+
+    return opts, args
+
+def print_help():
+    """convenience function for printing help from other places in epumgmt
+    """
+    parser = parsersetup()
+    parser.print_help()
+
+def print_version():
+    """convenience function for printing version from other places in epumgmt
+    """
+    parser = parsersetup()
+    parser.print_version()

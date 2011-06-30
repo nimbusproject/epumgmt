@@ -21,7 +21,6 @@ import ConfigParser
 import os
 import string
 
-from epumgmt.api.exceptions import InvalidConfig, ProgrammingError
 
 # See api/TODO.xt
 #from epumgmt.api import interfacesdict
@@ -38,6 +37,7 @@ class Modules:
 # -----------------------------------------------------------------------------
 
 def get_class_by_keyword(keyword, allconfigs=None, implstr=None):
+    from epumgmt.api.exceptions import InvalidConfig, ProgrammingError
     if not implstr and not allconfigs:
         raise ProgrammingError("get_class_by_keyword() needs one or the other: 'allconfigs' or 'implstr'")
     
@@ -73,8 +73,12 @@ def get_all_configs(mainconf_file_path):
     Expecting "otherconfs" section in this file which has a list of paths to
     conf files which will be folded in to the config object.
     """
+    from epumgmt.api.exceptions import InvalidConfig, ProgrammingError
+
     if not os.path.isabs(mainconf_file_path):
         raise InvalidConfig("main.conf needs to be an absolute path, you provided '%s'" % mainconf_file_path)
+    if not os.path.exists(mainconf_file_path):
+        raise InvalidConfig("'%s' does not exist" % mainconf_file_path)
         
     resolvedir = os.path.dirname(mainconf_file_path)
     mainconfig = _get_one_config(mainconf_file_path)
@@ -90,6 +94,7 @@ def get_all_configs(mainconf_file_path):
     return mainconfig
 
 def _get_one_config(filepath, config=None):
+    from epumgmt.api.exceptions import InvalidConfig, ProgrammingError
     if not filepath:
         raise InvalidConfig("filepath was not supplied to _get_one_config()")
     if not config:
