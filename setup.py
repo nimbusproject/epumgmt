@@ -68,6 +68,9 @@ setup(name="epumgmt",
               "epumgmt = epumgmt.main.em_cmdline:main"
           ]
       },
+      dependency_links = ["https://github.com/nimbusproject/cloudyvents/tarball/master#egg=cloudyvents-0.1",
+                          "https://github.com/nimbusproject/cloudminer/tarball/master#egg=cloudminer-0.2"],
+      install_requires = ["cloudinitd ==  1.0rc1", "cloudyvents == 0.1", "cloudminer == 0.2"],
       data_files = data_files
 )
 
