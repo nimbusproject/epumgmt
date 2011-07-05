@@ -13,14 +13,13 @@ def terminate(p, c, m, run_name, cloudinitd):
         c.log.warn("Problem with access to the services, cannot terminate workers without this channel")
         c.log.info("Killing only the cloudinit.d-launched nodes.")
     else:
-        if not m.remote_svc_adapter.kill_all_workers():
+        c.log.info("Terminating all workers in run '%s'" % run_name)
+        if m.remote_svc_adapter.kill_all_workers():
+            c.log.info("Terminated all workers in run '%s'" % run_name)
+        else:
             raise UnexpectedError("Problem triggering worker termination, you need to make sure these are terminated manually!")
-        # TODO: here, we need to make sure the provisioner is done killing things with some mechanism like RPC.
-        #       This will require some thought and design.  For now, this happens fairly instantly if
-        #       the IaaS service is available, etc.  But we should know for sure before proceeding.
-        c.log.info("Sent signal to the provisioner, waiting for it to terminate all workers in run '%s'" % run_name)
-        time.sleep(5)
 
+    c.log.info("Shutting down all services launched by cloudinit.d for '%s'" % run_name)
     # Need a different instantiation of cloudinitd for shutdown
     cloudinitd_terminate = get_cloudinit_for_destruction(p, c, m, run_name)
     cloudinitd_terminate.shutdown()
