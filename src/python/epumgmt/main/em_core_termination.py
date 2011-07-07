@@ -1,6 +1,6 @@
 from epumgmt.api.exceptions import *
 from epumgmt.main.em_core_load import get_cloudinit_for_destruction
-import time
+import em_core_logfetch
 
 def terminate(p, c, m, run_name, cloudinitd):
     """Destroy all VM instances that are part of the run.
@@ -18,6 +18,7 @@ def terminate(p, c, m, run_name, cloudinitd):
             c.log.info("Terminated all workers in run '%s'" % run_name)
         else:
             raise UnexpectedError("Problem triggering worker termination, you need to make sure these are terminated manually!")
+        em_core_logfetch.fetch_by_service_name(p, c, m, run_name, "provisioner")
 
     c.log.info("Shutting down all services launched by cloudinit.d for '%s'" % run_name)
     # Need a different instantiation of cloudinitd for shutdown
