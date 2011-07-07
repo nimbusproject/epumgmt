@@ -9,9 +9,9 @@ def get_cloudinitd_service(cloudinitd, name):
     """Return the cloudinit.d service by exact name match or raise IncompatibleEnvironment"""
     
     if not cloudinitd:
-        raise Exception("requires cloudinitd reference")
+        raise ProgrammingError("requires cloudinitd reference")
     if not name:
-        raise Exception("requires service name")
+        raise ProgrammingError("requires service name")
     noservicemsg = "Cannot find the '%s' service in cloudinit.d run '%s'" % (name, cloudinitd.run_name)
     try:
         aservice = cloudinitd.get_service(name)
