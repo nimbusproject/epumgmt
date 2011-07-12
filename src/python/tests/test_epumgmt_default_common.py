@@ -100,7 +100,4 @@ def test_close_logfile():
     logging_common.close_logfile()
     assert not logging_common.logfilehandler
 
-    #logging_common.reopen_logfile()
-    #assert logging_common.logfilehandler
-
     shutil.rmtree(logdir)
