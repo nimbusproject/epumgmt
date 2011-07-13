@@ -1,6 +1,7 @@
 *.png
 *.def
 *.pyc
+*.swp
 var/epumgmt/logs/ec*
 var/epumgmt/runlogs/*
 var/epumgmt/confs_used/*
