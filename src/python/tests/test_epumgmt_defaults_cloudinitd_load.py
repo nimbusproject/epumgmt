@@ -13,7 +13,7 @@ from epumgmt.defaults.parameters import DefaultParameters
 
 from mocks.common import FakeCommon
 from mocks.modules import FakeModules
-from mocks.modules import build_fake_scp_command_str
+from mocks.modules import make_fake_scp_command_str
 from mocks.remote_svc_adapter import FakeRemoteSvcAdapter
 
 class TestCloudinitdLoad:
@@ -48,7 +48,7 @@ class TestCloudinitdLoad:
         runlogs = DefaultRunlogs(self.params, self.common)
         runlogs.validate()
         self.modules.runlogs = runlogs
-        new_get_scp = build_fake_scp_command_str(runlogs, runlogs.get_scp_command_str)
+        new_get_scp = make_fake_scp_command_str(runlogs, runlogs.get_scp_command_str)
         self.modules.runlogs.get_scp_command_str = types.MethodType(new_get_scp, self.modules.runlogs)
 
         self.test_dir = os.path.dirname(__file__)

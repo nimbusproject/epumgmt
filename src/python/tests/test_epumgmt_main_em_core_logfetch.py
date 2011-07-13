@@ -15,7 +15,7 @@ import epumgmt.defaults.epustates as epustates
 
 from mocks.common import FakeCommon
 from mocks.modules import FakeModules
-from mocks.modules import build_fake_scp_command_str
+from mocks.modules import make_fake_scp_command_str
 from mocks.remote_svc_adapter import FakeRemoteSvcAdapter
 from mocks.event import Event
 
@@ -52,7 +52,7 @@ class TestLogfetch:
         runlogs = DefaultRunlogs(self.params, self.common)
         runlogs.validate()
         self.modules.runlogs = runlogs
-        new_get_scp = build_fake_scp_command_str(runlogs, runlogs.get_scp_command_str)
+        new_get_scp = make_fake_scp_command_str(runlogs, runlogs.get_scp_command_str)
         self.modules.runlogs.get_scp_command_str = types.MethodType(new_get_scp, self.modules.runlogs)
 
         self.test_dir = os.path.dirname(__file__)
@@ -62,6 +62,8 @@ class TestLogfetch:
 
     def teardown(self):
         shutil.rmtree(self.test_db_dir)
+        shutil.rmtree(self.vmlogdir)
+        shutil.rmtree(self.runlogdir)
 
     def test_fetch_one_vm(self):
         from epumgmt.main.em_core_logfetch import _fetch_one_vm

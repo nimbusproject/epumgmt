@@ -20,7 +20,7 @@ class FakeModules:
         self.persistence = FakePersistence()
         self.runlogs = runlogs
 
-def build_fake_scp_command_str(target, real_scp_command_str):
+def make_fake_scp_command_str(target, real_scp_command_str):
     def fake_scp_command_str(target, c, vm, cloudinitd):
         scpcmd = real_scp_command_str(c, vm, cloudinitd)
         scpcmd = "echo %s" % scpcmd
