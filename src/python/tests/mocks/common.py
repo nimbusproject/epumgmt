@@ -22,6 +22,8 @@ class FakeCommon():
     """
 
 
-    def __init__(self):
+    def __init__(self, p=None):
 
         self.log = FakeLog()
+        self.trace = False
+        self.p = p

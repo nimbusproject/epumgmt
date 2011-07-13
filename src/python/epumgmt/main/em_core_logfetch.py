@@ -1,5 +1,7 @@
 from epumgmt.api.exceptions import *
 from epumgmt.main.em_core_load import get_cloudinit
+import epumgmt.defaults.epustates as epustates
+from em_core_status import _find_state_from_events as find_state_from_events
 
 from threading import Thread
 
@@ -93,7 +95,7 @@ def fetch_by_vm_id(p, c, m, run_name, instanceid):
         
     _fetch_one_vm(p, c, m, run_name, vm)
 
-def fetch_by_service_name(p, c, m, run_name, servicename):
+def fetch_by_service_name(p, c, m, run_name, servicename, cloudinitd=None):
     """Fetch log files from the VM instance(s) in this run that were started
     with the role of this service name.
     
@@ -119,7 +121,7 @@ def fetch_by_service_name(p, c, m, run_name, servicename):
         raise IncompatibleEnvironment("Cannot find any active VMs associated with run '%s' with the service type/name '%s'" % (run_name, servicename))
     
     for vm in vms:
-        _fetch_one_vm(p, c, m, run_name, vm)
+        _fetch_one_vm(p, c, m, run_name, vm, cloudinitd=cloudinitd)
         
 # -----------------------------------------------------------------
 
@@ -135,10 +137,13 @@ def _get_runvms_required(c, m, run_name, cloudinitd):
         else:
             c.log.warn("Cannot get worker status: there is no channel open to the EPU controllers")
 
+    run_vms = filter(lambda x: find_state_from_events(x) != epustates.TERMINATED, run_vms)
+
     return run_vms
 
-def _fetch_one_vm(p, c, m, run_name, vm):
+def _fetch_one_vm(p, c, m, run_name, vm, cloudinitd=None):
     c.log.info("fetching logs from '%s' instance '%s' (run '%s')" % (vm.service_type, vm.instanceid, run_name))
-    cloudinitd = get_cloudinit(p, c, m, run_name)
+    if not cloudinitd:
+        cloudinitd = get_cloudinit(p, c, m, run_name)
     scpcmd = m.runlogs.get_scp_command_str(c, vm, cloudinitd)
     m.runlogs.fetch_logs(scpcmd)

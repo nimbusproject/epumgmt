@@ -1,0 +1,81 @@
+{
+  "ioncontainers":{
+    "provisioner-query-container": [
+      {
+        "name": "epu-provisioner-query",
+        "args" : {},
+        "config": {}
+      }
+    ],
+    "provisioner-container1": [
+      {
+        "name": "epu-provisioner", 
+        "args": { }, 
+        "config": {
+          "epu.ionproc.provisioner":{
+            "context_uri":"https://nimbus.ci.uchicago.edu:8888/ContextBroker/ctx/",
+            "context_key":"${ctxbroker_key}",
+            "context_secret":"${ctxbroker_secret}",
+            "sites":{
+              "ec2-west":{
+                "driver_class":"libcloud.drivers.ec2.EC2USWestNodeDriver",
+                "driver_kwargs":{
+                  "key":"${ec2_key}",
+                  "secret":"${ec2_secret}"
+                }
+              }
+            },
+            "cassandra_hostname":"${cassandra_hostname}",
+            "cassandra_username":"${cassandra_username}",
+            "cassandra_password":"${cassandra_password}",
+            "cassandra_keyspace":"${exchange_scope}",
+            "cassandra_port":9160
+          }
+        },
+        "version": "0.1"
+      }
+    ],
+    "dtrs-container": [
+      {
+        "name": "epu-dtrs", 
+        "args": { }, 
+        "config": { },
+        "version": "0.1"
+      }
+    ]
+  },
+  "local_app_confs":{
+  },
+  "universal_app_confs":{
+    "broker_host_list":"${broker_ip_address}",
+    "sysname":"${exchange_scope}"
+  },
+  "virtualenv": {
+    "path" : "/home/cc/app-venv"
+  },
+  "pythoncc":{
+    "broker":"${broker_ip_address}",
+    "sysname":"${exchange_scope}",
+    "broker_heartbeat":"5",
+    "broker_username":"${rabbitmq_username}",
+    "broker_password":"${rabbitmq_password}",
+    "log_level":"${ion_log_level}"
+  },
+  "appretrieve":{
+    "retrieve_method":"${epu_retrieve_method}",
+    "archive_url":"${package_repo}/${epu_archive_name}",
+    "git_repo":"${epu_git_repo}",
+    "git_branch":"${epu_git_branch}",
+    "git_commit":"${epu_git_commit}"
+  },
+  "appinstall":{
+    "install_method":"py_venv_setup",
+    "package_repo":"${package_repo}"
+  },
+  "apprun":{
+    "run_method":"supervised"
+  },
+  "username":"cc",
+  "groupname":"users",
+  "recipes":["r1app"]
+}

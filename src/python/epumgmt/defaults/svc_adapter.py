@@ -132,8 +132,11 @@ class DefaultRemoteSvcAdapter:
         if not self.is_channel_open():
             raise IncompatibleEnvironment("Cannot get worker state without an open channel to the services")
 
-        if not len(controllers):
+        if not controllers or not len(controllers):
             raise InvalidInput("Empty controllers service name list")
+
+        if not provisioner_vm.hostname:
+            raise IncompatibleEnvironment("Cannot get state of provisionner that doesn't (yet) have a hostname")
 
         filename = "epu-worker-state-%s" % str(uuid.uuid4())
 
