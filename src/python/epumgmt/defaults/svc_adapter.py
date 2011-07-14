@@ -252,11 +252,9 @@ class DefaultRemoteSvcAdapter:
         """
         svc = get_cloudinitd_service(self.cloudinitd, service_type)
         allkeys = svc.get_keys_from_bag()
-        print allkeys
         controllers = []
         for key in allkeys:
             if key.startswith(self.controller_prefix):
-                print "Whoop"
                 controllers.append(svc.get_attr_from_bag(key))
         return controllers
 
