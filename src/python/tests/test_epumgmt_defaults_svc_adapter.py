@@ -172,6 +172,51 @@ class TestDefaultRemoteSvcAdapter:
         got_path = self.svc_adapter._reconcile_relative_conf(relative_dir, user, "")
         assert got_path == "/home/%s/%s" % (user, relative_dir)
 
+    def test_intake_query_result_from_file(self):
+
+        controller_name = "test-controller"
+        de_state = "STABLE_DE"
+        de_conf_report = "balala"
+        last_queuelen_size = 5
+        last_queuelen_time = 1234
+        instance_0 = "fashfjsahfjksa"
+        instance_0_state = "600-RUNNING"
+        iaas_state_time = 12312142
+        heartbeat_state = "SOMETHING"
+        heartbeat_time = 5
+
+
+        (json_file, json_filename) = tempfile.mkstemp()
+        os.close(json_file)
+        test_json = """
+        {"%s": {"de_state":"%s", "de_conf_report":"%s", "last_queuelen_size":%s,
+         "last_queuelen_time": %s,
+         "instances": {
+           "%s": {"iaas_state":"%s", "iaas_state_time": %s,
+                  "heartbeat_state":"%s", "heartbeat_time": %s}}}}
+        """ % (controller_name, de_state, de_conf_report, last_queuelen_size,
+              last_queuelen_time, instance_0, instance_0_state, iaas_state_time,
+              heartbeat_state, heartbeat_time)
+
+        with open(json_filename, "w") as j_file:
+            j_file.write(test_json)
+
+        map = self.svc_adapter._intake_query_result_from_file(json_filename)
+
+        # Test that all our values are correct
+        assert map.has_key(controller_name)
+        controller = map[controller_name]
+        assert controller.de_state == de_state
+        assert controller.de_conf_report == de_conf_report
+        assert controller.last_queuelen_size == last_queuelen_size
+        assert controller.last_queuelen_time == last_queuelen_time
+        assert len(controller.instances) == 1
+        instance = controller.instances[0]
+        assert instance.nodeid == instance_0
+        assert instance.iaas_state == instance_0_state
+        assert instance.iaas_state_time == iaas_state_time
+        assert instance.heartbeat_state == heartbeat_state
+        assert instance.heartbeat_time == heartbeat_time
 
 def make_fake_run_one_cmd(target, real_run_one_cmd):
     def fake_run_one_cmd(target, cmd):
