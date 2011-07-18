@@ -14,7 +14,7 @@ class TestEpumgmtAPI:
         self.opts.name = "testname"
 
         self.epu_home = tempfile.mkdtemp()
-        conf_dir = os.path.join(self.epu_home, "etc/epumgmt")
+        conf_dir = os.path.join(self.epu_home, "etc/")
         os.makedirs(conf_dir)
         self.main_conf = os.path.join(conf_dir, "main.conf")
         self.dirs_conf = os.path.join(conf_dir, "dirs.conf")
@@ -45,7 +45,7 @@ class TestEpumgmtAPI:
         from epumgmt.api import get_default_config
 
         epumgmt_home = "/path/to/epumgmt"
-        default_conf_rel = "etc/epumgmt/main.conf"
+        default_conf_rel = "etc/main.conf"
         default_config = os.path.join(epumgmt_home, default_conf_rel)
         os.environ["EPUMGMT_HOME"] = epumgmt_home
 
@@ -95,7 +95,7 @@ class TestEpumgmtAPI:
 
         try:
             get_common()
-        except Exception:
+        except:
             no_opts_nor_p_exception = True
 
         assert no_opts_nor_p_exception
