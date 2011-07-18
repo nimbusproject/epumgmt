@@ -10,6 +10,10 @@ and run something like:
 
 $ nosetests --with-coverage --cover-package=epumgmt.main.em_core_status
 
+You may also want to avoid slow tests, to do this, use:
+
+$ nosetests -a '!slow'
+
 During (test driven) development this can be conveniently combined with:
 
 $ ./sbin/cat-latest-logfile.sh

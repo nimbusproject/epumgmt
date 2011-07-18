@@ -1,3 +1,5 @@
+import sys
+import traceback
 
 class FakeLog():
 
@@ -14,6 +16,11 @@ class FakeLog():
         self.transcript.append(("WARNING", msg))
 
     def error(self, msg):
+        self.transcript.append(("ERROR", msg))
+
+    def exception(self, msg):
+        exc = sys.exc_info()
+        msg += "".join(traceback.format_exception(exc[0], exc[1], exc[2]))
         self.transcript.append(("ERROR", msg))
 
 class FakeCommon():
