@@ -1,4 +1,5 @@
 import epumgmt.main.em_core_status
+import epumgmt.defaults.epustates as epustates
 import mocks.event
 
 class TestStatus:
@@ -31,6 +32,15 @@ class TestStatus:
         self.testvm2_instanceid = "i-jjjjjjjj"
         self.testvm2.instanceid = self.testvm2_instanceid
         self.testvm2.service_type = "whatev"
+        self.testvm2.events = []
+        self.testvm2_running_time = 3
+        self.testvm2.events.append(mocks.event.Event(name="iaas_state",
+                      timestamp=self.testvm2_running_time,
+                      state=epustates.RUNNING))
+        self.testvm2_terminated_time = 8
+        self.testvm2.events.append(mocks.event.Event(name="iaas_state",
+                      timestamp=self.testvm2_terminated_time,
+                      state=epustates.TERMINATED))
 
         # VM with Controller
         self.controller = epumgmt.api.RunVM()
@@ -594,3 +604,13 @@ class TestStatus:
         warnings = [warning for warning in common.log.transcript if warning[0] == "WARNING"]
         _, warning = warnings[-1]
         assert warning.find("in list of controllers, but no state available.") != -1
+
+
+    def test_get_running_terminate_timestamps(self):
+        get_running_terminate_timestamps = epumgmt.main.em_core_status._get_running_terminate_timestamps
+
+        map = get_running_terminate_timestamps(self.allvms)
+
+        vm2_running_time, vm2_terminated_time = map["i-jjjjjjjj"]
+        assert vm2_running_time == self.testvm2_running_time
+        assert vm2_terminated_time == self.testvm2_terminated_time

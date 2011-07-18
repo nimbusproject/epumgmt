@@ -3,6 +3,7 @@ from datetime import datetime
 
 from cloudyvents.cyvents import CYvent
 import em_core_findworkers
+import epumgmt.defaults.epustates as epustates
 from epumgmt.api import RunVM
 from epumgmt.main import em_args
 from epumgmt.api.exceptions import IncompatibleEnvironment, ProgrammingError
@@ -94,7 +95,30 @@ def _find_latest_worker_status(c, m, run_name, cloudinitd, allvms):
     _update_worker_states(c, m, run_name, controllers, controller_state_map, allvms)
     _update_controller_states(c, m, run_name, controller_map, controller_state_map, allvms)
 
+def _get_running_terminate_timestamps(run_vms):
+    """returns a dictionary of tuples of the timestamps of the
+       timestamp where a worker is RUNNING and TERMINATED.
 
+       If these values aren't available yet, they will be set to None
+
+       ex:
+       {"i-fsdfdse" : (running_timestamp, terminated_timestamp), ... }
+    """
+
+    map = {}
+    for vm in run_vms:
+        running, terminated = None, None
+        for event in vm.events:
+            if event.name == "iaas_state":
+                state = event.extra["state"]
+                if state == epustates.RUNNING:
+                    running = event.timestamp
+                elif state == epustates.TERMINATED:
+                    terminated = event.timestamp
+
+        map[vm.instanceid] = (running, terminated)
+
+    return map
 
 def _get_provisioner_vm(allvms):
     """returns a vm with a "provisioner" service_type 
@@ -409,6 +433,8 @@ def _report(allvms):
     default_controller = "(unknown controller)"
     by_controller = {} # key: controller, value: list of vm_info tuples for it
     
+    timestamps = _get_running_terminate_timestamps(workers)
+
     for vm in workers:
 
         hostname = default_hostname
@@ -422,18 +448,32 @@ def _report(allvms):
         controller = default_controller
         if vm.parent:
             controller = vm.parent
+
+        running_timestamp, terminated_timestamp = timestamps[vm.instanceid]
+        if not running_timestamp:
+            running_timestamp = " "
+
+        if not terminated_timestamp:
+            terminated_timestamp = " "
             
-        vm_info = (status, vm.instanceid, hostname)
+        vm_info = (status, vm.instanceid, hostname, running_timestamp, terminated_timestamp)
         if by_controller.has_key(controller):
             by_controller[controller].append(vm_info)
         else:
             by_controller[controller] = [vm_info]
 
     widest_status = len(default_status)
+    widest_hostname = 0
+    widest_running_timestamp = 0
     for vm_info_list in by_controller.values():
         for vm_info in vm_info_list:
             if len(vm_info[0]) > widest_status:
                 widest_status = len(vm_info[0])
+            if len(vm_info[2]) > widest_hostname:
+                widest_hostname = len(vm_info[2])
+            if len(str(vm_info[3])) > widest_running_timestamp:
+                widest_running_timestamp = len(str(vm_info[3]))
+
 
     for controller in by_controller.keys():
         txt += "%s:\n" % controller
@@ -451,7 +491,10 @@ def _report(allvms):
         txt += "\n  Workers:\n"
         for vm_info in by_controller[controller]:
             status = _pad_txt(vm_info[0], widest_status)
-            txt += "    %s | %s | %s\n" % (status, vm_info[1], vm_info[2])
+            hostname = _pad_txt(vm_info[2], widest_hostname)
+            running = _pad_txt(str(vm_info[3]), widest_running_timestamp)
+            txt += "    %s | %s | %s | %s | %s\n" % (
+                    status, vm_info[1], hostname, running, vm_info[4])
         txt += "\n"
 
     return txt
