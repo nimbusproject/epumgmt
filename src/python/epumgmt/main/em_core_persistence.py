@@ -11,6 +11,7 @@ class Persistence:
         self.p = params
         self.c = common
         self.lockfilepath = None
+        self.cdb = None
         
     def _find_db_conf(self):
         dbconf = self.p.get_conf_or_none("persistence", "persistencedb")
@@ -87,7 +88,7 @@ class Persistence:
         self.cdb.commit()
 
     def find_instanceid_byservice(self, run_name, servicename):
-        """Expects only zero or 1 result -- you cannot use the "piggybacking service" trick with a non-uniqe name
+        """Expects only zero or 1 result -- you cannot use the "piggybacking service" trick with a non-unique name
         """
         if not self.cdb:
             raise ProgrammingError("cannot persist anything without setup/validation")

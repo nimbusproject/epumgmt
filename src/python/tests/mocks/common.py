@@ -1,3 +1,4 @@
+import os
 import sys
 import traceback
 
@@ -34,3 +35,7 @@ class FakeCommon():
         self.log = FakeLog()
         self.trace = False
         self.p = p
+
+    def resolve_var_dir(self, dir):
+
+        return os.path.join(self.p.get_conf_or_none("ecdirs", "var"), dir)
