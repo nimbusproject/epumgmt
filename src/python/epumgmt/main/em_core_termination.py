@@ -17,6 +17,10 @@ def terminate(p, c, m, run_name, cloudinitd):
         if m.remote_svc_adapter.kill_all_workers():
             c.log.info("Terminated all workers in run '%s'" % run_name)
         else:
+            c.log.error("Problem triggering worker termination, you need to make sure these are terminated manually!")
+            c.log.info("Fetching provisioner logs")
+            em_core_logfetch.fetch_by_service_name(p, c, m, run_name, "provisioner")
+            c.log.info("Fetched provisioner logs")
             raise UnexpectedError("Problem triggering worker termination, you need to make sure these are terminated manually!")
         em_core_logfetch.fetch_by_service_name(p, c, m, run_name, "provisioner")
 
