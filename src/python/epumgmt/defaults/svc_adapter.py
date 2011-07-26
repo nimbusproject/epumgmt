@@ -79,9 +79,11 @@ class DefaultRemoteSvcAdapter:
         if not self.is_channel_open():
             raise IncompatibleEnvironment("Cannot kill without an open channel to the services")
 
+        cmd_timeout = 5 * 60 # 5 minute timeout
+
         cmd = self._get_provisioner().get_ssh_command()
         cmd += " " + self._get_epu_script_cmd_provisioner("epu-killer")
-        return self._run_one_cmd(cmd)
+        return self._run_one_cmd(cmd, timeout=cmd_timeout)
 
     def kill_workers(self, node_id_list):
         """Return True if the kill command was successfully sent, False if there was an issue
@@ -298,9 +300,11 @@ class DefaultRemoteSvcAdapter:
         abs_envfile = self._reconcile_relative_conf(self.envfile, username, source)
         return abs_homedir, abs_envfile
 
-    def  _run_one_cmd(self, cmd):
+    def  _run_one_cmd(self, cmd, timeout=30):
+        """Runs a command and handles timeouts and failures.
+           Default timeout is 30 secs
+        """
         self.c.log.debug("command = '%s'" % cmd)
-        timeout = 30.0 # seconds
         (killed, retcode, stdout, stderr) = child(cmd, timeout=timeout)
 
         if killed:
