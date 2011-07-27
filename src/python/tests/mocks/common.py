@@ -7,22 +7,22 @@ class FakeLog():
     def __init__(self):
         self.transcript = []
 
-    def info(self, msg):
-        self.transcript.append(("INFO", msg))
+    def info(self, msg, substitution=()):
+        self.transcript.append(("INFO", msg % substitution))
 
-    def debug(self, msg):
-        self.transcript.append(("DEBUG", msg))
+    def debug(self, msg, substitution=()):
+        self.transcript.append(("DEBUG", msg % substitution))
 
-    def warn(self, msg):
-        self.transcript.append(("WARNING", msg))
+    def warn(self, msg, substitution=()):
+        self.transcript.append(("WARNING", msg % substitution))
 
-    def error(self, msg):
-        self.transcript.append(("ERROR", msg))
+    def error(self, msg, substitution=()):
+        self.transcript.append(("ERROR", msg % substitution))
 
-    def exception(self, msg):
+    def exception(self, msg, substitution=()):
         exc = sys.exc_info()
         msg += "".join(traceback.format_exception(exc[0], exc[1], exc[2]))
-        self.transcript.append(("ERROR", msg))
+        self.transcript.append(("ERROR", msg % substitution))
 
 class FakeCommon():
     """FakeCommon fakes the common object so we can check what

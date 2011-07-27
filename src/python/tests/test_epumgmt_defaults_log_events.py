@@ -133,3 +133,60 @@ class TestAmqpEvents:
 
         assert len(failed_to_open) == 1
         os.chmod(self.producer_ioncontainer_log, old_mode)
+
+
+class TestControllerEvents:
+
+    def setup(self):
+        self.vardir = tempfile.mkdtemp()
+        self.runlogdir = "runlogs"
+        self.vmlogdir = "vmlogs"
+
+        controller_dir = os.path.join(self.vardir, self.runlogdir, "epucontrollerkill_logs")
+        os.makedirs(controller_dir)
+        self.controller_ioncontainer_log = os.path.join(controller_dir, "ioncontainer.log")
+        with open(self.controller_ioncontainer_log, "w") as container_file:
+            container_file.write("contents!")
+
+        self.config = ConfigParser.RawConfigParser()
+        self.config.add_section("events")
+        self.config.set("events", "runlogdir", self.runlogdir)
+        self.config.add_section("ecdirs")
+        self.config.set("ecdirs", "var", self.vardir)
+
+        
+        self.p = DefaultParameters(self.config, None)
+        self.c = FakeCommon(self.p)
+        self.controller_events = epumgmt.defaults.log_events.ControllerEvents(self.p, self.c, None, "")
+
+
+    def teardown(self):
+
+        shutil.rmtree(self.vardir)
+
+    def test_set_controllerlog_filenames(self):
+
+        self.controller_events._set_controllerlog_filenames()
+
+        assert self.controller_ioncontainer_log in self.controller_events.controllerlog_filenames
+
+    def test_update_log_filenames(self):
+
+        self.controller_events._update_log_filenames()
+        assert self.controller_ioncontainer_log in self.controller_events.controllerlog_filenames
+
+    def test_create_datetime(self):
+
+        month = 8
+        day = 9
+        year = 1985
+        hour = 1
+        minute = 42
+        second = 43
+        microsecond = 44
+        date_string = "%s - %s - %s" % (year, month, day)
+        time_string = "%s:%s:%s.%s" % (hour, minute, second, microsecond)
+
+        datetime = self.controller_events._create_datetime(date_string, time_string)
+
+        assert datetime.month == month

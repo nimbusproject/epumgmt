@@ -299,7 +299,7 @@ class TestDefaultRemoteSvcAdapter:
         to skip it when running these tests frequently.
         """
 
-        command_that_will_timeout = "sleep 60"
+        command_that_will_timeout = "sleep 10000"
         svc_adapter = DefaultRemoteSvcAdapter(self.p, self.c)
         succeeded = svc_adapter._run_one_cmd(command_that_will_timeout)
         assert not succeeded

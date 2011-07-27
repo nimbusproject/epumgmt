@@ -123,7 +123,7 @@ class DefaultRunlogs:
 
     def _run_one_cmd(self, cmd):
         self.c.log.debug("command = '%s'" % cmd)
-        timeout = 120.0 # seconds
+        timeout = 3120.0 # seconds
         (killed, retcode, stdout, stderr) = child.child(cmd, timeout=timeout)
 
         if killed:

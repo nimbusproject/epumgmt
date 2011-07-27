@@ -10,6 +10,7 @@ import tempfile
 
 from epumgmt.defaults.log_events import AmqpEvents, TorqueEvents
 from epumgmt.main.em_core_load import get_cloudinit_for_destruction
+from epumgmt.api.exceptions import InvalidConfig, ProgrammingError
 import epumgmt.main.em_core
 import epumgmt.main.em_core_load
 import epumgmt.defaults.child
@@ -159,9 +160,8 @@ class AMQP:
             try:
                 urllib2.urlopen(submitStr, timeout=180)
                 retry = 0
-            except Exception as e:
-                self.c.log.error('Failed to submit task at %s' % job.startsec)
-                self.c.log.error('Exception: %s' % e)
+            except:
+                self.c.log.exception('Failed to submit task at %s' % job.startsec)
                 retry -= 1
 
 

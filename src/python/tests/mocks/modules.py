@@ -28,3 +28,8 @@ def make_fake_scp_command_str(target, real_scp_command_str):
     
     return fake_scp_command_str
 
+def make_fake_execute_cmd(target, real_execute_cmd):
+    def fake_execute_cmd(target, cmd):
+        return real_execute_cmd("echo %s" % cmd)
+
+    return fake_execute_cmd
