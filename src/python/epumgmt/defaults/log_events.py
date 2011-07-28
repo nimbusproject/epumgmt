@@ -65,26 +65,26 @@ class ControllerEvents:
         filenames = self.controllerlog_filenames
         event = orig_event
 
-        eventTimes = []
+        event_times = []
         if filenames:
             for filename in filenames:
                 try:
-                    eventFile = open(filename, 'r')
+                    event_file = open(filename, 'r')
                     try:
-                        for line in eventFile:
+                        for line in event_file:
                             if event in line:
                                 splitline = line.split()
                                 lineevent = splitline[0]
                                 date_str = splitline[1].strip()
                                 time_str = splitline[2].strip()
-                                eventTime = self._create_datetime(date_str, time_str)
-                                eventTimes.append(eventTime)
+                                event_time = self._create_datetime(date_str, time_str)
+                                event_times.append(event_time)
                     finally:
-                        eventFile.close()
+                        event_file.close()
                 except IOError:
                     self.c.log.error('Failed to open and read from file: ' + \
                                      '%s' % filename)
-        return eventTimes
+        return event_times
 
 # Events:
 #  job_sent: Job Queued
@@ -155,28 +155,29 @@ class TorqueEvents:
             self.c.log.error("Unrecognized event: %s" % event)
             return {}
 
-        eventTimes = {}
+        event_times = {}
         if filenames:
             for filename in filenames:
                 try:
-                    eventFile = open(filename, 'r')
+                    event_file = open(filename, 'r')
                     try:
-                        for line in eventFile:
+                        for line in event_file:
                             if event in line:
                                 splitline = line.split()
                                 splitinfo = splitline[1].split(';')
                                 date_str = splitline[0].strip()
                                 time_str = splitinfo[0].strip()
-                                eventTime = self._create_datetime(date_str, time_str)
-                                k = int(splitinfo[4].strip().split('.')[0].strip())
-                                eventTimes[k] = eventTime
+                                event_time = self._create_datetime(date_str, time_str)
+                                job_id = int(splitinfo[4].strip().split('.')[0].strip())
+                                print splitinfo
+                                event_times[job_id] = event_time
                     finally:
-                        eventFile.close()
+                        event_file.close()
                 except IOError:
                     self.c.log.error('Failed to open and read from file: ' + \
                                      '%s' % filename)
-        self.c.log.debug("Event %s times: %s" % (orig_event, eventTimes))
-        return eventTimes
+        self.c.log.debug("Event %s times: %s" % (orig_event, event_times))
+        return event_times
 
 # Events:
 #  fetch_killed: time VM killed
@@ -221,6 +222,7 @@ class NodeEvents:
         if not os.path.isabs(baseDir):
             baseDir = self.c.resolve_var_dir(baseDir)
         for root, dirs, files in os.walk(baseDir):
+            print files
             for fileName in files:
                 if logName in fileName:
                     filenames.append(os.path.join(root, fileName))
@@ -264,13 +266,13 @@ class NodeEvents:
             self.c.log.error("Unrecognized event: %s" % event)
             return {}
 
-        eventTimes = {}
+        event_times = {}
         if filenames:
             for filename in filenames:
                 try:
-                    eventFile = open(filename, 'r')
+                    event_file = open(filename, 'r')
                     try:
-                        for line in eventFile:
+                        for line in event_file:
                             if event in line:
                                 if not jsonid:
                                     if 'iaas_id' in line:
@@ -286,18 +288,18 @@ class NodeEvents:
                                     self.c.log.exception(emsg % splitline)
                                     continue
                                 timestamp = jsonEvent['timestamp']
-                                eventTime = self._create_datetime(timestamp)
+                                event_time = self._create_datetime(timestamp)
                                 if event == 'launch_ctx_done':
                                     k = jsonEvent['extra'][jsonid][0]
                                 else:
                                     k = jsonEvent['extra'][jsonid]
-                                eventTimes[k] = eventTime
+                                event_times[k] = event_time
                     finally:
-                        eventFile.close()
+                        event_file.close()
                 except IOError:
                     self.c.log.error('Failed to open and read from file: ' + \
                                      '%s' % filename)
-        return eventTimes
+        return event_times
 
 # Events:
 #  job_sent: time job sent from amqp server to worker
@@ -377,25 +379,25 @@ class AmqpEvents:
             self.c.log.error("Unrecognized event: %s" % event)
             return {}
 
-        eventTimes = {}
+        event_times = {}
         if filenames:
             for filename in filenames:
                 try:
-                    eventFile = open(filename, 'r')
+                    event_file = open(filename, 'r')
                     try:
-                        for line in eventFile:
+                        for line in event_file:
                             if event in line:
                                 splitline = line.rpartition('JSON:')[2]
                                 splitline.strip()
                                 jsonEvent = json.loads(splitline)
                                 timestamp = jsonEvent['timestamp']
-                                eventTime = self._create_datetime(timestamp)
+                                event_time = self._create_datetime(timestamp)
                                 k = jsonEvent['extra'][jsonid]
-                                eventTimes[k] = eventTime
+                                event_times[k] = event_time
                     finally:
-                        eventFile.close()
+                        event_file.close()
                 except IOError:
                     self.c.log.error('Failed to open and read from file: ' + \
                                      '%s' % filename)
-        return eventTimes
+        return event_times
 

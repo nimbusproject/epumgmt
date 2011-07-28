@@ -306,6 +306,3 @@ class TestAMQP:
         print self.c.log.transcript
         message_type = self.c.log.transcript[-1][0]
         assert message_type == "ERROR"
-
-
-
