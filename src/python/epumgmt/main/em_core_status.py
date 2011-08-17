@@ -87,8 +87,8 @@ def _find_latest_worker_status(c, m, run_name, cloudinitd, allvms):
 
     try:
         controller_state_map = m.remote_svc_adapter.worker_state(controllers, provisioner_vm)
-    except Exception,e:
-        c.log.warn("Unable to get worker state for controllers: %s" % controllers)
+    except:
+        c.log.exception("Unable to get worker state for controllers: %s" % controllers)
         return
 
     _update_worker_parents(c, m, run_name, controllers, controller_state_map, allvms)
