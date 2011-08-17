@@ -133,7 +133,7 @@ def _get_provisioner_vm(allvms):
     return provisioner_vm
 
 def _update_controller_states(c, m, run_name, controller_map, controller_state_map, allvms):
-    """Generate "de_state", "de_conf_report", and "last_queuelen_size" cloudyvents.
+    """Generate "de_state" and "de_conf_report" cloudyvents.
     """
 
     trace = False
@@ -280,17 +280,6 @@ def _get_events_from_controller_state(state, vm, controller, trace, c):
         if trace:
             c.log.debug("de_conf_report for controller %s: %s" % (controller, state.de_conf_report))
 
-    if state.last_queuelen_size >= 0:
-        event = CYvent(controller,
-                       "last_queuelen_size",
-                       str(uuid.uuid4()),
-                       datetime.fromtimestamp(state.last_queuelen_time),
-                       extra={"last_queuelen_size": state.last_queuelen_size})
-        vm.events.append(event)
-        newevent = True
-        if trace:
-            c.log.debug("last_queuelen_size for controller %s: %s" % (controller, state.last_queuelen_size))
-
     return newevent
 
 def _get_vm_with_nodeid(nodeid, allvms):
@@ -366,9 +355,9 @@ def _get_vm_with_controller(controller, vm_list):
 
 def _latest_controller_state(vm):
     if not vm:
-        return None, None
+        return None
     if not vm.events:
-        return None, None
+        return None
     latest_destate = None
     for ev in vm.events:
         if ev.name == "de_state":
@@ -377,14 +366,6 @@ def _latest_controller_state(vm):
                     latest_destate = ev
             else:
                 latest_destate = ev
-    latest_qlen = None
-    for ev in vm.events:
-        if ev.name == "last_queuelen_size":
-            if latest_qlen:
-                if latest_qlen.timestamp < ev.timestamp:
-                    latest_qlen = ev
-            else:
-                latest_qlen = ev
 
     ret_state = latest_destate
     if latest_destate:
@@ -393,12 +374,7 @@ def _latest_controller_state(vm):
         if latest_destate.extra.has_key("state"):
             ret_state = latest_destate.extra["state"]
 
-    ret_qlen = latest_qlen
-    if latest_qlen:
-        if latest_qlen.extra.has_key("last_queuelen_size"):
-            ret_qlen = latest_qlen.extra["last_queuelen_size"]
-
-    return ret_state, ret_qlen
+    return ret_state
 
 # ----------------------------------------------------------------------------------------------------
 # REPORT
@@ -480,13 +456,11 @@ def _report(allvms):
 
         vm = _get_vm_with_controller(controller, services)
         if vm:
-            latest_destate, latest_qlen = _latest_controller_state(vm)
+            latest_destate = _latest_controller_state(vm)
             if latest_destate:
                 txt += "  EPU state: %s" % latest_destate
             else:
                 txt += "  EPU state: unknown"
-            if latest_qlen is not None:
-                txt += ", Queue length: %s" % latest_qlen
 
         txt += "\n  Workers:\n"
         for vm_info in by_controller[controller]:

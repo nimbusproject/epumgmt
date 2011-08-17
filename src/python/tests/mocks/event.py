@@ -4,16 +4,13 @@ class Event:
     """
 
     def __init__(self, name="", timestamp="", state=None, source="",
-                 last_queuelen_size=None, de_state=None, iaas_id=None,
-                 node_id=None, public_ip=None):
+                 de_state=None, iaas_id=None, node_id=None, public_ip=None):
         self.name = name
         self.timestamp = timestamp
         self.source = source
         self.extra = {}
         if state:
             self.extra["state"] = state
-        if last_queuelen_size:
-            self.extra["last_queuelen_size"] = last_queuelen_size
         if de_state:
             self.extra["de_state"] = de_state
         if public_ip:

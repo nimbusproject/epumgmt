@@ -360,8 +360,6 @@ class DefaultRemoteSvcAdapter:
             state.de_state = info['de_state']
             state.de_conf_report = info['de_conf_report']
             state.controller_name = controller
-            state.last_queuelen_size = int(info['last_queuelen_size'])
-            state.last_queuelen_time = int(info['last_queuelen_time'])
             
             state.instances = []
             for nodeid in info['instances'].keys():

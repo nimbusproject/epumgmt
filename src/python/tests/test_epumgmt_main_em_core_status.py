@@ -55,22 +55,12 @@ class TestStatus:
         self.first_de_state = "great"
         self.second_de_state_time = 100
         self.second_de_state = "paranoid"
-        self.first_last_queuelen_size_time = 60
-        self.first_last_queuelen_size = 1
-        self.second_last_queuelen_size_time = 200
-        self.second_last_queuelen_size = 2
         events.append(mocks.event.Event(name="de_state",
                       timestamp=self.first_de_state_time,
                       state=self.first_de_state))
         events.append(mocks.event.Event(name="de_state",
                       timestamp=self.second_de_state_time,
                       state=self.second_de_state))
-        events.append(mocks.event.Event(name="last_queuelen_size",
-                      timestamp=self.first_last_queuelen_size_time,
-                      last_queuelen_size=self.first_last_queuelen_size))
-        events.append(mocks.event.Event(name="last_queuelen_size",
-                      timestamp=self.second_last_queuelen_size_time,
-                      last_queuelen_size=self.second_last_queuelen_size))
         self.controller.events = events
 
         # VM with no events
@@ -164,17 +154,15 @@ class TestStatus:
     def test_latest_controller_state(self):
         from epumgmt.main.em_core_status import _latest_controller_state
 
-        nostate, noqlen = _latest_controller_state(None)
+        nostate = _latest_controller_state(None)
+        print nostate
         assert nostate == None
-        assert noqlen == None
 
-        nostate, noqlen = _latest_controller_state(self.vm_no_events)
+        nostate = _latest_controller_state(self.vm_no_events)
         assert nostate == None
-        assert noqlen == None
 
-        state, qlen = _latest_controller_state(self.controller)
+        state = _latest_controller_state(self.controller)
         assert state == self.second_de_state
-        assert qlen == self.second_last_queuelen_size
 
         extra_state = "okay"
         extra_event = mocks.event.Event(name="de_state",
@@ -182,7 +170,7 @@ class TestStatus:
                                   de_state=extra_state)
         self.controller.events.append(extra_event)
 
-        state, _ = _latest_controller_state(self.controller)
+        state = _latest_controller_state(self.controller)
         assert state == extra_state
 
 
@@ -223,20 +211,6 @@ class TestStatus:
         assert len(test_vm.events) == 1
         assert test_vm.events[0].source == controller
         assert test_vm.events[0].name == "de_conf_report"
-
-        # Reset events
-        test_vm.events = []
-        assert len(test_vm.events) == 0
-
-        last_queuelen_size = 42
-        controller = "test_controller"
-        test_state = State(last_queuelen_size=last_queuelen_size, capture_time=0)
-        got_event = _get_events_from_controller_state(test_state, test_vm, controller, True, common)
-        
-        assert got_event == True
-        assert len(test_vm.events) == 1
-        assert test_vm.events[0].source == controller
-        assert test_vm.events[0].name == "last_queuelen_size"
 
 
     def test_get_events_from_wis(self):
@@ -412,9 +386,11 @@ class TestStatus:
         svc_adapter.worker_state_raises = worker_state_exception
         _find_latest_worker_status(common, modules, "", None, allvms)
 
-        warnings = [warning for warning in common.log.transcript if warning[0] == "WARNING"]
-        _, last_warning = warnings[-1]
-        assert last_warning.find("Unable to get worker state for controllers") != -1
+        print common.log.transcript
+
+        errors = [error for error in common.log.transcript if error[0] == "ERROR"]
+        _, last_error = errors[-1]
+        assert last_error.find("Unable to get worker state for controllers") != -1
 
 
     def test_update_worker_parents(self):

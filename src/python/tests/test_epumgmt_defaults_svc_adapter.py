@@ -153,6 +153,8 @@ class TestDefaultRemoteSvcAdapter:
         assert re.match(".*epu-state.*%s" % controllers[1], ssh_command)
 
 
+
+
     def test_reconcile_relative_conf(self):
 
         absolute_dir = "/path/to/conf"
@@ -180,8 +182,6 @@ class TestDefaultRemoteSvcAdapter:
         controller_name = "test-controller"
         de_state = "STABLE_DE"
         de_conf_report = "balala"
-        last_queuelen_size = 5
-        last_queuelen_time = 1234
         instance_0 = "fashfjsahfjksa"
         instance_0_state = "600-RUNNING"
         iaas_state_time = 12312142
@@ -192,13 +192,12 @@ class TestDefaultRemoteSvcAdapter:
         (json_file, json_filename) = tempfile.mkstemp()
         os.close(json_file)
         test_json = """
-        {"%s": {"de_state":"%s", "de_conf_report":"%s", "last_queuelen_size":%s,
-         "last_queuelen_time": %s,
+        {"%s": {"de_state":"%s", "de_conf_report":"%s",
          "instances": {
            "%s": {"iaas_state":"%s", "iaas_state_time": %s,
                   "heartbeat_state":"%s", "heartbeat_time": %s}}}}
-        """ % (controller_name, de_state, de_conf_report, last_queuelen_size,
-              last_queuelen_time, instance_0, instance_0_state, iaas_state_time,
+        """ % (controller_name, de_state, de_conf_report
+              , instance_0, instance_0_state, iaas_state_time,
               heartbeat_state, heartbeat_time)
 
         with open(json_filename, "w") as j_file:
@@ -211,8 +210,6 @@ class TestDefaultRemoteSvcAdapter:
         controller = map[controller_name]
         assert controller.de_state == de_state
         assert controller.de_conf_report == de_conf_report
-        assert controller.last_queuelen_size == last_queuelen_size
-        assert controller.last_queuelen_time == last_queuelen_time
         assert len(controller.instances) == 1
         instance = controller.instances[0]
         assert instance.nodeid == instance_0
@@ -220,6 +217,19 @@ class TestDefaultRemoteSvcAdapter:
         assert instance.iaas_state_time == iaas_state_time
         assert instance.heartbeat_state == heartbeat_state
         assert instance.heartbeat_time == heartbeat_time
+
+    def test_intake_query_result_from_file_new_json(self):
+        """Test that new json is parsed correctly
+
+        This test can be used to parse real examples of json produced
+        by the system.
+        """
+
+        test_dir = os.path.dirname(__file__)
+
+        test_file = os.path.join(test_dir, "data/test_intake_query_result_from_file_new_json.dat")
+        map = self.svc_adapter._intake_query_result_from_file(test_file)
+        assert map
 
     def test_intake_query_result(self):
 
@@ -233,8 +243,6 @@ class TestDefaultRemoteSvcAdapter:
         controller_name = "test-controller"
         de_state = "STABLE_DE"
         de_conf_report = "balala"
-        last_queuelen_size = 5
-        last_queuelen_time = 1234
         instance_0 = "fashfjsahfjksa"
         instance_0_state = "600-RUNNING"
         iaas_state_time = 12312142
@@ -243,13 +251,12 @@ class TestDefaultRemoteSvcAdapter:
 
 
         test_json = """
-        {"%s": {"de_state":"%s", "de_conf_report":"%s", "last_queuelen_size":%s,
-         "last_queuelen_time": %s,
+        {"%s": {"de_state":"%s", "de_conf_report":"%s",
          "instances": {
            "%s": {"iaas_state":"%s", "iaas_state_time": %s,
                   "heartbeat_state":"%s", "heartbeat_time": %s}}}}
-        """ % (controller_name, de_state, de_conf_report, last_queuelen_size,
-              last_queuelen_time, instance_0, instance_0_state, iaas_state_time,
+        """ % (controller_name, de_state, de_conf_report,
+              instance_0, instance_0_state, iaas_state_time,
               heartbeat_state, heartbeat_time)
 
         with open(local_abs_filepath, "w") as j_file:

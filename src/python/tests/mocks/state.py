@@ -1,13 +1,11 @@
 
 class State:
 
-    def __init__(self, de_state=None, de_conf_report=None, last_queuelen_size=None,
+    def __init__(self, de_state=None, de_conf_report=None,
                  capture_time=None):
 
         self.de_state = de_state
         self.de_conf_report = de_conf_report
-        self.last_queuelen_size = last_queuelen_size
-        self.last_queuelen_time = 0
         self.capture_time = capture_time
 
 
@@ -25,11 +23,8 @@ class WorkerInstanceState:
 
 class EPUControllerState:
 
-    def __init__(self, de_state=None, de_conf_report=None, last_queuelen_size=None,
-                 capture_time=None):
+    def __init__(self, de_state=None, de_conf_report=None, capture_time=None):
         self.de_state = de_state
         self.de_conf_report = de_conf_report
-        self.last_queuelen_size = last_queuelen_size
-        self.last_queuelen_time = 0
         self.capture_time = capture_time
         self.instances = []

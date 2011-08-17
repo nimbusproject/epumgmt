@@ -105,8 +105,6 @@ class EPUControllerState:
 
         self.de_state = None # stable engine or not - (a decision engine is not required to implement this)
         self.de_conf_report = None # Configuration report - (a decision engine is not required to implement this)
-        self.last_queuelen_size = -1 # 0-N integer, or -1 if no report
-        self.last_queuelen_time = -1 # seconds since epoch or -1
 
         # List of WorkerInstanceState
         self.instances = []
@@ -117,8 +115,6 @@ class EPUControllerState:
         repr += "controller_name: '%s' " % self.controller_name
         repr += "de_state: '%s' " % self.de_state
         repr += "de_conf_report: '%s' " % self.de_conf_report
-        repr += "last_queuelen_size: '%s' " % self.last_queuelen_size
-        repr += "last_queuelen_time: '%s' " % self.last_queuelen_time
         repr += "instances: '%s' " % self.instances
 
         return repr
