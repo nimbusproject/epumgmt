@@ -1,4 +1,5 @@
 from epumgmt.api.exceptions import *
+from epumgmt.main import em_core_status
 from epumgmt.main.em_core_load import get_cloudinit
 import epumgmt.defaults.epustates as epustates
 from em_core_status import _find_state_from_events as find_state_from_events
@@ -33,7 +34,7 @@ def fetch_all(p, c, m, run_name, cloudinitd):
     if c.trace:
         c.log.debug("fetch_all()")
     
-    run_vms = _get_runvms_required(c, m, run_name, cloudinitd)
+    run_vms = _get_runvms_required(p, c, m, run_name, cloudinitd)
 
     threads = []
     for vm in run_vms:
@@ -110,7 +111,7 @@ def fetch_by_service_name(p, c, m, run_name, servicename, cloudinitd=None):
     if c.trace:
         c.log.debug("fetch_by_service_name()")
     
-    run_vms = _get_runvms_required(c, m, run_name, None)
+    run_vms = _get_runvms_required(p, c, m, run_name, None)
     
     vms = []
     for avm in run_vms:
@@ -125,7 +126,14 @@ def fetch_by_service_name(p, c, m, run_name, servicename, cloudinitd=None):
         
 # -----------------------------------------------------------------
 
-def _get_runvms_required(c, m, run_name, cloudinitd):
+def _ok_to_fetch(a_vm):
+    state = find_state_from_events(a_vm)
+    if state != epustates.TERMINATED and state != epustates.TERMINATING and state != epustates.FAILED:
+        return True
+    else:
+        return False
+
+def _get_runvms_required(p, c, m, run_name, cloudinitd):
     run_vms = m.persistence.get_run_vms_or_none(run_name)
     if not run_vms or len(run_vms) == 0:
         raise IncompatibleEnvironment("Cannot find any VMs associated with run '%s'" % run_name)
@@ -134,11 +142,16 @@ def _get_runvms_required(c, m, run_name, cloudinitd):
         m.remote_svc_adapter.initialize(m, run_name, cloudinitd)
         if m.remote_svc_adapter.is_channel_open():
             c.log.info("Getting status from the EPU controllers, to filter out non-running workers from log fetch")
+            em_core_status.find_latest_status(p, c, m, run_name, cloudinitd)
         else:
             c.log.warn("Cannot get worker status: there is no channel open to the EPU controllers")
 
-    run_vms = filter(lambda x: find_state_from_events(x) != epustates.TERMINATED, run_vms)
-
+    run_vms = m.persistence.get_run_vms_or_none(run_name)
+    before = len(run_vms)
+    run_vms = filter(_ok_to_fetch, run_vms)
+    after = len(run_vms)
+    if before != after:
+        c.log.debug("filtered: %d are ok to fetch vs. %d total" % (after, before))
     return run_vms
 
 def _fetch_one_vm(p, c, m, run_name, vm, cloudinitd=None):
