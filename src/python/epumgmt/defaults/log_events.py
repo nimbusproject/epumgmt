@@ -1,5 +1,6 @@
 import datetime
 import json
+from epumgmt.api.exceptions import InvalidConfig
 import os
 
 # Torque times are reported using the local timezone, e.g. pacific if using
@@ -214,6 +215,19 @@ class NodeEvents:
                     filenames.append(os.path.join(root, logName))
         self.provisionerlog_filenames = filenames
 
+    def _set_controllerlog_filenames(self):
+        logName = 'ioncontainer.log'
+        filenames = []
+        baseDir = self.p.get_conf_or_none("events", "runlogdir")
+        if not os.path.isabs(baseDir):
+            baseDir = self.c.resolve_var_dir(baseDir)
+        baseDir = os.path.join(baseDir, self.run_name)
+        for root, dirs, files in os.walk(baseDir):
+            if 'sleeper' in os.path.basename(root):
+                if logName in files:
+                    filenames.append(os.path.join(root, logName))
+        self.controllerlog_filenames = filenames
+
     # vm fetch killed times
     def _set_vmkilllog_filenames(self):
         logName = '--' + self.run_name + '-fetchkill-'
@@ -222,7 +236,6 @@ class NodeEvents:
         if not os.path.isabs(baseDir):
             baseDir = self.c.resolve_var_dir(baseDir)
         for root, dirs, files in os.walk(baseDir):
-            print files
             for fileName in files:
                 if logName in fileName:
                     filenames.append(os.path.join(root, fileName))
@@ -235,6 +248,7 @@ class NodeEvents:
         self.vmkilllog_filenames = None
 
         self._set_provisionerlog_filenames()
+        self._set_controllerlog_filenames()
         self._set_vmkilllog_filenames()
 
     def get_event_count(self, event):
@@ -262,6 +276,8 @@ class NodeEvents:
             filenames = self.provisionerlog_filenames
         elif 'launch_ctx_done' == event:
             filenames = self.provisionerlog_filenames
+        elif 'reconfigured' == event:
+            filenames = self.controllerlog_filenames
         else:
             self.c.log.error("Unrecognized event: %s" % event)
             return {}
@@ -289,10 +305,13 @@ class NodeEvents:
                                     continue
                                 timestamp = jsonEvent['timestamp']
                                 event_time = self._create_datetime(timestamp)
-                                if event == 'launch_ctx_done':
-                                    k = jsonEvent['extra'][jsonid][0]
+                                if jsonEvent['extra'] is not None:
+                                    if event == 'launch_ctx_done':
+                                        k = jsonEvent['extra'][jsonid][0]
+                                    else:
+                                        k = jsonEvent['extra'][jsonid]
                                 else:
-                                    k = jsonEvent['extra'][jsonid]
+                                    k = 'N/A'
                                 event_times[k] = event_time
                     finally:
                         event_file.close()

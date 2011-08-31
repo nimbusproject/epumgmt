@@ -9,6 +9,7 @@ PROVISIONER="provisioner"
 def find_once(p, c, m, run_name):
     
     em_core_logfetch.fetch_by_service_name(p, c, m, run_name, PROVISIONER)
+    em_core_logfetch.fetch_by_service_name(p, c, m, run_name, "epu-onesleeper")
     em_core_eventgather.update_events(p, c, m, run_name)
 
     # order is important, first "new_node"

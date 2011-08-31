@@ -1,4 +1,3 @@
-from operator import itemgetter
 from pylab import *
 
 import matplotlib
@@ -31,9 +30,9 @@ def validate(p):
 
 
 def _convert_datetime_to_seconds(dateTime):
-    seconds = (dateTime.microseconds + \
-              (dateTime.seconds + dateTime.days * 24 * 3600) \
-              * 10**6) / 10**6
+    seconds = (dateTime.microseconds +
+               (dateTime.seconds + dateTime.days * 24 * 3600)
+               * 10**6) / 10**6
     return seconds
 
 def _get_datetime_diff_seconds(begin, end):
@@ -105,17 +104,17 @@ def _get_eval_end_datetime(*args):
 def _get_unique_graph_filename(key, run_name, filetype):
     basedir = os.path.abspath('.')
     filenum = 0
-    filename = os.path.join(basedir, \
-                            run_name + '-' + \
-                            key + '-' + \
-                            str(filenum) + '.' + \
+    filename = os.path.join(basedir,
+                            run_name + '-' +
+                            key + '-' +
+                            str(filenum) + '.' +
                             filetype)
     while os.path.exists(filename):
         filenum += 1
-        filename = os.path.join(basedir, \
-                                run_name + '-' + \
-                                key + '-' + \
-                                str(filenum) + '.' + \
+        filename = os.path.join(basedir,
+                                run_name + '-' +
+                                key + '-' +
+                                str(filenum) + '.' +
                                 filetype)
     return filename
 
@@ -138,10 +137,39 @@ def _get_killed_vms_list(log_events, seconds, begin, killed_datetimes):
         returnlist.append(killedvms[key])
     return returnlist
 
-def _get_running_vms_list(log_events, \
-                          seconds, \
-                          begin, \
-                          start_datetimes, \
+def _get_reconfigured_list(log_events,
+                           seconds,
+                           begin,
+                           reconfigure_datetimes):
+    
+    reconfigure_events = {}
+    for second in seconds:
+        reconfigure_events[second] = 0
+
+    max_seconds = max(seconds)
+
+    for key in reconfigure_datetimes.keys():
+        diff = _get_datetime_diff_seconds(begin, reconfigure_datetimes[key])
+        if (diff >= 0) and (diff <= max_seconds):
+            second = diff
+            while second <= max_seconds:
+                reconfigure_events[second] += 1
+                second += 1
+        else:
+            log_events.c.log.error('running vm time does not appear to be ' + \
+                                   'valid: %s' % diff)
+
+    returnlist = []
+    keys = reconfigure_events.keys()
+    keys.sort()
+    for key in keys:
+        returnlist.append(reconfigure_events[key])
+    return returnlist
+
+def _get_running_vms_list(log_events,
+                          seconds,
+                          begin,
+                          start_datetimes,
                           killed_datetimes):
     runningvms = {}
     for second in seconds:
@@ -448,8 +476,8 @@ def _generate_job_tts(log_events, node_events, run_name, graphtype='eps'):
     jobids = job_sent_datetimes.keys()
     jobids.sort()
 
-    jobtts_list = _get_jobtts_list(log_events, \
-                                   job_begin_datetimes, \
+    jobtts_list = _get_jobtts_list(log_events,
+                                   job_begin_datetimes,
                                    job_sent_datetimes)
 
     # graph
@@ -462,8 +490,8 @@ def _generate_job_tts(log_events, node_events, run_name, graphtype='eps'):
 
     clf()
 
-    fig.suptitle('Job Time to Start', \
-                 verticalalignment='top', \
+    fig.suptitle('Job Time to Start',
+                 verticalalignment='top',
                  horizontalalignment='center')
 
     # bottom graph
@@ -496,6 +524,103 @@ def _generate_job_tts(log_events, node_events, run_name, graphtype='eps'):
 
     fig.savefig(filename)
 
+def _generate_stacked_vms2(c, node_events, run_name, graphtype='eps'):
+    filename = _get_unique_graph_filename('ran-vms', run_name, graphtype)
+
+    node_started_datetimes = node_events.get_event_datetimes_dict('node_started')
+    new_node_datetimes = node_events.get_event_datetimes_dict('new_node')
+    node_killed_datetimes = node_events.get_event_datetimes_dict('terminated_node')
+    node_reconfigured_datetimes = node_events.get_event_datetimes_dict('reconfigured')
+
+    begin = _get_eval_begin_datetime(node_started_datetimes,
+                                     node_killed_datetimes,
+                                     new_node_datetimes)
+    end = _get_eval_end_datetime(node_started_datetimes,
+                                 node_killed_datetimes,
+                                 new_node_datetimes)
+
+    seconds = _get_eval_seconds_list(begin, end)
+
+    killed_vms_list = _get_killed_vms_list(node_events,
+                                           seconds,
+                                           begin,
+                                           node_killed_datetimes)
+    running_vms_list = _get_running_vms_list(node_events,
+                                             seconds,
+                                             begin,
+                                             node_started_datetimes,
+                                             node_killed_datetimes)
+    launched_vms_list = _get_running_vms_list(node_events,
+                                              seconds,
+                                              begin,
+                                              new_node_datetimes,
+                                              node_killed_datetimes)
+    reconfigured_list = _get_reconfigured_list(node_events,
+                                               seconds,
+                                               begin,
+                                               node_reconfigured_datetimes)
+    previous = 0
+    for i,x in enumerate(reconfigured_list):
+        if x > previous:
+            reconfigured_list[i] = 8
+            previous = 1
+        else:
+            reconfigured_list[i] = 0
+
+
+    # Use the following block for trimming unecessary parts of the graph, if you had an extra long run e.g.
+    #s1 = 100
+    #s2 = 600
+    #running_vms_list = running_vms_list[s1:s2]
+    #killed_vms_list = killed_vms_list[s1:s2]
+    #reconfigured_list = reconfigured_list[s1:s2]
+    #launched_vms_list = launched_vms_list[s1:s2]
+    #newseconds = seconds[s1:s2]
+    #seconds = xrange(0,len(newseconds))
+
+    # graph
+    xmin = min(seconds)
+    xmax = max(seconds)
+    yminb = min(min(killed_vms_list), min(running_vms_list))
+    ymaxb = max(max(killed_vms_list), max(running_vms_list)) + 2
+
+    xstep = 60
+    #xstep = int(xmax / 6)
+    
+    xvals = arange(xmin, xmax, xstep)
+
+    fig = figure()
+
+    clf()
+
+    fig.suptitle('Instances',
+                 verticalalignment='top',
+                 horizontalalignment='center')
+
+    axb = fig.add_subplot(1,1,1)
+    axb.set_ylabel('Running / Killed VMs')
+    axb.set_xlabel('Evaluation Second')
+    axb.axis([xmin, xmax, yminb, ymaxb])
+    pb1 = axb.plot(seconds,
+                   running_vms_list, 'b',
+                   label='Running VMs')
+    pb2 = axb.plot(seconds,
+                   killed_vms_list, 'ro',
+                   label='Killed VMs')
+    pb3 = axb.plot(seconds,
+                   reconfigured_list, 'go',
+                   label='Reconfigured')
+    pb4 = axb.plot(seconds,
+                   launched_vms_list, 'k--',
+                   label='Launched')
+    axb.legend((pb4, pb1, pb2, pb3), ('Launched VMs', 'Running VMs', 'Killed VMs', 'New Policy'), loc=7, prop=props)
+    axb.locator_params(axis='x', tight=True, nbins=xmax/xstep)
+    xticks(xvals)
+    xticks(xvals)
+
+    fig.savefig(filename)
+    c.log.info("Wrote file: %s" % filename)
+
 def _generate_stacked_vms(workloadtype, log_events, node_events, run_name, graphtype='eps'):
     filename = _get_unique_graph_filename('stacked-vms', run_name, graphtype)
 
@@ -509,36 +634,36 @@ def _generate_stacked_vms(workloadtype, log_events, node_events, run_name, graph
     jobs_completed_datetimes = log_events.get_event_datetimes_dict('job_end')
     jobs_sent_datetimes = log_events.get_event_datetimes_dict('job_sent')
 
-    begin = _get_eval_begin_datetime(node_started_datetimes, \
-                                     node_killed_datetimes, \
-                                     new_node_datetimes, \
-                                     jobs_completed_datetimes, \
+    begin = _get_eval_begin_datetime(node_started_datetimes,
+                                     node_killed_datetimes,
+                                     new_node_datetimes,
+                                     jobs_completed_datetimes,
                                      jobs_sent_datetimes)
-    end = _get_eval_end_datetime(node_started_datetimes, \
-                                 node_killed_datetimes, \
-                                 new_node_datetimes, \
-                                 jobs_completed_datetimes, \
+    end = _get_eval_end_datetime(node_started_datetimes,
+                                 node_killed_datetimes,
+                                 new_node_datetimes,
+                                 jobs_completed_datetimes,
                                  jobs_sent_datetimes)
 
     seconds = _get_eval_seconds_list(begin, end)
 
-    killed_vms_list = _get_killed_vms_list(node_events, \
-                                           seconds, \
-                                           begin, \
+    killed_vms_list = _get_killed_vms_list(node_events,
+                                           seconds,
+                                           begin,
                                            node_killed_datetimes)
-    running_vms_list = _get_running_vms_list(node_events, \
-                                             seconds, \
-                                             begin, \
-                                             node_started_datetimes, \
+    running_vms_list = _get_running_vms_list(node_events,
+                                             seconds,
+                                             begin,
+                                             node_started_datetimes,
                                              node_killed_datetimes)
 
-    jobs_completed_list = _get_jobs_list(log_events, \
-                                         seconds, \
-                                         begin, \
+    jobs_completed_list = _get_jobs_list(log_events,
+                                         seconds,
+                                         begin,
                                          jobs_completed_datetimes)
-    jobs_sent_list = _get_jobs_list(log_events, \
-                                    seconds, \
-                                    begin, \
+    jobs_sent_list = _get_jobs_list(log_events,
+                                    seconds,
+                                    begin,
                                     jobs_sent_datetimes)
     jobs_running_list = _get_jobs_running_list(log_events,
                                                seconds,
@@ -577,8 +702,8 @@ def _generate_stacked_vms(workloadtype, log_events, node_events, run_name, graph
 
     clf()
 
-    fig.suptitle('Jobs and Instances', \
-                 verticalalignment='top', \
+    fig.suptitle('Jobs and Instances',
+                 verticalalignment='top',
                  horizontalalignment='center')
 
     # bottom graph
@@ -586,13 +711,13 @@ def _generate_stacked_vms(workloadtype, log_events, node_events, run_name, graph
     axb.set_ylabel('Running / Killed VMs')
     axb.set_xlabel('Evaluation Second')
     axb.axis([xmin, xmax, yminb, ymaxb])
-    pb1 = axb.plot(seconds, \
-                   running_vms_list, \
-                   label='Running VMs', \
+    pb1 = axb.plot(seconds,
+                   running_vms_list,
+                   label='Running VMs',
                    color='b')
-    pb2 = axb.plot(seconds, \
-                   killed_vms_list, \
-                   label='Killed VMs', \
+    pb2 = axb.plot(seconds,
+                   killed_vms_list,
+                   label='Killed VMs',
                    color='r')
     axb.legend((pb1, pb2), ('Running VMs', 'Killed VMs'), 'upper left', prop=props)
     axb.locator_params(axis='x', tight=True, nbins=xmax/xstep)
@@ -604,14 +729,14 @@ def _generate_stacked_vms(workloadtype, log_events, node_events, run_name, graph
     axt.set_xlabel('Evaluation Second')
     axt.axis([xmin, xmax, ymint, ymaxt])
     ylim(ymax=ymaxt)
-    pt1 = axt.plot(seconds, \
-                   jobs_completed_list, \
-                   label='Jobs Completed', \
+    pt1 = axt.plot(seconds,
+                   jobs_completed_list,
+                   label='Jobs Completed',
                    color='g',
                    linestyle=':')
-    pt2 = axt.plot(seconds, \
-                   jobs_sent_list, \
-                   label='Jobs Submitted', \
+    pt2 = axt.plot(seconds,
+                   jobs_sent_list,
+                   label='Jobs Submitted',
                    color='k')
     pt3 = axt.plot(seconds,
                    jobs_queued_list, 
@@ -648,31 +773,31 @@ def _generate_job_rate(workloadtype, log_events, node_events, run_name, graphtyp
         node_killed_datetimes = node_events.get_event_datetimes_dict('fetch_killed') 
     jobs_completed_datetimes = log_events.get_event_datetimes_dict('job_end')
 
-    begin = _get_eval_begin_datetime(node_started_datetimes, \
-                                     node_killed_datetimes, \
-                                     new_node_datetimes, \
+    begin = _get_eval_begin_datetime(node_started_datetimes,
+                                     node_killed_datetimes,
+                                     new_node_datetimes,
                                      jobs_completed_datetimes)
-    end = _get_eval_end_datetime(node_started_datetimes, \
-                                 node_killed_datetimes, \
-                                 new_node_datetimes, \
+    end = _get_eval_end_datetime(node_started_datetimes,
+                                 node_killed_datetimes,
+                                 new_node_datetimes,
                                  jobs_completed_datetimes)
 
     seconds = _get_eval_seconds_list(begin, end)
 
-    killed_vms_list = _get_killed_vms_list(node_events, \
-                                           seconds, \
-                                           begin, \
+    killed_vms_list = _get_killed_vms_list(node_events,
+                                           seconds,
+                                           begin,
                                            node_killed_datetimes)
-    running_vms_list = _get_running_vms_list(node_events, \
-                                             seconds, \
-                                             begin, \
-                                             node_started_datetimes, \
+    running_vms_list = _get_running_vms_list(node_events,
+                                             seconds,
+                                             begin,
+                                             node_started_datetimes,
                                              node_killed_datetimes)
 
     # get number of jobs completed each second
-    jobs_completed_rate_list = _get_job_rate_from_file(log_events, \
-                                                       node_events, \
-                                                       begin, \
+    jobs_completed_rate_list = _get_job_rate_from_file(log_events,
+                                                       node_events,
+                                                       begin,
                                                        seconds)
 
     log_events.c.log.info("Total jobs completed: %s" % sum(jobs_completed_rate_list))
@@ -693,8 +818,8 @@ def _generate_job_rate(workloadtype, log_events, node_events, run_name, graphtyp
 
     clf()
 
-    fig.suptitle('Job Rate and Instances', \
-                 verticalalignment='top', \
+    fig.suptitle('Job Rate and Instances',
+                 verticalalignment='top',
                  horizontalalignment='center')
 
     # bottom graph
@@ -702,13 +827,13 @@ def _generate_job_rate(workloadtype, log_events, node_events, run_name, graphtyp
     axb.set_ylabel('Running / Killed VMs')
     axb.set_xlabel('Evaluation Second')
     axb.axis([xmin, xmax, yminb, ymaxb])
-    pb1 = axb.plot(seconds, \
-                   running_vms_list, \
-                   label='Running VMs', \
+    pb1 = axb.plot(seconds,
+                   running_vms_list,
+                   label='Running VMs',
                    color='b')
-    pb2 = axb.plot(seconds, \
-                   killed_vms_list, \
-                   label='Killed VMs', \
+    pb2 = axb.plot(seconds,
+                   killed_vms_list,
+                   label='Killed VMs',
                    color='r')
     axb.legend((pb1, pb2), ('Running VMs', 'Killed VMs'), 'lower center', prop=props)
     axb.locator_params(axis='x', tight=True, nbins=xmax/xstep)
@@ -719,9 +844,9 @@ def _generate_job_rate(workloadtype, log_events, node_events, run_name, graphtyp
     axt.set_ylabel('Job Throughput')
     axt.set_xlabel('Evaluation Second')
     axt.axis([xmin, xmax, ymint, ymaxt])
-    pt1 = axt.plot(seconds, \
-                   jobs_completed_rate_list, \
-                   label='Job Rate', \
+    pt1 = axt.plot(seconds,
+                   jobs_completed_rate_list,
+                   label='Job Rate',
                    color='b',
                    linestyle=':')
 
@@ -744,10 +869,10 @@ def _generate_node_info(workloadtype, log_events, node_events, run_name, graphty
     for pair in sorted(new_node_datetimes.items(), key=itemgetter(1)):
         nodeids.append(pair[0])
 
-    nodeids, ctxdone_list, nodestarted_list = _get_nodeinfo_list(log_events, \
-                                                                 nodeids, \
-                                                                 ctxdone_datetimes, \
-                                                                 node_started_datetimes, \
+    nodeids, ctxdone_list, nodestarted_list = _get_nodeinfo_list(log_events,
+                                                                 nodeids,
+                                                                 ctxdone_datetimes,
+                                                                 node_started_datetimes,
                                                                  new_node_datetimes)
 
     # graph
@@ -761,8 +886,8 @@ def _generate_node_info(workloadtype, log_events, node_events, run_name, graphty
 
     clf()
 
-    fig.suptitle('Node Information (relative to new_node event)', \
-                 verticalalignment='top', \
+    fig.suptitle('Node Information (relative to new_node event)',
+                 verticalalignment='top',
                  horizontalalignment='center')
 
     # bottom graph
@@ -784,11 +909,11 @@ def _generate_node_info(workloadtype, log_events, node_events, run_name, graphty
 
     fig.savefig(filename)
 
-def _generate_controller(workloadtype, \
-                         log_events, \
+def _generate_controller(workloadtype,
+                         log_events,
                          node_events,
-                         controller_events, \
-                         run_name, \
+                         controller_events,
+                         run_name,
                          graphtype='eps'):
     filename = _get_unique_graph_filename('controller', run_name, graphtype)
 
@@ -803,38 +928,38 @@ def _generate_controller(workloadtype, \
     ec_start_datetimes = controller_events.get_event_datetimes_list('EPU_CONTROLLER_START')
     ec_end_datetimes = controller_events.get_event_datetimes_list('EPU_CONTROLLER_TERMINATE')
 
-    begin = _get_eval_begin_datetime(node_started_datetimes, \
-                                     node_killed_datetimes, \
-                                     job_sent_datetimes, \
+    begin = _get_eval_begin_datetime(node_started_datetimes,
+                                     node_killed_datetimes,
+                                     job_sent_datetimes,
                                      job_begin_datetimes)
-    end = _get_eval_end_datetime(node_started_datetimes, \
-                                 node_killed_datetimes, \
-                                 job_sent_datetimes, \
+    end = _get_eval_end_datetime(node_started_datetimes,
+                                 node_killed_datetimes,
+                                 job_sent_datetimes,
                                  job_begin_datetimes)
 
     seconds = _get_eval_seconds_list(begin, end)
 
-    killed_vms_list = _get_killed_vms_list(node_events, \
-                                           seconds, \
-                                           begin, \
+    killed_vms_list = _get_killed_vms_list(node_events,
+                                           seconds,
+                                           begin,
                                            node_killed_datetimes)
-    running_vms_list = _get_running_vms_list(node_events, \
-                                             seconds, \
-                                             begin, \
-                                             node_started_datetimes, \
+    running_vms_list = _get_running_vms_list(node_events,
+                                             seconds,
+                                             begin,
+                                             node_started_datetimes,
                                              node_killed_datetimes)
 
-    job_sent_list = _get_jobs_list(log_events, \
-                                    seconds, \
-                                    begin, \
-                                    job_sent_datetimes)
+    job_sent_list = _get_jobs_list(log_events,
+                                   seconds,
+                                   begin,
+                                   job_sent_datetimes)
 
-    killed_controller_list = _get_killed_controller_list(seconds, \
-                                                         begin, \
+    killed_controller_list = _get_killed_controller_list(seconds,
+                                                         begin,
                                                          ec_end_datetimes)
-    running_controller_list = _get_running_controller_list(seconds, \
-                                                           begin, \
-                                                           ec_start_datetimes, \
+    running_controller_list = _get_running_controller_list(seconds,
+                                                           begin,
+                                                           ec_start_datetimes,
                                                            ec_end_datetimes)
     #print running_controller_list
     # graph
@@ -854,8 +979,8 @@ def _generate_controller(workloadtype, \
 
     clf()
 
-    fig.suptitle('EPU Controller Recovery', \
-                 verticalalignment='top', \
+    fig.suptitle('EPU Controller Recovery',
+                 verticalalignment='top',
                  horizontalalignment='center')
 
     # bottom graph
@@ -863,16 +988,16 @@ def _generate_controller(workloadtype, \
     axb.set_ylabel('Controllers')
     axb.set_xlabel('Evaluation Second')
     axb.axis([xmin, xmax, yminb, ymaxb])
-    pb1 = axb.plot(seconds, \
-                   running_controller_list, \
-                   label='Running Controllers', \
+    pb1 = axb.plot(seconds,
+                   running_controller_list,
+                   label='Running Controllers',
                    color='b')
-    pb2 = axb.plot(seconds, \
-                   killed_controller_list, \
-                   label='Killed Controllers', \
+    pb2 = axb.plot(seconds,
+                   killed_controller_list,
+                   label='Killed Controllers',
                    color='r')
-    axb.legend((pb1, pb2), ('Running Controllers', 'Killed Controllers'), \
-               'upper left', prop=props)
+    axb.legend((pb1, pb2), ('Running Controllers', 'Killed Controllers'),
+                         'upper left', prop=props)
     axb.locator_params(axis='x', tight=True, nbins=xmax/xstep)
     yticks([0,1,2])
     xticks(xvals)
@@ -883,14 +1008,14 @@ def _generate_controller(workloadtype, \
     axt.set_xlabel('Evaluation Second')
     axt.axis([xmin, xmax, ymint, ymaxt])
     ylim(ymax=ymaxt)
-    pt1 = axt.plot(seconds, \
-                   job_sent_list, \
-                   label='Jobs Submitted', \
+    pt1 = axt.plot(seconds,
+                   job_sent_list,
+                   label='Jobs Submitted',
                    color='g',
                    linestyle=':')
-    pt2 = axt.plot(seconds, \
-                   running_vms_list, \
-                   label='Running VMs', \
+    pt2 = axt.plot(seconds,
+                   running_vms_list,
+                   label='Running VMs',
                    color='b')
 
     axt.legend((pt1, pt2), ('Jobs Submitted',
@@ -918,6 +1043,8 @@ def generate_graph(p, c, m, run_name):
 
     if 'stacked-vms' == graphname:
         _generate_stacked_vms(workloadtype, log_events, node_events, run_name, graphtype)
+    elif 'stacked-vms2' == graphname:
+        _generate_stacked_vms2(c, node_events, run_name, graphtype)
     elif 'job-tts' == graphname:
         _generate_job_tts(log_events, node_events, run_name, graphtype)
     elif 'job-rate' == graphname:
@@ -925,11 +1052,11 @@ def generate_graph(p, c, m, run_name):
     elif 'node-info' == graphname:
         _generate_node_info(workloadtype, log_events, node_events, run_name, graphtype)
     elif 'controller' == graphname:
-        _generate_controller(workloadtype, \
-                             log_events, \
+        _generate_controller(workloadtype,
+                             log_events,
                              node_events,
-                             controller_events, \
-                             run_name, \
+                             controller_events,
+                             run_name,
                              graphtype)
     else:
         raise InvalidInput('Unrecognized graph name, must be stacked-vms, ' + \

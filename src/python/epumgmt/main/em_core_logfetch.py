@@ -84,7 +84,7 @@ def fetch_by_vm_id(p, c, m, run_name, instanceid):
     """
     c.log.debug("fetch_by_vm_id()")
     
-    run_vms = _get_runvms_required(c, m, run_name, None)
+    run_vms = _get_runvms_required(p, c, m, run_name, None)
         
     vm = None
     for avm in run_vms:
