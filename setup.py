@@ -68,6 +68,6 @@ setup(name="epumgmt",
               "epumgmt = epumgmt.main.em_cmdline:main"
           ]
       },
-      install_requires = ["cloudinitd ==  1.0rc1", "cloudyvents == 0.1", "cloudminer == 0.2"],
+      install_requires = ["cloudinitd ==  1.0", "cloudyvents == 0.1", "cloudminer == 0.2"],
       data_files = data_files
 )
