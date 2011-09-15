@@ -1,5 +1,6 @@
 import datetime
 import json
+from epumgmt.api.exceptions import InvalidConfig
 import os
 
 # Torque times are reported using the local timezone, e.g. pacific if using

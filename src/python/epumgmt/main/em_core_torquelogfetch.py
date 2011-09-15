@@ -1,3 +1,4 @@
+from epumgmt.api.exceptions import InvalidConfig
 import os
 
 import epumgmt.main.em_core_load
