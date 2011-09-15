@@ -69,7 +69,7 @@ STATUS_NOUPDATE.help = "Used with '--action %s'.  If used, %s does not try to fi
 
 KILLRUN_NOFETCH = ControlArg("no-fetch", None, noval=True)
 a.append(KILLRUN_NOFETCH)
-KILLRUN_NOFETCH.help = "Used with '--action %s'.  If used, %s does not try to find any new information or get any logs." % (ACTIONS.KILLRUN, ACTIONS.KILLRUN)
+KILLRUN_NOFETCH.help = "Can be used with action %s and %s.  If used, does not try to find any new information or get any logs." % (ACTIONS.KILLRUN, ACTIONS.FIND_VERSIONS)
 
 NEWN = ControlArg("newn", None)
 a.append(NEWN)

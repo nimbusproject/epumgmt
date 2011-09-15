@@ -18,6 +18,7 @@ import em_core_status
 import em_core_termination
 import em_core_workloadtest
 import em_core_torquelogfetch
+import em_core_versions
 import em_optparse
 
 
@@ -165,6 +166,13 @@ def _core(action, p, c):
         em_core_workloadtest.execute_workload_test(p, c, modules, run_name)
     elif action == ACTIONS.TORQUE_LOGFETCH:
         em_core_torquelogfetch.fetch_logs(p, c, modules, run_name)
+    elif action == ACTIONS.FIND_VERSIONS:
+        no_fetch = p.get_arg_or_none(em_args.KILLRUN_NOFETCH)
+        if not no_fetch:
+            em_core_findworkers.find_once(p, c, modules, run_name)
+            em_core_logfetch.fetch_all(p, c, modules, run_name, cloudinitd)
+        em_core_eventgather.update_events(p, c, modules, run_name)
+        em_core_versions.print_versions(p, c, modules, run_name)
     elif action == ACTIONS.GENERATE_GRAPH:
         try:
             import em_core_generategraph

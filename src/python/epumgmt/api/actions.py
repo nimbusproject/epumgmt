@@ -2,6 +2,7 @@ class ACTIONS:
 
     EXECUTE_WORKLOAD_TEST = "execute-workload-test"
     FETCH_KILL = "fetchkill"
+    FIND_VERSIONS = "find-versions"
     FIND_WORKERS_ONCE = "find-workers"
     GENERATE_GRAPH = "generate-graph"
     KILLRUN = "killrun"
