@@ -3,7 +3,7 @@ from epumgmt.main import em_args
 import os
 
 FALSE_POSITIVES = ["site-packages", "python2.5", "python2.6", "bin", "plat-linux2", "app",
-                   "lib-old", "lib-tk", "lib-dynload"]
+                   "lib-old", "lib-tk", "lib-dynload", "lib", "pylib"]
 
 class VersionsNode:
     def __init__(self, vm):
@@ -146,5 +146,11 @@ def _filter_dep(dep):
     if not dep:
         return None
     if dep in FALSE_POSITIVES:
+        return None
+    if dep.endswith(".pom"):
+        return None
+    if dep.endswith(".xml"):
+        return None
+    if dep.endswith(".properties"):
         return None
     return dep
