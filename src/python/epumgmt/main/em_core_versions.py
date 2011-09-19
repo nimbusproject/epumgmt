@@ -1,4 +1,6 @@
 from epumgmt.api.exceptions import IncompatibleEnvironment, UnexpectedError
+from epumgmt.main import em_args
+import os
 
 FALSE_POSITIVES = ["site-packages", "python2.5", "python2.6", "bin", "plat-linux2", "app",
                    "lib-old", "lib-tk", "lib-dynload"]
@@ -15,6 +17,14 @@ def print_versions(p, c, m, run_name):
     txt = _vnode_report(vnodes, counts)
     print ""
     print txt
+    report_path = p.get_arg_or_none(em_args.WRITE_REPORT)
+    if report_path:
+        if os.path.exists(report_path):
+            raise IncompatibleEnvironment("Can not write report to pre-existing file: %s" % report_path)
+        f = open(report_path, mode='w')
+        f.write(txt)
+        f.close()
+        print "Wrote report to: %s" % report_path
 
 def _vnode_report(vnodes, counts):
     if len(vnodes) == 1:

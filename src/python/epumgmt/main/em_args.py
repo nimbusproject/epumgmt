@@ -71,6 +71,10 @@ KILLRUN_NOFETCH = ControlArg("no-fetch", None, noval=True)
 a.append(KILLRUN_NOFETCH)
 KILLRUN_NOFETCH.help = "Can be used with action %s and %s.  If used, does not try to find any new information or get any logs." % (ACTIONS.KILLRUN, ACTIONS.FIND_VERSIONS)
 
+WRITE_REPORT = ControlArg("write-report", None, metavar="PATH")
+a.append(WRITE_REPORT)
+WRITE_REPORT.help = "Used with action %s.  Also write report to the given path if it does not exist." % ACTIONS.FIND_VERSIONS
+
 NEWN = ControlArg("newn", None)
 a.append(NEWN)
 NEWN.help = "Used with '--action %s'. Syntax is controller_name:N[,controller_name:N,...]" % ACTIONS.RECONFIGURE_N
