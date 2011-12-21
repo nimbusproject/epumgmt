@@ -282,7 +282,7 @@ class DefaultRemoteSvcAdapter:
         """ This tight coupling is one of the main reasons the current backdoor to the system is not best solution"""
 
         cmd = "'cd %s && sudo ./scripts/run_under_env.sh %s " % (abs_homedir, abs_envfile)
-        cmd += "./scripts/%s messaging.conf" % script
+        cmd += "./scripts/%s messaging.yml" % script
         if extras:
             for extra in extras:
                 cmd += " %s" % extra.strip()
