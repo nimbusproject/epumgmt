@@ -7,3 +7,24 @@ This is not an officially supported piece of software yet.
 The preview documentation here:
 
 http://www.nimbusproject.org/doc/epu/latest/
+
+Testing/development
+===================
+
+To run epumgmt tests, run:
+
+$ nosetests epumgmt
+
+If you want more fine grained control, you can run something like:
+
+$ nosetests epumgmt --with-coverage --cover-package=epumgmt.main.em_core_status
+
+You may also want to avoid slow tests, to do this, use:
+
+$ nosetests epumgmt -a '!slow'
+
+
+IPShell
+=======
+
+See the notes @ epumgmt/__init__.py

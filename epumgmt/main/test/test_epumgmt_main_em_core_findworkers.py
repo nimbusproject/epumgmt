@@ -6,10 +6,10 @@ from epumgmt.defaults.runlogs import DefaultRunlogs
 import epumgmt.main.em_args as em_args
 from epumgmt.defaults.parameters import DefaultParameters
 
-from mocks.common import FakeCommon
-from mocks.modules import FakeModules
-from mocks.event import Event
-from mocks.runlogs import FakeRunlogs
+from epumgmt.mocks.common import FakeCommon
+from epumgmt.mocks.modules import FakeModules
+from epumgmt.mocks.event import Event
+from epumgmt.mocks.runlogs import FakeRunlogs
 
 def test_get_provisioner():
     from epumgmt.main.em_core_findworkers import _get_provisioner

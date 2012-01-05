@@ -8,7 +8,7 @@ from epumgmt.defaults import DefaultParameters, DefaultCommon
 from epumgmt.api.exceptions import InvalidConfig, ProgrammingError
 from epumgmt.api import RunVM
 
-from mocks.common import FakeCommon
+from epumgmt.mocks.common import FakeCommon
 from cloudyvents.cyvents import CYvent
 
 class TestPersistence:

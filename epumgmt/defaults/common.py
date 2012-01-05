@@ -112,8 +112,7 @@ class DefaultCommon:
         current = os.path.abspath(__file__)
         while True:
             current = self._jump_up_dir(current)
-            if os.path.basename(current) == "src":
-                # jump up one more time
+            if os.path.basename(current) == "epumgmt":
                 return self._jump_up_dir(current)
             if not os.path.basename(current):
                 raise IncompatibleEnvironment("cannot find base directory")

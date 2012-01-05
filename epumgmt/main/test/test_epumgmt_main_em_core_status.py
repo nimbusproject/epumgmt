@@ -1,6 +1,6 @@
 import epumgmt.main.em_core_status
 import epumgmt.defaults.epustates as epustates
-import mocks.event
+from epumgmt.mocks.event import Event
 
 class TestStatus:
     import epumgmt.api
@@ -34,11 +34,11 @@ class TestStatus:
         self.testvm2.service_type = "whatev"
         self.testvm2.events = []
         self.testvm2_running_time = 3
-        self.testvm2.events.append(mocks.event.Event(name="iaas_state",
+        self.testvm2.events.append(Event(name="iaas_state",
                       timestamp=self.testvm2_running_time,
                       state=epustates.RUNNING))
         self.testvm2_terminated_time = 8
-        self.testvm2.events.append(mocks.event.Event(name="iaas_state",
+        self.testvm2.events.append(Event(name="iaas_state",
                       timestamp=self.testvm2_terminated_time,
                       state=epustates.TERMINATED))
 
@@ -50,15 +50,15 @@ class TestStatus:
         self.controller.instanceid = self.controller_instanceid
         self.controller_source = "controller"
         self.controller.service_type = self.controller_source
-        events = [mocks.event.Event(source=self.controller_source)]
+        events = [Event(source=self.controller_source)]
         self.first_de_state_time = 50
         self.first_de_state = "great"
         self.second_de_state_time = 100
         self.second_de_state = "paranoid"
-        events.append(mocks.event.Event(name="de_state",
+        events.append(Event(name="de_state",
                       timestamp=self.first_de_state_time,
                       state=self.first_de_state))
-        events.append(mocks.event.Event(name="de_state",
+        events.append(Event(name="de_state",
                       timestamp=self.second_de_state_time,
                       state=self.second_de_state))
         self.controller.events = events
@@ -68,21 +68,21 @@ class TestStatus:
 
         # VM with no iaas_state events
         self.vm_no_state_events = epumgmt.api.RunVM()
-        events = [mocks.event.Event(name="fake", timestamp=1000)]
+        events = [Event(name="fake", timestamp=1000)]
         self.vm_no_state_events.events = events
 
         # VM with one iaas_state event
         self.vm_one_state_event = epumgmt.api.RunVM()
         self.vm_one_state_event_state = "fake"
-        events = [mocks.event.Event(name="iaas_state", timestamp=1000, state=self.vm_one_state_event_state)]
+        events = [Event(name="iaas_state", timestamp=1000, state=self.vm_one_state_event_state)]
         self.vm_one_state_event.events = events
 
         # VM with two iaas_state events
         self.vm_two_state_events = epumgmt.api.RunVM()
         self.vm_two_state_events_state0 = "fakestarting"
         self.vm_two_state_events_state1 = "fakerunning"
-        events = [mocks.event.Event(name="iaas_state", timestamp=1000, state=self.vm_two_state_events_state0),
-                  mocks.event.Event(name="iaas_state", timestamp=2000, state=self.vm_two_state_events_state1)]
+        events = [Event(name="iaas_state", timestamp=1000, state=self.vm_two_state_events_state0),
+                  Event(name="iaas_state", timestamp=2000, state=self.vm_two_state_events_state1)]
         self.vm_two_state_events.events = events
 
         # All VMs
@@ -165,7 +165,7 @@ class TestStatus:
         assert state == self.second_de_state
 
         extra_state = "okay"
-        extra_event = mocks.event.Event(name="de_state",
+        extra_event = Event(name="de_state",
                                   timestamp=self.second_de_state_time + 10,
                                   de_state=extra_state)
         self.controller.events.append(extra_event)
@@ -176,8 +176,8 @@ class TestStatus:
 
     def test_get_events_from_controller_state(self):
         from epumgmt.main.em_core_status import _get_events_from_controller_state
-        from mocks.state import State
-        from mocks.common import FakeCommon
+        from epumgmt.mocks.state import State
+        from epumgmt.mocks.common import FakeCommon
 
         blank_state = State()
         got_event = _get_events_from_controller_state(blank_state, 
@@ -215,8 +215,8 @@ class TestStatus:
 
     def test_get_events_from_wis(self):
         from epumgmt.main.em_core_status import _get_events_from_wis
-        from mocks.state import WorkerInstanceState
-        from mocks.common import FakeCommon
+        from epumgmt.mocks.state import WorkerInstanceState
+        from epumgmt.mocks.common import FakeCommon
 
         blank_wis = WorkerInstanceState()
         got_event = _get_events_from_wis(blank_wis, None, None, None, None)
@@ -258,10 +258,10 @@ class TestStatus:
     def test_find_latest_worker_status(self):
         from epumgmt.main.em_core_status import _find_latest_worker_status
         from epumgmt.api.exceptions import ProgrammingError
-        from mocks.common import FakeCommon
-        from mocks.modules import FakeModules
-        from mocks.remote_svc_adapter import FakeRemoteSvcAdapter
-        from mocks.state import EPUControllerState, WorkerInstanceState
+        from epumgmt.mocks.common import FakeCommon
+        from epumgmt.mocks.modules import FakeModules
+        from epumgmt.mocks.remote_svc_adapter import FakeRemoteSvcAdapter
+        from epumgmt.mocks.state import EPUControllerState, WorkerInstanceState
 
         svc_adapter = FakeRemoteSvcAdapter()
         modules = FakeModules(remote_svc_adapter=svc_adapter)
@@ -365,9 +365,9 @@ class TestStatus:
         """Test for problems when status is called before epu is booted
         """
         from epumgmt.main.em_core_status import _find_latest_worker_status
-        from mocks.common import FakeCommon
-        from mocks.modules import FakeModules
-        from mocks.remote_svc_adapter import FakeRemoteSvcAdapter
+        from epumgmt.mocks.common import FakeCommon
+        from epumgmt.mocks.modules import FakeModules
+        from epumgmt.mocks.remote_svc_adapter import FakeRemoteSvcAdapter
 
         svc_adapter = FakeRemoteSvcAdapter()
         modules = FakeModules(remote_svc_adapter=svc_adapter)
@@ -396,9 +396,9 @@ class TestStatus:
     def test_update_worker_parents(self):
         from epumgmt.main.em_core_status import _update_worker_parents
         from epumgmt.api.exceptions import ProgrammingError
-        from mocks.common import FakeCommon
-        from mocks.modules import FakeModules
-        from mocks.state import EPUControllerState, WorkerInstanceState
+        from epumgmt.mocks.common import FakeCommon
+        from epumgmt.mocks.modules import FakeModules
+        from epumgmt.mocks.state import EPUControllerState, WorkerInstanceState
 
 
         controllers = []
@@ -462,9 +462,9 @@ class TestStatus:
     def test_update_worker_states(self):
         from epumgmt.main.em_core_status import _update_worker_states
         from epumgmt.api.exceptions import ProgrammingError
-        from mocks.common import FakeCommon
-        from mocks.modules import FakeModules
-        from mocks.state import EPUControllerState, WorkerInstanceState
+        from epumgmt.mocks.common import FakeCommon
+        from epumgmt.mocks.modules import FakeModules
+        from epumgmt.mocks.state import EPUControllerState, WorkerInstanceState
 
         controllers = []
         controller_state_map = {}
@@ -521,9 +521,9 @@ class TestStatus:
     def test_update_controller_states(self):
         from epumgmt.main.em_core_status import _update_controller_states
         from epumgmt.api.exceptions import ProgrammingError
-        from mocks.common import FakeCommon
-        from mocks.modules import FakeModules
-        from mocks.state import EPUControllerState, WorkerInstanceState
+        from epumgmt.mocks.common import FakeCommon
+        from epumgmt.mocks.modules import FakeModules
+        from epumgmt.mocks.state import EPUControllerState, WorkerInstanceState
 
         controller_state_map = {}
         controller_map = {}

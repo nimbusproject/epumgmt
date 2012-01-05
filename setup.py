@@ -61,8 +61,8 @@ setup(name="epumgmt",
       author = "Nimbus Development Team",
       author_email = "workspace-user@globus.org",
       url = "http://www.nimbusproject.org/",
-      packages = find_packages(src_root, exclude="tests"),
-      package_dir = {"": src_root},
+      packages = find_packages(exclude="tests"),
+      #package_dir = {"": src_root},
       entry_points = {
           "console_scripts": [
               "epumgmt = epumgmt.main.em_cmdline:main"

@@ -5,6 +5,7 @@ import shutil
 import tempfile
 import ConfigParser
 
+import epumgmt
 import epumgmt.api
 import epumgmt.main.em_core_logfetch
 from epumgmt.defaults.parameters import DefaultParameters
@@ -13,11 +14,11 @@ from epumgmt.defaults.runlogs import DefaultRunlogs
 import epumgmt.main.em_args as em_args
 import epumgmt.defaults.epustates as epustates
 
-from mocks.common import FakeCommon
-from mocks.modules import FakeModules
-from mocks.modules import make_fake_scp_command_str
-from mocks.remote_svc_adapter import FakeRemoteSvcAdapter
-from mocks.event import Event
+from epumgmt.mocks.common import FakeCommon
+from epumgmt.mocks.modules import FakeModules
+from epumgmt.mocks.modules import make_fake_scp_command_str
+from epumgmt.mocks.remote_svc_adapter import FakeRemoteSvcAdapter
+from epumgmt.mocks.event import Event
 
 class TestLogfetch:
 
@@ -55,9 +56,9 @@ class TestLogfetch:
         new_get_scp = make_fake_scp_command_str(runlogs, runlogs.get_scp_command_str)
         self.modules.runlogs.get_scp_command_str = types.MethodType(new_get_scp, self.modules.runlogs)
 
-        self.test_dir = os.path.dirname(__file__)
+        self.test_dir = os.path.dirname(epumgmt.__file__)
         self.test_db_dir = tempfile.mkdtemp()
-        self.test_cd_config = os.path.join(self.test_dir, "configs/main.conf")
+        self.test_cd_config = os.path.join(self.test_dir, "mocks", "configs", "main.conf")
         self.cloudinitd = CloudInitD(self.test_db_dir, self.test_cd_config, self.test_run_name)
 
     def teardown(self):

@@ -27,7 +27,7 @@ class TestEpumgmtAPI:
 
         internal_conf_str = "[emimpls]\n"
         internal_conf_str += "Parameters: epumgmt.defaults.DefaultParameters\n"
-        internal_conf_str += "Common: mocks.common.FakeCommon\n"
+        internal_conf_str += "Common: epumgmt.mocks.common.FakeCommon\n"
 
         with open(self.main_conf, "w") as main:
             main.write(main_conf_str)
@@ -91,7 +91,7 @@ class TestEpumgmtAPI:
 
     def test_get_common(self):
         from epumgmt.api import get_common
-        from mocks.common import FakeCommon
+        from epumgmt.mocks.common import FakeCommon
 
         try:
             get_common()

@@ -5,7 +5,7 @@ import ConfigParser
 
 import epumgmt.defaults.log_events
 from epumgmt.defaults import DefaultParameters
-from mocks.common import FakeCommon
+from epumgmt.mocks.common import FakeCommon
 
 class TestAmqpEvents:
 

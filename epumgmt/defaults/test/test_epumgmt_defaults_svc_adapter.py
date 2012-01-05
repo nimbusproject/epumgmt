@@ -8,6 +8,7 @@ import nose.tools
 import ConfigParser
 from nose.plugins.attrib import attr
 
+import epumgmt
 import epumgmt.defaults.svc_adapter
 import epumgmt.main.em_args as em_args
 from cloudinitd.user_api import CloudInitD
@@ -17,9 +18,9 @@ from epumgmt.api import  RunVM
 from epumgmt.defaults import DefaultParameters
 from epumgmt.defaults import DefaultRunlogs
 from epumgmt.defaults import DefaultRemoteSvcAdapter
-from mocks.common import FakeCommon
-from mocks.modules import FakeModules
-from mocks.event import Event
+from epumgmt.mocks.common import FakeCommon
+from epumgmt.mocks.modules import FakeModules
+from epumgmt.mocks.event import Event
 
 
 @nose.tools.raises(ProgrammingError)
@@ -79,9 +80,9 @@ class TestDefaultRemoteSvcAdapter:
         self.svc_adapter._run_one_cmd = types.MethodType(new_run_one_cmd,
                                                          self.svc_adapter)
 
-        self.test_dir = os.path.dirname(__file__)
+        self.test_dir = os.path.dirname(epumgmt.__file__)
         self.test_db_dir = tempfile.mkdtemp()
-        self.test_cd_config = os.path.join(self.test_dir, "configs/main.conf")
+        self.test_cd_config = os.path.join(self.test_dir, "mocks", "configs", "main.conf")
         self.cloudinitd = CloudInitD(self.test_db_dir, self.test_cd_config, self.run_name)
 
     def teardown(self):

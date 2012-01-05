@@ -33,11 +33,9 @@ if [ "X$needsconf" == "Xy" ]; then
 fi
 
 
-NIMBUS_CONTROL_PYLIB="$NIMBUS_CONTROL_DIR/lib/python"
-NIMBUS_CONTROL_PYSRC="$NIMBUS_CONTROL_DIR/src/python"
-PYTHONPATH="$NIMBUS_CONTROL_PYSRC:$NIMBUS_CONTROL_PYLIB:$PYTHONPATH"
+PYTHONPATH=".:$NIMBUS_CONTROL_PYSRC:$NIMBUS_CONTROL_PYLIB:$PYTHONPATH"
 export PYTHONPATH
 
 # -----------------------------------------------------------------------------
 
-$PYTHON_EXE $NIMBUS_CONTROL_PYSRC/epumgmt/main/em_cmdline.py $CONFSTRING $@
+$PYTHON_EXE epumgmt/main/em_cmdline.py $CONFSTRING $@

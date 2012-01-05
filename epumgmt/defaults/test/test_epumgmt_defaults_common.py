@@ -57,10 +57,10 @@ class TestDefaultCommon:
 
 
     def test_get_class_by_keyword(self):
-        from mocks.common import FakeCommon
+        from epumgmt.mocks.common import FakeCommon
         
         test_keyword = "TheClass"
-        test_class = "mocks.common.FakeCommon"
+        test_class = "epumgmt.mocks.common.FakeCommon"
 
         try:
             self.common.get_class_by_keyword(test_keyword)

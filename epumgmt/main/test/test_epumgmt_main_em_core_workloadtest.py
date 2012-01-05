@@ -10,10 +10,10 @@ from nose.plugins.attrib import attr
 
 import epumgmt.main.em_core_workloadtest
 
-from mocks.amqp import FakeAMQPServer
-from mocks.common import FakeCommon
-from mocks.modules import FakeModules
-from mocks.modules import make_fake_execute_cmd
+from epumgmt.mocks.amqp import FakeAMQPServer
+from epumgmt.mocks.common import FakeCommon
+from epumgmt.mocks.modules import FakeModules
+from epumgmt.mocks.modules import make_fake_execute_cmd
 from cloudinitd.user_api import CloudInitD
 from epumgmt.defaults import DefaultParameters
 from epumgmt.defaults import DefaultCommon
@@ -128,9 +128,9 @@ class TestTorque:
         self.p = DefaultParameters(config, None)
         self.c = FakeCommon(self.p)
 
-        self.test_dir = os.path.dirname(__file__)
+        self.test_dir = os.path.dirname(epumgmt.__file__)
         self.test_db_dir = tempfile.mkdtemp()
-        self.test_cd_config = os.path.join(self.test_dir, "configs/main.conf")
+        self.test_cd_config = os.path.join(self.test_dir, "mocks", "configs", "main.conf")
         self.cloudinitd = CloudInitD(self.test_db_dir, self.test_cd_config, self.run_name)
 
         
