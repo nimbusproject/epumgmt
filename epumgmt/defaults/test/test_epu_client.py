@@ -3,6 +3,8 @@ import tempfile
 
 from cloudinitd.user_api import CloudInitD
 
+import epumgmt
+
 from epumgmt.defaults.epu_client import MockEPUClient, DashiEPUClient
 from epumgmt.mocks.parameters import FakeParameters
 
@@ -22,12 +24,11 @@ class TestDashiEPUClient(TestEPUClient):
 
     def setup(self):
         from nose.plugins.skip import Skip, SkipTest
-        raise SkipTest # Only run this test when an instance of EPU is running
 
         self.test_run_name = "TESTRUN"
-        self.test_dir = os.path.dirname(__file__)
+        self.test_dir = os.path.dirname(epumgmt.__file__)
         self.test_db_dir = tempfile.mkdtemp()
-        self.test_cd_config = os.path.join(self.test_dir, "configs/main.conf")
+        self.test_cd_config = os.path.join(self.test_dir, "mocks", "configs", "main.conf")
         self.cloudinitd = CloudInitD(self.test_db_dir, self.test_cd_config,
                 self.test_run_name, boot=True)
         self.provisioner_cid = self.cloudinitd.get_service("provisioner")
@@ -40,3 +41,8 @@ class TestDashiEPUClient(TestEPUClient):
 
         self.client = DashiEPUClient(self.p, None)
         self.client.initialize(None, None, self.cloudinitd)
+
+        try:
+            self.client.query()
+        except:
+            raise SkipTest # Only run this test when an instance of EPU is running

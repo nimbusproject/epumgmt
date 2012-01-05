@@ -77,3 +77,10 @@ class DashiEPUClient(object):
 
         self.provisioner.call("provisioner", "terminate_all")
         self.alive = False
+
+    def query(self):
+        if not self.alive:
+            self.c.log.error("EPU has been shut down.")
+            return
+
+        self.provisioner.call("provisioner", "query")
