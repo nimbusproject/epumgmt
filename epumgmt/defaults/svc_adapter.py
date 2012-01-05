@@ -135,7 +135,8 @@ class DefaultRemoteSvcAdapter:
             raise IncompatibleEnvironment("Cannot get worker state without an open channel to the services")
 
         if not controllers or not len(controllers):
-            raise InvalidInput("Empty controllers service name list")
+            return {}
+            #raise InvalidInput("Empty controllers service name list")
 
         if not provisioner_vm.hostname:
             raise IncompatibleEnvironment("Cannot get state of provisionner that doesn't (yet) have a hostname")
