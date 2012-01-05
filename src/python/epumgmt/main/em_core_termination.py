@@ -6,6 +6,7 @@ def terminate(p, c, m, run_name, cloudinitd):
     """Destroy all VM instances that are part of the run.
     """
 
+    m.epu_client.initialize(m, run_name, cloudinitd)
     m.remote_svc_adapter.initialize(m, run_name, cloudinitd)
     provisioner_kill = m.remote_svc_adapter.is_channel_open()
 
@@ -14,9 +15,10 @@ def terminate(p, c, m, run_name, cloudinitd):
         c.log.info("Killing only the cloudinit.d-launched nodes.")
     else:
         c.log.info("Terminating all workers in run '%s'" % run_name)
-        if m.remote_svc_adapter.kill_all_workers():
+        try:
+            m.epu_client.killrun()
             c.log.info("Terminated all workers in run '%s'" % run_name)
-        else:
+        except:
             c.log.error("Problem triggering worker termination, you need to make sure these are terminated manually!")
             c.log.info("Fetching provisioner logs")
             em_core_logfetch.fetch_by_service_name(p, c, m, run_name, "provisioner")

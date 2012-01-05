@@ -26,11 +26,13 @@ import string
 #from epumgmt.api import interfacesdict
 
 class Modules:
-    def __init__(self, event_gather, persistence, runlogs, remote_svc_adapter):
+    def __init__(self, event_gather, persistence, runlogs, remote_svc_adapter,
+                 epu_client=None):
         self.event_gather = event_gather
         self.persistence = persistence
         self.runlogs = runlogs
         self.remote_svc_adapter = remote_svc_adapter
+        self.epu_client = epu_client
 
 # -----------------------------------------------------------------------------
 # "DEPENDENCY INJECTION"

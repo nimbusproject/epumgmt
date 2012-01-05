@@ -1,5 +1,6 @@
 from epumgmt.defaults.cloudinitd_load import get_cloudinitd_service
 import os
+from string import Template
 
 from epumgmt.api.exceptions import *
 import epumgmt.main.em_args as em_args
@@ -50,10 +51,10 @@ class DefaultRunlogs:
         It also will annotate the VM object.  It can handle a VM that has
         been through this process before, so no need to check for it.
         """
-        
+
         if not self.validated:
             raise ProgrammingError("operation called without necessary validation")
-            
+
         if not newvm.instanceid:
             raise ProgrammingError("no instanceid")
 
@@ -72,7 +73,12 @@ class DefaultRunlogs:
         if not os.path.exists(newvm.runlogdir):
             raise IncompatibleEnvironment("Could not find the runlog directory: %s" % newvm.runlogdir)
         
-        newvm.vmlogdir = self.allvmslogdir
+        if not newvm.service_type:
+            msg = "VM %s has no service_type defined. Cannot fetch logs" % ( 
+                   vm.instanceid)
+            raise IncompatibleEnvironment(msg)
+        vmlogdir_t = Template(self.allvmslogdir)
+        newvm.vmlogdir = vmlogdir_t.substitute(service_type=newvm.service_type)
 
     def _scp_command_common(self, c, vm, cloudinitd):
         if not vm.hostname:

@@ -53,7 +53,7 @@ class DefaultRemoteSvcAdapter:
 
         self.homedir = self.p.get_conf_or_none("svcadapter", "homedir")
         if not self.homedir:
-            raise InvalidConfig("Missing configuration: [svcadapter] -> homedir")
+            self.homedir = ""
 
         self.envfile = self.p.get_conf_or_none("svcadapter", "envfile")
         if not self.envfile:

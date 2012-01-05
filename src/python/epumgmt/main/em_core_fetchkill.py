@@ -18,6 +18,7 @@ def fetch_kill(p, c, m, run_name, cloudinitd, controller_name=None):
         raise InvalidInput("fetch-kill requires a controller")
 
     m.remote_svc_adapter.initialize(m, run_name, cloudinitd)
+    m.epu_client.initialize(m, run_name, cloudinitd)
     # Get the latest information, especially for IaaS status and controller correlation
     em_core_status.find_latest_status(p, c, m, run_name, cloudinitd, findworkersfirst=False)
 
@@ -53,6 +54,7 @@ def fetch_kill_byID(p, c, m, run_name, cloudinitd, tokill_list, get_workerstatus
     """
 
     m.remote_svc_adapter.initialize(m, run_name, cloudinitd)
+    m.epu_client.initialize(m, run_name, cloudinitd)
 
     if get_workerstatus:
         # Get the latest information, especially for IaaS status and controller correlation

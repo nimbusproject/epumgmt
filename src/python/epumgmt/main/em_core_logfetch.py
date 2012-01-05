@@ -7,6 +7,7 @@ from em_core_status import _find_state_from_events as find_state_from_events
 from threading import Thread
 
 THREADS_PER_BATCH = 20
+SERVICES_TO_IGNORE = ("basenode",)
 
 class FetchThread(Thread):
     
@@ -38,6 +39,7 @@ def fetch_all(p, c, m, run_name, cloudinitd):
 
     threads = []
     for vm in run_vms:
+        c.log.debug("VM: %s" % vm)
         scpcmd = m.runlogs.get_scp_command_str(c, vm, cloudinitd)
         if not scpcmd:
             continue
@@ -128,7 +130,8 @@ def fetch_by_service_name(p, c, m, run_name, servicename, cloudinitd=None):
 
 def _ok_to_fetch(a_vm):
     state = find_state_from_events(a_vm)
-    if state != epustates.TERMINATED and state != epustates.TERMINATING and state != epustates.FAILED:
+    if (state != epustates.TERMINATED and state != epustates.TERMINATING and
+       state != epustates.FAILED and a_vm.service_type not in SERVICES_TO_IGNORE):
         return True
     else:
         return False

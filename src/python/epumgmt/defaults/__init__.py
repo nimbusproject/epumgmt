@@ -4,6 +4,7 @@ from parameters import DefaultParameters
 from runlogs import DefaultRunlogs
 from event_gather import DefaultEventGather
 from svc_adapter import DefaultRemoteSvcAdapter
+from epu_client import DashiEPUClient
 
 def is_piggybacked(svc_or_id):
     if not svc_or_id:

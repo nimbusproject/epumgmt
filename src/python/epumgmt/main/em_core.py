@@ -107,6 +107,9 @@ def _core(action, p, c):
 
     remote_svc_adapter_cls = c.get_class_by_keyword("RemoteSvcAdapter")
     remote_svc_adapter = remote_svc_adapter_cls(p, c)
+
+    epu_client_cls = c.get_class_by_keyword("EPUClient")
+    epu_client = epu_client_cls(p, c)
     
     
     # -------------------------------------------------------------------------
@@ -125,7 +128,8 @@ def _core(action, p, c):
     runlogs.validate()
     remote_svc_adapter.validate()
 
-    modules = Modules(event_gather, persistence, runlogs, remote_svc_adapter)
+    modules = Modules(event_gather, persistence, runlogs, remote_svc_adapter,
+                      epu_client)
 
     # Always load from cloudinit.d initially
     c.log.debug("Loading the launch plan for '%s'" % run_name)
