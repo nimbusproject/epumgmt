@@ -38,5 +38,4 @@ export PYTHONPATH
 
 # -----------------------------------------------------------------------------
 
-echo $PYTHON_EXE $NIMBUS_CONTROL_DIR/epumgmt/main/em_cmdline.py $CONFSTRING $@
 $PYTHON_EXE $NIMBUS_CONTROL_DIR/epumgmt/main/em_cmdline.py $CONFSTRING $@
