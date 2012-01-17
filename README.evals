@@ -2,7 +2,7 @@ Using epumgmt for running EPU workload evaluations
 
 There are three main components to running EPU workload evaluations. First,
 cloudinit.d is used to launch and configure the EPU. Second,
-epumgmt/bin/generate-workload-definition.py is used to create the an
+epumgmt/bin/generate-workload-definition.py is used to create an
 epumgmt-understandable workload format file. And finally, epumgmt is used
 to execute the workload and graph the results.
 
@@ -45,7 +45,7 @@ generate-workload-definition.py, you can then use this file with epumgmt to
 execute the workload (and graph the results).
 
 Assuming we launched a plan with cloudinit.d with the name "testrun" and
-generated a workload definition file (simliar to above) with the name
+generated a workload definition file (similar to above) with the name
 "workload.def" then to execute the workload with the EPU launched by
 cloudinit.d you'd simply run the following command:
 
