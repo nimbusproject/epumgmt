@@ -9,7 +9,7 @@ data_files = []
 """
 Get files for etc from source, ensuring that we don't overwrite
 any previously installed files. 
-Also, make any path modifications neccessary for paths that are
+Also, make any path modifications necessary for paths that are
 typically hardcoded in etc
 """
 
